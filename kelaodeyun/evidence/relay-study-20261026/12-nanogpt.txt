@@ -1,0 +1,122 @@
+- generic: 收集
+- generic: 个人收藏
+- textbox "搜索 / 新建收集"
+- img "Toggle Drag Area"
+- generic: 创建悬浮图
+- document
+- document:
+  - button:
+- alert
+- navigation:
+  - link "Nano GPT logo NanoGPT":
+    - /url: /
+    - img "Nano GPT logo"
+    - generic: NanoGPT
+  - button "Recent" [expanded]:
+    - text: Recent
+  - combobox "Search conversations"
+  - generic: Search
+  - paragraph: No conversations yet
+  - paragraph: Create
+  - link "Chat ⌥C":
+    - /url: /
+    - generic: Chat
+    - generic: ⌥C
+  - link "Studio ⌥M":
+    - /url: /studio
+    - generic: Studio
+    - generic: ⌥M
+  - paragraph: Explore
+  - link "Models":
+    - /url: /models
+    - generic: Models
+  - link "Pricing":
+    - /url: /pricing
+    - generic: Pricing
+  - link "AI Apps":
+    - /url: /applications
+    - generic: AI Apps
+  - link "Blog":
+    - /url: /blog
+    - generic: Blog
+  - paragraph: Library
+  - link "Gallery":
+    - /url: /gallery
+    - generic: Gallery
+  - link "Workspace":
+    - /url: /workspace
+    - generic: Workspace
+  - link "Usage":
+    - /url: /usage
+    - generic: Usage
+  - link "API":
+    - /url: /api
+    - generic: API
+  - link "Suggestions and bugs":
+    - /url: /feedback
+    - generic: Suggestions and bugs
+  - button "Search ⌘K":
+    - generic: Search
+    - generic: ⌘K
+  - link "Open NanoGPT on X":
+    - /url: https://x.com/NanoGPTcom
+  - link "Open NanoGPT Discord":
+    - /url: https://discord.gg/KaQt8gPG6V
+  - link "Terms":
+    - /url: /legal/terms-of-service
+  - paragraph: "|"
+  - link "Privacy":
+    - /url: /legal/privacy-policy
+  - paragraph: "|"
+  - link "Refunds":
+    - /url: /legal/refund-policy
+  - button "Anonymous $0.00":
+    - generic: A
+    - paragraph: Anonymous
+    - generic: $0.00
+  - link "Sign in":
+    - /url: /auth/signin
+    - generic: Sign in
+  - button "Open updates":
+  - link "Open support":
+    - /url: /support
+  - button "Switch to light mode":
+  - button "Enable notifications":
+  - button "Enter focus mode":
+  - link "Open settings":
+    - /url: /settings
+  - button "Collapse navigation":
+- main:
+  - button "Use incognito":
+  - img "NanoGPT logo"
+  - heading "How can I help you?" [level=1]
+  - paragraph:
+    - text: ChatGPT, Claude, Gemini and hundreds more AI models in one place.
+    - text: Pay less, keep your chats on your device, and always access the newest models.
+    - button "Watch the 3-minute tour"
+  - textbox "Message input" [active]:
+    - /placeholder: Ask anything
+  - button "Voice input":
+  - button "Add files":
+  - generic: "Current model: Free model"
+  - button "Select text model":
+    - img "nanogpt"
+    - generic: Chat·
+    - generic: Free model
+  - button "Thinking isn't available for this model" [disabled]:
+  - button "Web search, off. Click to change.":
+  - button "Tools aren't available for this model":
+  - button "Setup":
+  - separator "Resize message box"
+  - button "Explore":
+    - generic: Explore
+  - region "Chat and create with hundreds of AI models":
+    - heading "Chat and create with hundreds of AI models" [level=2]
+    - paragraph: Chat, write, code, and create images and video with ChatGPT, Claude, Gemini and hundreds of other AI models. Pay as you go and keep your chat history on your device. Developers can build with an OpenAI-compatible API.
+    - list:
+      - link "Browse AI models":
+        - /url: /models
+      - link "Pricing":
+        - /url: /pricing
+      - link "API documentation":
+        - /url: /api

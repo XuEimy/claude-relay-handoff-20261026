@@ -1,0 +1,181 @@
+- link "PackyAPI":
+  - /url: /
+  - img "PackyAPI"
+- link "Developer Ecosystem Partnership":
+  - /url: /partners
+  - generic: Developer Ecosystem Partnership
+- link "AI Creator Partnership":
+  - /url: https://packymellc.feishu.cn/share/base/form/shrcnFWgVyDHXkV895z6JuulW8f
+  - generic: AI Creator Partnership
+- button "System Notice":
+- generic: 99+
+- button "Switch Theme":
+- button "Change Language":
+- link "Sign in":
+  - /url: /login
+  - button "Sign in":
+    - generic: Sign in
+- link "Sign up":
+  - /url: /register
+  - button "Sign up":
+    - generic: Sign up
+- main:
+  - generic "Homepage content":
+    - generic: Enterprise AI control plane
+    - heading "The unified LLM API gateway Connecting global AI capacity" [level=1]:
+      - text: The unified LLM API
+      - text: gateway
+      - text: Connecting global AI capacity
+    - generic: Connect to global foundation models with a unified domain, key, and risk controls to stay observable, scalable, and governed.
+    - generic: Swap the base URL to start integrating
+    - textbox "Swap the base URL to start integrating":
+      - /placeholder: ""
+      - text: https://www.packyapi.ai
+    - listbox:
+      - option: /v1/chat/completions
+      - option: /v1/responses
+      - option: /v1/messages
+      - option: /v1beta/models
+      - option: /v1/embeddings
+      - option: /v1/rerank
+      - option: /v1/images/generations
+      - option: /v1/images/edits
+      - option: /v1/images/variations
+      - option: /v1/audio/speech
+      - option: /v1/audio/transcriptions
+      - option: /v1/audio/translations
+      - option: /v1/chat/completions
+      - option: /v1/responses
+      - option: /v1/messages
+      - option: /v1beta/models
+      - option: /v1/embeddings
+      - option: /v1/rerank
+      - option: /v1/images/generations
+      - option: /v1/images/edits
+      - option: /v1/images/variations
+      - option: /v1/audio/speech
+      - option: /v1/audio/transcriptions
+      - option: /v1/audio/translations
+    - button "Copy base URL":
+      - img "copy":
+    - button "play Get Key":
+      - img "play":
+      - generic: Get Key
+    - button "file Documentation":
+      - img "file":
+      - generic: Documentation
+    - button "external_open Business":
+      - img "external_open":
+      - generic: Business
+    - generic: 30+
+    - generic: Supported models
+    - generic: 99.9%
+    - generic: SLA availability
+    - generic: "7"
+    - generic: Regional PoPs
+    - img "activity":
+    - generic: Real-time scheduling
+    - generic: Dynamically switch by health and latency weighting to guarantee quick responses.
+    - img "histogram":
+    - generic: Unified observability
+    - generic: Centralize calls, spend, and anomalies so teams stay informed.
+    - img "cloud_stroked":
+    - generic: Intelligent rate limiting
+    - generic: Prioritize critical workloads with multidimensional policies to avoid sudden congestion.
+    - text: Value
+    - heading "Make large models reliable for your teams" [level=2]
+    - paragraph: From access control and cost transparency to global routing, Packy API delivers end-to-end AI infrastructure.
+    - img "activity":
+    - heading "Unified entry, instant connectivity" [level=3]
+    - paragraph: Connect every model provider with a single domain and key, while failover keeps your workloads running.
+    - img "histogram":
+    - heading "Full-stack observability & risk controls" [level=3]
+    - paragraph: Track usage, errors, and spend in real time, and configure throttles, alerts, and guardrails with one click.
+    - img "cloud_stroked":
+    - heading "Elastic scaling and cost control" [level=3]
+    - paragraph: Balance quotas across providers, route intelligently, and orchestrate batch jobs to optimize cost and concurrency.
+    - img "layers":
+    - heading "Built for developers" [level=3]
+    - paragraph: Compatible with the OpenAI API, with SDKs, examples, and a web playground to accelerate iteration.
+    - text: Workflow
+    - heading "Build your AI control plane in three steps" [level=2]
+    - img "layers":
+    - generic: "01"
+    - heading "Configure access" [level=3]
+    - paragraph: Create channels, set keys and quotas, and import model catalogs from the console.
+    - img "activity":
+    - generic: "02"
+    - heading "Smart dispatch" [level=3]
+    - paragraph: Pick the best channel automatically using health, latency, and price signals with seamless failover.
+    - img "histogram":
+    - generic: "03"
+    - heading "Continuous insight" [level=3]
+    - paragraph: Monitor trends, spend, and failure rates from dashboards, and trigger alerts to keep SLOs safe.
+    - text: Ecosystem
+    - heading "Deep integration with leading model providers" [level=2]
+    - paragraph: Stay on a unified protocol, switch or extend models quickly, and plug into the newest ecosystem anytime.
+    - img "MoonshotAI"
+    - img "OpenAI"
+    - img "Grok"
+    - img "Zhipu"
+    - img "Volcengine"
+    - img "Cohere"
+    - img "Claude"
+    - img "Gemini"
+    - img "Suno"
+    - img "Minimax"
+    - img "Wenxin"
+    - img "Spark"
+    - img "Qingyan"
+    - img "DeepSeek"
+    - img "Qwen"
+    - img "Midjourney"
+    - img "Grok"
+    - img "AzureAI"
+    - img "Hunyuan"
+    - img "Xinference"
+    - generic: 30+
+    - generic: Supported models
+    - heading "Operationalize frontier models across your business" [level=2]
+    - paragraph: Connect Packy API now to unify access policies, manage spend, and deliver reliable, scalable intelligence in your products.
+    - button "play Get started now":
+      - img "play":
+      - generic: Get started now
+    - button "file View documentation":
+      - img "file":
+      - generic: View documentation
+    - button "external_open Business":
+      - img "external_open":
+      - generic: Business
+    - link "Documentation":
+      - /url: https://docs.packyapi.ai
+    - link "Business":
+      - /url: https://packymellc.feishu.cn/share/base/form/shrcn0MQ2rxSWdr2N9WKT5cyQ3n
+    - link "About":
+      - /url: /about
+    - link "Contact Us":
+      - /url: mailto:support@packyme.com
+    - link "Terms of Service":
+      - /url: /terms
+    - link "Usage Policy":
+      - /url: /usage-policy
+    - link "Supported Countries and Regions":
+      - /url: /supported-regions
+    - link "Service-Specific Terms":
+      - /url: /service-specific-terms
+    - generic: © 2026 PackyMe. All rights reserved
+    - img "branch":
+    - generic: v1.0.238
+    - generic: Designed & Developed by
+    - link "PackyMe":
+      - /url: https://www.packyme.com
+    - link "Telegram":
+      - /url: https://t.me/Packycode
+- generic: 收集
+- generic: 个人收藏
+- textbox "搜索 / 新建收集"
+- img "Toggle Drag Area"
+- generic: 创建悬浮图
+- document
+- document:
+  - button:

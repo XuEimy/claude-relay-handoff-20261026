@@ -1,0 +1,369 @@
+- text: 🎉 新版站点已上线 —
+- strong: 新用户
+- text: 请在
+- link "v2.cloudmist.cloud":
+  - /url: https://v2.cloudmist.cloud/register
+- text: 注册使用，本站教程均以新站地址为准 ·
+- strong: 老用户
+- text: 账号已迁移完成，用原用户名/邮箱 + 原密码可直接登录
+- link "新站":
+  - /url: https://v2.cloudmist.cloud/login
+- text: （登不上请在用户名后加 _82350），原站余额可继续在
+- link "api.cloudmist.cloud":
+  - /url: https://api.cloudmist.cloud/login
+- text: 用完，新站需重建令牌并改用新站 base_url
+- banner:
+  - link "云岚API 云岚API":
+    - /url: /
+    - img "云岚API"
+    - generic: 云岚API
+  - navigation:
+    - link "首页":
+      - /url: /
+    - link "模型价格":
+      - /url: /models.html
+    - link "GPT 代充":
+      - /url: /subscription.html
+    - link "控制台":
+      - /url: https://v2.cloudmist.cloud/console
+    - link "模型广场":
+      - /url: https://v2.cloudmist.cloud/pricing
+    - link "联系我们":
+      - /url: https://v2.cloudmist.cloud/customersupport
+    - link "接入教程":
+      - /url: /getting-started.html
+    - link "接口地址":
+      - /url: /base-url.html
+  - button "切换主题":
+  - link "登录":
+    - /url: https://v2.cloudmist.cloud/login
+  - link "注册试用":
+    - /url: https://v2.cloudmist.cloud/register
+- generic: 模型接入 · 使用教程
+- heading "云岚API — 国内直连 API 中转站" [level=1]
+- paragraph:
+  - text: 用云岚API 接入 Claude、GPT、Gemini、DeepSeek 等模型系列，支持国内网络直连与人民币充值按量计费。先核对
+  - strong: 模型权限、接口协议和试用条件
+  - text: ，再用自己的任务测试。
+- link "注册并查看测试额度":
+  - /url: https://v2.cloudmist.cloud/register
+- link "登录控制台":
+  - /url: https://v2.cloudmist.cloud/login
+- link "实时价格表":
+  - /url: https://v2.cloudmist.cloud/pricing
+- paragraph:
+  - text: 本站为云岚API 主站，提供接入教程、计费与选型说明；注册、充值和调用在新业务站 v2.cloudmist.cloud 完成。
+  - link "新用户注册":
+    - /url: https://v2.cloudmist.cloud/register
+  - text: ·
+  - link "老用户使用原站余额":
+    - /url: https://api.cloudmist.cloud/login
+- paragraph:
+  - text: 模型与价格以
+  - link "价格页":
+    - /url: https://v2.cloudmist.cloud/pricing
+  - text: 实时数据为准
+- generic: 多模型接入
+- text: 可用型号以控制台为准
+- generic: OpenAI 兼容
+- text: 核对地址、Key 与模型 ID
+- generic: 人民币计费
+- text: 按 token 用量结算，无月费
+- generic: 试用额度
+- text: 查看当前额度与领取条件
+- list:
+  - listitem: Claude Opus · Sonnet · Haiku
+  - listitem: GPT 4o · 4.1 · o系列
+  - listitem: Gemini 2.5 Pro · Flash
+  - listitem: DeepSeek V3 · R1
+  - listitem: Qwen 通义千问
+  - listitem: 豆包 Doubao
+  - listitem: GLM 智谱
+  - listitem: Llama 开源系
+  - listitem: Claude Opus · Sonnet · Haiku
+  - listitem: GPT 4o · 4.1 · o系列
+  - listitem: Gemini 2.5 Pro · Flash
+  - listitem: DeepSeek V3 · R1
+  - listitem: Qwen 通义千问
+  - listitem: 豆包 Doubao
+  - listitem: GLM 智谱
+  - listitem: Llama 开源系
+- region "先选你要完成的事":
+  - heading "先选你要完成的事" [level=2]
+  - heading "第一次接入 API" [level=3]
+  - paragraph: 从新站注册、创建 Key 到第一次请求，先确认工具使用的协议。
+  - paragraph:
+    - link "查看新手接入步骤":
+      - /url: /getting-started.html
+    - text: ·
+    - link "核对接口地址":
+      - /url: /base-url.html
+  - heading "验证模型能力与账单" [level=3]
+  - paragraph: 能返回文字只是第一步。用自己的任务检查能力、稳定性和扣费记录。
+  - paragraph:
+    - link "按清单测试中转站":
+      - /url: /bianbie-zhenjia.html
+    - text: ·
+    - link "了解逆向与官转":
+      - /url: /nixiang-vs-guanzhuan.html
+  - heading "调用报错或结果异常" [level=3]
+  - paragraph: 保留错误码和请求时间，区分认证、限流、模型权限与超时。
+  - paragraph:
+    - link "按报错现象排查":
+      - /url: /troubleshoot.html
+    - text: ·
+    - link "核对用量与账单":
+      - /url: /billing.html
+- generic: QUICK START
+- heading "三步接入云岚API" [level=2]
+- paragraph: 从注册到跑通第一条请求，通常只需要几分钟。
+- generic: "1"
+- heading "注册账号" [level=3]
+- paragraph:
+  - text: 打开
+  - link "云岚API 注册入口":
+    - /url: https://v2.cloudmist.cloud/register
+  - text: ，按页面提示完成邮箱验证。登录后确认试用额度、领取条件和模型权限，再开始测试。
+- generic: "2"
+- heading "创建 API Key" [level=3]
+- paragraph:
+  - link "登录控制台":
+    - /url: https://v2.cloudmist.cloud/login
+  - text: ，进入「令牌」页面新建一个 Key 并复制保存。Key 可以分项目创建、单独限额。
+- generic: "3"
+- heading "配置并测试接口" [level=3]
+- paragraph:
+  - text: 按工具使用的协议配置地址、认证与模型 ID。Chat Completions、Responses 和 Messages 的请求格式不同，先用一条短请求核对响应和账单。具体配置见
+  - link "接口地址教程":
+    - /url: /base-url.html
+  - text: 。
+- generic: quickstart.py — 兼容 OpenAI SDK
+- text: from openai import OpenAI client = OpenAI( base_url=
+- emphasis: "\"https://v2.cloudmist.cloud/v1\""
+- text: ", # 云岚API 接入地址 api_key="
+- emphasis: "\"sk-你的Key\""
+- text: ) resp = client.chat.completions.create( model=
+- emphasis: "\"替换为当前可用的模型ID\""
+- text: ", # 从价格页复制支持 Chat Completions 的调用 ID messages=[{\"role\": \"user\", \"content\": \"你好\"}] ) print(resp.choices[0].message.content)"
+- generic: MODELS
+- heading "支持的模型系列" [level=2]
+- paragraph:
+  - text: 下面列出常见模型系列与用途。具体型号、分组权限、支持协议及价格以当前控制台为准，调用前查看
+  - link "模型价格表":
+    - /url: https://v2.cloudmist.cloud/pricing
+  - text: 。
+- table:
+  - rowgroup:
+    - row "模型系列 代表模型 常见用途":
+      - columnheader "模型系列"
+      - columnheader "代表模型"
+      - columnheader "常见用途"
+  - rowgroup:
+    - row "Claude 系列 Claude Opus / Sonnet / Haiku 代码生成、长文写作、Agent 工作流":
+      - cell "Claude 系列":
+        - strong: Claude 系列
+      - cell "Claude Opus / Sonnet / Haiku"
+      - cell "代码生成、长文写作、Agent 工作流"
+    - row "GPT 系列 GPT-4o、GPT-4.1、o 系列推理模型 通用对话、多模态理解、函数调用":
+      - cell "GPT 系列":
+        - strong: GPT 系列
+      - cell "GPT-4o、GPT-4.1、o 系列推理模型"
+      - cell "通用对话、多模态理解、函数调用"
+    - row "Gemini 系列 Gemini 2.5 Pro / Flash 超长上下文、图文视频理解":
+      - cell "Gemini 系列":
+        - strong: Gemini 系列
+      - cell "Gemini 2.5 Pro / Flash"
+      - cell "超长上下文、图文视频理解"
+    - row "DeepSeek DeepSeek-V3 / R1 高性价比中文任务与深度推理":
+      - cell "DeepSeek":
+        - strong: DeepSeek
+      - cell "DeepSeek-V3 / R1"
+      - cell "高性价比中文任务与深度推理"
+    - row "国产与开源 Qwen、豆包、GLM、Llama 等 中文场景、成本敏感型业务":
+      - cell "国产与开源":
+        - strong: 国产与开源
+      - cell "Qwen、豆包、GLM、Llama 等"
+      - cell "中文场景、成本敏感型业务"
+- generic: WHY US
+- heading "为什么从这里接入云岚API" [level=2]
+- paragraph: 面向国内开发者的 AI 大模型 API 中转与聚合服务，解决的就是「能连上、付得了、算得清」三件事。
+- generic: 🔑 集中管理多模型接入
+- paragraph: 在云岚API 控制台管理 Key、模型权限与调用日志。切换模型时，同时核对协议、参数和可用能力；聊天请求成功不代表图片、工具调用或其他端点也已验证。
+- text: ① 核对客户端与协议
+- text: ② 配对地址和认证
+- text: ③ 复制当前模型 ID
+- text: ④ 验证输出、延迟与扣费
+- generic: 🌐
+- generic: 国内直连，免自备网络
+- paragraph: 服务器侧直连上游通道，国内环境直接调用，无需额外网络配置。
+- generic: 💴
+- generic: 人民币充值，按量计费
+- paragraph: 支持人民币在线充值，按实际 token 用量扣费，无月费、无最低消费，账单逐条可查。
+- generic: 🧪
+- generic: 先测后充，风险可控
+- paragraph: 注册后查看试用额度与领取条件，每日签到还可续领（以页面显示为准），先在自己业务里跑通质量和延迟，确认满意再充值。
+- generic: BILLING
+- heading "云岚API 充值与计费说明" [level=2]
+- paragraph:
+  - text: 注册后
+  - link "登录控制台":
+    - /url: https://v2.cloudmist.cloud/login
+  - text: ，在「钱包 → 充值」完成人民币充值，余额按调用量实时扣减。每个模型的单价与倍率在
+  - link "价格页":
+    - /url: https://v2.cloudmist.cloud/pricing
+  - text: 公开可查，调用明细逐条留痕，方便对账与成本核算。充值或对账遇到问题，可随时联系
+  - link "客服支持":
+    - /url: https://v2.cloudmist.cloud/customersupport
+  - text: 。
+- generic: 支付宝/微信人民币支付 · 无需外币卡
+- generic: 按量扣费 · 无月费无门槛
+- generic: 明细留痕 · 每笔调用可查
+- generic: GUIDES
+- heading "云岚API 教程与评测" [level=2]
+- paragraph: 从注册充值到接入排错、选型避坑，接入 API 中转前你需要知道的都在这里。
+- link "Vercel AI SDK 怎么接第三方 API？消息转换与前端流配对":
+  - /url: /vercel-ai-sdk-chat.html
+- link "API Key 环境变量读不到？从应用进程、dotenv 到 Docker 排查":
+  - /url: /api-key-env-not-loading.html
+- link "API 提示 context_length_exceeded 怎么办？发送前预算与裁剪验收":
+  - /url: /api-context-window-budget.html
+- link "Open WebUI 怎么接 API？Docker 地址、模型可见性与聊天检查":
+  - /url: /open-webui-api-connection.html
+- link "LangChain ChatOpenAI 怎么接第三方 API？消息输入与返回结果验收":
+  - /url: /langchain-chatopenai-api.html
+- link "API 超时后要不要重试？SDK 自动重试与重复请求排查":
+  - /url: /api-timeout-retry.html
+- link "Dify 怎么接第三方 API？模型供应商配置与应用选模":
+  - /url: /dify-openai-compatible.html
+- link "n8n 怎么调用聊天 API？HTTP Request 配置、取值与工作流验收":
+  - /url: /n8n-http-request-api.html
+- link "Cherry Studio 怎么接第三方 API？添加模型与聊天验收":
+  - /url: /cherry-studio-api-setup.html
+- link "图片生成 API 怎么保存结果？Base64 解码、下载与文件验收":
+  - /url: /image-generation-save.html
+- link "Rerank API 怎么接？候选文档、结果映射与重排序验收":
+  - /url: /rerank-api-results.html
+- link "API 回答被截断怎么办？结束原因、输出上限与补齐验收":
+  - /url: /api-output-truncated.html
+- link "录音转文字 API 怎么接？文件上传、时间戳与说话人":
+  - /url: /audio-transcription-api.html
+- link "OpenAI Speech 音频怎么保存播放？格式与完整性验收":
+  - /url: /text-to-speech-api.html
+- link "网页调用大模型 API 报 CORS？按预检、后端代理和 Key 边界排查":
+  - /url: /browser-api-cors.html
+- link "API 多轮对话怎么接？保存历史、发送上下文与状态核对":
+  - /url: /api-conversation-history.html
+- link "API 怎么读 PDF？文件输入、扫描页与页码证据验收":
+  - /url: /pdf-input-api.html
+- link "Batch API 结果怎么核对？custom_id 配对、缺项与失败补偿":
+  - /url: /batch-api-results.html
+- link "API 流式输出怎么接？SSE 分帧、文本组装与完成判断":
+  - /url: /api-streaming-sse.html
+- link "API 怎么传图片？图片 URL、Base64 与识图验收":
+  - /url: /image-input-api.html
+- link "Embeddings 向量怎么做相似度检索？从索引配对到结果验收":
+  - /url: /embeddings-similarity-search.html
+- link "API 怎么返回固定 JSON 字段？JSON mode、结构化输出与验收":
+  - /url: /structured-output-json.html
+- link "API 返回 tool_calls 后怎么办？执行函数与回传结果的完整循环":
+  - /url: /tool-calls-workflow.html
+- link "Claude Code 长任务怎么接着做？压缩、换会话与交接验收":
+  - /url: /claude-code-session-handoff.html
+- link "DeepSeek API 怎么开通？官方 Key、余额与首次调用教程":
+  - /url: /deepseek-api-first-call.html
+- link "Codex 额度怎么看？Plus 用量、重置时间与 API 余额核对":
+  - /url: /codex-usage-limits.html
+- link "Claude API 缓存为什么没命中？读取为 0 的排查":
+  - /url: /claude-api-cache-miss.html
+- link "Codex 流式中断怎么排查？stream disconnected 分场景诊断":
+  - /url: /codex-stream-disconnected.html
+- link "Claude Code 一个月多少钱？月预算计算器与情景估算":
+  - /url: /claude-code-monthly-budget.html
+- link "大模型 API 价格总表(2026):Claude/GPT/Gemini 等 50 个主流模型国内调用参考价一览":
+  - /url: /models.html
+- link "云岚API怎么充值？1 分钟图文教程：汇率、到账与开始调用（2026 最新）":
+  - /url: /topup.html
+- link "云岚API怎么用？注册、创建 Key 到第一次 API 调用（2026）":
+  - /url: /getting-started.html
+- link "Claude API 国内怎么用？3 种接入方法：SDK / Cursor / Claude Code 配置教程（2026 最新）":
+  - /url: /claude-setup.html
+- link "base_url 怎么填？/v1、认证与 Python/Node/curl 接入示例（2026）":
+  - /url: /base-url.html
+- link "API 调用报错怎么排查？401、429、余额不足、无可用渠道与超时（2026）":
+  - /url: /troubleshoot.html
+- link "API 计费怎么算？输入、输出、缓存与账单核对（2026）":
+  - /url: /billing.html
+- link "API中转站怎么测试？模型能力、稳定性与计费验收（2026）":
+  - /url: /bianbie-zhenjia.html
+- link "Claude Code 安装教程：国内配置第三方 API 接入（2026）":
+  - /url: /claude-code-guonei.html
+- link "Cursor 自定义 API Key 怎么用？套餐、Tab 边界与成本核对（2026）":
+  - /url: /cursor-shengqian.html
+- link "逆向API 和官转有什么区别？怎么选不踩坑（2026 科普）":
+  - /url: /nixiang-vs-guanzhuan.html
+- link "OpenRouter 国内怎么用？注册、支付宝充值与替代方案（2026）":
+  - /url: /openrouter-pauti.html
+- link "API中转站推荐怎么选？选型评分卡与避坑清单（2026）":
+  - /url: /xuanxing-zhinan.html
+- link "Codex CLI 国内怎么用？API Key 中转配置教程（2026）":
+  - /url: /codex-cli-guonei.html
+- link "Gemini CLI 国内怎么用？安装、API Key 配置与第三方接入教程（2026）":
+  - /url: /gemini-cli-guonei.html
+- link "OpenAI API Key 怎么获取？国内调用 ChatGPT API 教程（2026）":
+  - /url: /openai-api-guonei.html
+- generic: GPT PLUS
+- heading "不只是 API，还有 GPT 代充" [level=2]
+- paragraph: 没有境外信用卡，也能开通 ChatGPT Plus / Pro / Team，支付宝、微信付人民币。
+- generic: ChatGPT Plus 代充 · 人民币代开通会员
+- paragraph: 全程不需要提供账号密码，Plus 最快 1 小时到账，未成功开通全额退款，Team 与 Pro 支持对公转账并开具发票。
+- link "查看报价与流程 →":
+  - /url: /subscription.html
+- generic: FAQ
+- heading "常见问题" [level=2]
+- paragraph: 关于云岚API 的注册、充值与接入，最常被问到的几件事。
+- heading "Q 主站、新业务站和老站有什么区别？" [level=3]
+- paragraph: 云岚API主站（www.cloudmist.cloud）提供接入教程、计费与选型说明；新业务站v2.cloudmist.cloud负责注册、充值和调用。老用户原站余额继续在api.cloudmist.cloud使用，新站需重新创建API Key，两站Key不通用。
+- heading "Q 云岚API 怎么注册账号？" [level=3]
+- paragraph:
+  - text: 打开
+  - link "注册入口":
+    - /url: https://v2.cloudmist.cloud/register
+  - text: ，按页面提示完成邮箱验证。注册后在控制台查看试用额度、领取条件和可用模型；是否需要领取操作以页面当前显示为准。
+- heading "Q 云岚API 怎么充值？" [level=3]
+- paragraph:
+  - link "登录":
+    - /url: https://v2.cloudmist.cloud/login
+  - text: 后进入控制台的「钱包」页面，选择充值金额完成人民币支付即可，余额按 token 用量扣费，用多少扣多少。
+- heading "Q 如何获取 API Key？" [level=3]
+- paragraph: 控制台左侧「令牌」页面点击新建，即可生成 sk- 开头的 Key。建议按项目分别创建，单独设置额度上限，泄露时可随时吊销。
+- heading "Q 云岚API 支持哪些模型？" [level=3]
+- paragraph:
+  - text: 可查看 Claude、GPT、Gemini、DeepSeek、Qwen、豆包等模型系列。具体可用型号、分组权限和协议支持会变化，完整列表见
+  - link "价格页":
+    - /url: https://v2.cloudmist.cloud/pricing
+  - text: 。
+- heading "Q 和直接用各家官方 API 有什么区别？" [level=3]
+- paragraph: 区别在于本站提供国内直连网络、人民币付款和统一的 OpenAI 兼容接口，省去多平台开户、外币支付和网络配置的成本。模型实际效果不用听宣传——注册后用测试额度在你自己的业务里跑一遍，满意再充值。
+- heading "Q 遇到问题找谁？" [level=3]
+- paragraph:
+  - text: 使用、充值、接入相关问题都可以通过
+  - link "客服支持页":
+    - /url: https://v2.cloudmist.cloud/customersupport
+  - text: 提交，也可以先查看
+  - link "文档教程":
+    - /url: https://v2.cloudmist.cloud/about
+  - text: ，覆盖了常见的接入与报错场景。
+- link "现在注册，几分钟内跑通第一条请求 →":
+  - /url: https://v2.cloudmist.cloud/register
+- text: 本站为
+- strong: 云岚API 注册、登录与充值入口
+- text: 站点 · 页面所列模型与价格以控制台实时数据为准 · 更新于 2026-10-26
+- text: Claude、GPT、Gemini 等名称为各自权利人商标，本站为独立第三方 API 中转/聚合服务，与上述厂商无隶属或授权关系。
+- generic: 收集
+- generic: 个人收藏
+- textbox "搜索 / 新建收集"
+- img "Toggle Drag Area"
+- generic: 创建悬浮图
+- document
+- document:
+  - button:

@@ -1,0 +1,28 @@
+{
+  "name": "kelaodeyun",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env server.mjs",
+    "build": "vite build && node scripts/prepare-sites-build.mjs",
+    "preview": "vite preview",
+    "test:sites": "node --test tests/sites-worker.test.mjs",
+    "start": "NODE_ENV=production node --env-file-if-exists=.env server.mjs",
+    "test": "node --test tests/api.test.mjs"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "5.0.4",
+    "alipay-sdk": "^4.14.0",
+    "lucide-react": "^0.468.0",
+    "qrcode": "^1.5.4",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "vite": "6.4.2"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.10"
+  }
+}

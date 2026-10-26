@@ -1,0 +1,1 @@
+Local attachment interaction test. No network upload.

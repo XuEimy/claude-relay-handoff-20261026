@@ -1,0 +1,7 @@
+# Set SITE_DOMAIN to the purchased domain. Run Node on loopback port 4174.
+{$SITE_DOMAIN} {
+    reverse_proxy 127.0.0.1:4174 {
+        flush_interval -1
+    }
+    encode gzip
+}

@@ -1,0 +1,54 @@
+- banner:
+  - navigation:
+    - link "logo DMXAPI官网：中国大模型API聚合平台":
+      - /url: /
+      - img "logo"
+      - generic "DMXAPI官网：中国大模型API聚合平台"
+    - navigation:
+      - link "🔶工作台":
+        - /url: /dashboard
+      - link "💰模型价格":
+        - /url: /rmb
+      - navigation:
+        - list:
+          - button "🐍开发者文档":
+            - text: 🐍开发者文档
+      - link "❓问题":
+        - /url: /dmxapi/iframe/842f36fb-5d48-4b19-be72-217bb063a458
+      - link "📗更新":
+        - /url: /dmxapi/iframe/222d7ede-55d2-41d8-a4e2-f0bc02758962
+      - link "🎫开发票/对公打款":
+        - /url: /fapiao
+      - navigation:
+        - list:
+          - button "🔧API 工具":
+            - text: 🔧API 工具
+      - link "🐛报错分析":
+        - /url: https://errs.dmxapi.cn/
+      - link "👏WAIC参展":
+        - /url: /dmxapi/iframe/b9de31a6-e731-4885-a57e-70a27ac51696
+      - link "👥招聘":
+        - /url: https://doc.dmxapi.cn/joinus.html
+      - link "✒发布模型":
+        - /url: https://doc.weixin.qq.com/smartsheet/form/1_wpKjyGEAAAB7m-QWTIlMotbUfT4x3lXg_d19882
+    - button "通知":
+      - generic: "21"
+    - button "更改语言":
+      - generic: 更改语言
+    - button "打开主题设置":
+    - button "登录"
+- iframe
+- contentinfo:
+  - text: © 2026 DMXAPI官方网站 All Rights Reserved. |
+  - link "沪ICP备2023014280号-14":
+    - /url: https://beian.miit.gov.cn/
+  - text: "| 本站API适用于测试和体验目的，请自觉遵守您当地法律法规，切勿用于非法用途，本站不承担任何法律责任。"
+- region "Notifications alt+T"
+- generic: 收集
+- generic: 个人收藏
+- textbox "搜索 / 新建收集"
+- img "Toggle Drag Area"
+- generic: 创建悬浮图
+- document:
+  - button:
+- document

@@ -1,0 +1,388 @@
+- dialog:
+  - button "关闭":
+  - button "home_popup_202610190000_2881a768995a748acd49d282"
+- generic: Get
+- link "5% off service fee":
+  - /url: /platform/pay-as-you-go?from=topflag
+- generic: on top-up, and exclusive gifts for
+- link "referring friends":
+  - /url: "#"
+- button "Close notification":
+- button "Open navigation":
+- link:
+  - /url: /
+- textbox "搜索"
+- link:
+  - /url: https://github.com/orgs/ZenMux/projects/2
+- button "登录":
+  - generic: 登录
+- heading "以禅意的清晰驾驭 AI： 万千模型，一个网关，统一接入。 结果不佳？我们赔付！" [level=1]:
+  - generic: 以禅意的清晰驾驭 AI：
+  - generic: 万千模型，一个网关，统一接入。
+  - text: 结果不佳？我们赔付！
+- textbox "输入提示词，对比模型速度与质量。"
+- 'link "试用 Google: Gemini 4 Argon"':
+  - /url: /platform/chat?model=google%2Fgemini-4-argon
+  - text: "试用 Google: Gemini 4 Argon"
+- link "探索模型":
+  - /url: /models
+  - button "探索模型":
+    - generic: 探索模型
+- link "API 请求":
+  - /url: https://zenmux.ai/docs/guide/quickstart.html
+  - button "API 请求":
+    - generic: API 请求
+- button "Agent Skills":
+  - generic: Agent Skills
+- generic: 全部 Skills
+- generic: zenmux-feedback
+- generic: zenmux-setup
+- generic: zenmux-usage
+- generic: zenmux-context
+- generic: $
+- generic: npx skills add ZenMux/skills
+- link "Token 处理量（百万） 1 1 1 1 2 2 2 2 1 1 1 1 0 0 0 0 5 5 5 5 4 4 4 4 0 0 0 0 4 4 4 4":
+  - /url: /analytics
+  - generic: Token 处理量（百万）
+  - generic: 1 1
+  - generic: 1 1
+  - generic: 2 2
+  - generic: 2 2
+  - generic: 1 1
+  - generic: 1 1
+  - generic: 0 0
+  - generic: 0 0
+  - generic: 5 5
+  - generic: 5 5
+  - generic: 4 4
+  - generic: 4 4
+  - generic: 0 0
+  - generic: 0 0
+  - generic: 4 4
+  - generic: 4 4
+- link "保险赔付金额（美元） 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 6 6 6 6 4 4 4 4 9 9 9 9":
+  - /url: /analytics
+  - generic: 保险赔付金额（美元）
+  - generic: 0 0
+  - generic: 0 0
+  - generic: 0 0
+  - generic: 0 0
+  - generic: 0 0
+  - generic: 0 0
+  - generic: 1 1
+  - generic: 1 1
+  - generic: 0 0
+  - generic: 0 0
+  - generic: 6 6
+  - generic: 6 6
+  - generic: 4 4
+  - generic: 4 4
+  - generic: 9 9
+  - generic: 9 9
+- generic: 领先 AI 模型与无缝集成
+- list:
+  - link "icon-0":
+    - /url: /anthropic
+    - img "icon-0"
+  - link "icon-1":
+    - /url: /deepseek
+    - img "icon-1"
+  - link "icon-2":
+    - /url: /x-ai
+    - img "icon-2"
+  - link "icon-3":
+    - /url: /openai
+    - img "icon-3"
+  - link "icon-4":
+    - /url: /google
+    - img "icon-4"
+  - link "icon-5":
+    - /url: /minimax
+    - img "icon-5"
+  - link "icon-6":
+    - /url: /moonshotai
+    - img "icon-6"
+  - link "icon-7":
+    - /url: /z-ai
+    - img "icon-7"
+  - link "icon-8":
+    - /url: /qwen
+    - img "icon-8"
+  - link "icon-9":
+    - /url: /baidu
+    - img "icon-9"
+  - link "icon-10":
+    - /url: /volcengine
+    - img "icon-10"
+  - link "icon-11":
+    - /url: /kuaishou
+    - img "icon-11"
+  - link:
+    - /url: /anthropic
+  - link:
+    - /url: /deepseek
+  - link:
+    - /url: /x-ai
+  - link:
+    - /url: /openai
+  - link:
+    - /url: /google
+  - link:
+    - /url: /minimax
+  - link:
+    - /url: /moonshotai
+  - link:
+    - /url: /z-ai
+  - link:
+    - /url: /qwen
+  - link:
+    - /url: /baidu
+  - link:
+    - /url: /volcengine
+  - link:
+    - /url: /kuaishou
+- list:
+  - img "icon-0"
+  - img "icon-1"
+  - img "icon-2"
+  - img "icon-3"
+  - img "icon-4"
+  - img "icon-5"
+  - img "icon-6"
+  - img "icon-7"
+  - img "icon-8"
+  - img "icon-9"
+  - img "icon-10"
+  - img "icon-11"
+  - img "icon-12"
+  - img "icon-13"
+  - img "icon-14"
+- heading "为什么选择 ZenMux？" [level=2]
+- img "一个账户，统一访问所有顶级 AI 模型"
+- generic: 一个账户，统一访问所有顶级 AI 模型
+- generic: 不再需要管理多个账户、密钥和协议。ZenMux 为您提供一个账户、一套 API，直连所有领先的 AI 模型——全部来自官方提供商或授权云合作伙伴。没有代理，没有降级副本，只有真正的模型，简单直达。
+- generic: 无论您通过 API 调用（完全兼容 OpenAI、Anthropic 和 Google Vertex AI 协议），还是使用我们的图形界面进行聊天、图像或视频生成——一切都通过统一接口完成。
+- img "goto"
+- img "内置保险：AI 表现不佳时获得赔付"
+- generic: 内置保险：AI 表现不佳时获得赔付
+- generic: AI 并不完美。当您遇到幻觉输出、过高延迟或低吞吐量时，ZenMux 不仅仅记录——我们会自动赔付。
+- generic: 不仅如此：每个赔付案例都是高价值的失败样本。我们对其进行分析、脱敏，并反馈给您——帮助您构建数据飞轮，改进自己的 AI 产品。您既能拿回费用，又能获得更好的模型。
+- img "goto"
+- img "完整可见性：每个 Token、每笔费用一目了然"
+- generic: 完整可见性：每个 Token、每笔费用一目了然
+- generic: 我们注重每一个细节。每个请求、Token 和费用都清晰可追溯。ZenMux 提供多维度仪表盘，带来前所未有的洞察力，帮助您优化成本、做出更明智的决策。
+- img "goto"
+- img "企业级稳定性：多提供商故障切换与全球边缘加速"
+- generic: 企业级稳定性：多提供商故障切换与全球边缘加速
+- generic: ZenMux 为每个模型维护多个提供商通道和大容量储备。当某个提供商遭遇速率限制、故障或区域不可用时，系统会自动切换到备用通道——您的应用零停机。
+- generic: 同时，借助 Cloudflare 全球边缘网络，用户请求由最近的边缘节点处理，大幅降低延迟，确保全球一致的高性能体验。
+- img "goto"
+- img "模型智能路由：为每个提示词匹配最优模型"
+- generic: 模型智能路由：为每个提示词匹配最优模型
+- generic: 开启 ZenMux Auto，我们的系统会分析您的提示词，自动选择以最低成本提供最佳质量的模型。
+- generic: 通过持续学习任务模式和历史表现，我们为您找到质量与价格之间的帕累托最优平衡——无需手动选择模型，即可获得出色结果。
+- img "goto"
+- heading "ZenMux 之道" [level=2]
+- heading "开发者优先" [level=3]:
+  - generic: 开发者优先
+- heading "AI 原生" [level=3]:
+  - generic: AI 原生
+- heading "禅意驱动" [level=3]:
+  - generic: 禅意驱动
+- heading "以爱为源" [level=3]:
+  - generic: 以爱为源
+- heading "动态与更新 查看全部" [level=2]:
+  - generic: 动态与更新
+  - link "查看全部":
+    - /url: /changelog
+    - text: 查看全部
+- 'link "Home Changelog Product Platform Analytics: Public Data Transparency Platform Analytics Launched Platform Analytics at zenmux.ai/analytics Publicly discloses all platform data since launch on Sep 29, 2025 Daily and Weekly granularity across every chart Data Coverage Platform Overview: Total tokens processed and insurance compensation amount (USD)"':
+  - /url: /changelog
+  - img "Home"
+  - generic: Changelog
+  - generic: Product
+  - 'heading "Platform Analytics: Public Data Transparency" [level=2]'
+  - heading "Platform Analytics" [level=4]
+  - list:
+    - listitem: Launched Platform Analytics at zenmux.ai/analytics
+    - listitem: Publicly discloses all platform data since launch on Sep 29, 2025
+    - listitem: Daily and Weekly granularity across every chart
+  - heading "Data Coverage" [level=4]
+  - list:
+    - listitem: "Platform Overview: Total tokens processed and insurance compensation amount (USD)"
+- 'link "Research Token Economics: What Happens When We Price Every \"Eastern Model\" to Match DeepSeek? Token Economics: What Happens When We Price Every \"Eastern Model\" to Match DeepSeek? Jun 23, 2026 • 21 min read Token Economics: What Happens When We Price Every \"Eastern Model\" to Match DeepSeek?"':
+  - /url: /blog/token-economics
+  - generic: Research
+  - generic: "Token Economics: What Happens When We Price Every \"Eastern Model\" to Match DeepSeek?"
+  - generic: "Token Economics: What Happens When We Price Every \"Eastern Model\" to Match DeepSeek?"
+  - generic: Jun 23, 2026 • 21 min read
+  - 'img "Token Economics: What Happens When We Price Every \"Eastern Model\" to Match DeepSeek?"'
+- 'link "Events ZenMux Token Economics: When Model Prices Meet, What Decides the Winner? ZenMux Token Economics brings 10+ popular AI models to DeepSeek-level pricing. Test them on real work and let real usage decide. Jun 23, 2026 • 7 min read ZenMux Token Economics: When Model Prices Meet, What Decides the Winner?"':
+  - /url: /blog/zenmux-token-economics
+  - generic: Events
+  - generic: "ZenMux Token Economics: When Model Prices Meet, What Decides the Winner?"
+  - generic: ZenMux Token Economics brings 10+ popular AI models to DeepSeek-level pricing. Test them on real work and let real usage decide.
+  - generic: Jun 23, 2026 • 7 min read
+  - 'img "ZenMux Token Economics: When Model Prices Meet, What Decides the Winner?"'
+- heading "社区信赖之选" [level=2]
+- list:
+  - generic: "\" AI 编程对长上下文处理、多模型编排和多轮调用有极高的要求。凭借专业的产品实力、稳定高效的调用和出色的用户体验，ZenMux 持续赋能我们的业务增长，已成为我们可以真正信赖的战略合作伙伴。 \""
+  - separator
+  - img "Clacky AI"
+  - generic: Clacky AI
+  - generic: "\" 使用 ZenMux 后，我的情感陪伴业务效率提升了很多。轻松接入全球顶级模型，服务快速稳定，客户体验很好，价格也很实惠。真的帮我省了很多麻烦，超级可靠！ \""
+  - separator
+  - img "Scietrain"
+  - generic: Scietrain
+  - generic: "\" 我对 ZenMux 印象非常深刻——它完全符合我的需求。作为工程师，我喜欢它稳定的网络连接（确保工作流程顺畅不中断）、实惠的价格和对工程师友好的设计。它可靠、符合我的工作需求，我一定会长期使用。 \""
+  - separator
+  - img "OOMOL"
+  - generic: OOMOL
+  - generic: "\" 感谢 ZenMux 的推荐！Qwen3-Max 已上线，随时助您构建精彩应用。 \""
+  - link "在 X 上查看 link":
+    - /url: https://x.com/Alibaba_Qwen/status/1972121135610503528
+    - text: 在 X 上查看
+    - img "link"
+  - separator
+  - img "Qwen"
+  - generic: Qwen
+  - generic: "\" ZenMux 的认可为 Qwen Cloud 带来了更强大的用户基础。这一战略合作伙伴关系使我们能够专注于打造面向人类和智能体的首选 AI 原生云平台。 \""
+  - link "在 X 上查看 link":
+    - /url: https://x.com/qwen_cloud/status/2039524399888687162
+    - text: 在 X 上查看
+    - img "link"
+  - separator
+  - img "Qwen Cloud"
+  - generic: Qwen Cloud
+  - generic: "\" ZenMux 完美满足了我的需求：坚如磐石的稳定性、闪电般的响应速度和令人印象深刻的成本效率。它让 API 管理变得轻松，让我专注于 Agent 的性能——而非故障排查。 \""
+  - separator
+  - img "METAGPT"
+  - generic: METAGPT
+  - generic: "\" 对于 Eigent 这样对一致的 LLM 支持要求极高的工具，ZenMux 不可或缺。它的稳定性确保我们的服务无缝运行。更棒的是，我们锁定了大约 20% 的成本优化——这对于在不牺牲性能的情况下扩展业务来说是一个巨大的优势。 \""
+  - separator
+  - img "Eigent (CamelAI)"
+  - generic: Eigent (CamelAI)
+  - generic: "\" AI 编程对长上下文处理、多模型编排和多轮调用有极高的要求。凭借专业的产品实力、稳定高效的调用和出色的用户体验，ZenMux 持续赋能我们的业务增长，已成为我们可以真正信赖的战略合作伙伴。 \""
+  - separator
+  - generic: Clacky AI
+  - generic: "\" 使用 ZenMux 后，我的情感陪伴业务效率提升了很多。轻松接入全球顶级模型，服务快速稳定，客户体验很好，价格也很实惠。真的帮我省了很多麻烦，超级可靠！ \""
+  - separator
+  - generic: Scietrain
+  - generic: "\" 我对 ZenMux 印象非常深刻——它完全符合我的需求。作为工程师，我喜欢它稳定的网络连接（确保工作流程顺畅不中断）、实惠的价格和对工程师友好的设计。它可靠、符合我的工作需求，我一定会长期使用。 \""
+  - separator
+  - generic: OOMOL
+  - generic: "\" 感谢 ZenMux 的推荐！Qwen3-Max 已上线，随时助您构建精彩应用。 \""
+  - link:
+    - /url: https://x.com/Alibaba_Qwen/status/1972121135610503528
+    - text: 在 X 上查看
+  - separator
+  - generic: Qwen
+  - generic: "\" ZenMux 的认可为 Qwen Cloud 带来了更强大的用户基础。这一战略合作伙伴关系使我们能够专注于打造面向人类和智能体的首选 AI 原生云平台。 \""
+  - link:
+    - /url: https://x.com/qwen_cloud/status/2039524399888687162
+    - text: 在 X 上查看
+  - separator
+  - generic: Qwen Cloud
+  - generic: "\" ZenMux 完美满足了我的需求：坚如磐石的稳定性、闪电般的响应速度和令人印象深刻的成本效率。它让 API 管理变得轻松，让我专注于 Agent 的性能——而非故障排查。 \""
+  - separator
+  - generic: METAGPT
+  - generic: "\" 对于 Eigent 这样对一致的 LLM 支持要求极高的工具，ZenMux 不可或缺。它的稳定性确保我们的服务无缝运行。更棒的是，我们锁定了大约 20% 的成本优化——这对于在不牺牲性能的情况下扩展业务来说是一个巨大的优势。 \""
+  - separator
+  - generic: Eigent (CamelAI)
+- heading "立即开始使用 ZenMux 加入数千名开发者，体验简单、透明、有保障的 AI 服务。 探索模型 goto 更新日志与路线图 goto" [level=2]:
+  - generic: 立即开始使用 ZenMux
+  - generic: 加入数千名开发者，体验简单、透明、有保障的 AI 服务。
+  - link "探索模型 goto":
+    - /url: /models
+    - text: 探索模型
+    - img "goto"
+  - link "更新日志与路线图 goto":
+    - /url: /changelog
+    - text: 更新日志与路线图
+    - img "goto"
+- img "通过聊天使用"
+- generic: 通过聊天使用
+- text: 5%
+- generic: 0% 服务费
+- link "立即聊天 goto":
+  - /url: /platform/chat
+  - button "立即聊天 goto":
+    - generic: 立即聊天
+    - img "goto"
+- generic: "OpenAI: Python-SDK"
+- generic: "Anthropic: Python-SDK"
+- code:
+  - text: "from openai import OpenAI client = OpenAI( base_url=\"https://zenmux.ai/api/v1\", api_key=\"<ZENMUX_API_KEY>\" ) completion = client.chat.completions.create( model=\"qwen/qwen3-max\", messages=[ { \"role\": \"user\", \"content\": \"What is the meaning of life?\" } ] )"
+  - text: print(completion.choices[0].message.content)
+- generic: 通过 API 使用
+- text: 5%
+- generic: 0% 服务费
+- link "API 请求 goto":
+  - /url: /platform/pay-as-you-go
+  - button "API 请求 goto":
+    - generic: API 请求
+    - img "goto"
+- generic: ©️ 2026 NexaMind Singapore Pte. Ltd. 保留所有权利。
+- img "AICPA SOC 2"
+- generic: 进行中
+- img "GDPR"
+- generic: 进行中
+- img "ISO 27001"
+- generic: 进行中
+- link:
+  - /url: https://x.com/ZenMuxAI
+- link:
+  - /url: https://www.youtube.com/@ZenMuxAI
+- link:
+  - /url: https://discord.gg/vHZZzj84Bm
+- link:
+  - /url: https://github.com/ZenMux/zenmux-doc
+- link:
+  - /url: mailto:support@zenmux.ai
+- generic: 产品
+- link "模型":
+  - /url: /models
+- link "定价":
+  - /url: https://zenmux.ai/docs/guide/observability/pricing.html
+- link "供应商":
+  - /url: https://zenmux.ai/docs/guide/advanced/provider-routing.html
+- link "数据分析":
+  - /url: /analytics/models
+- generic: 公司
+- link "合规":
+  - /url: https://zenmux.ai/docs/compliance.html
+- link "关于我们":
+  - /url: /aboutus
+- link "联系我们":
+  - /url: https://zenmux.ai/docs/help/contact.html
+- link "隐私政策":
+  - /url: https://zenmux.ai/docs/privacy.html
+- button "Cookie 设置"
+- link "服务条款":
+  - /url: https://zenmux.ai/docs/terms-of-service.html
+- generic: 资源
+- link "文档":
+  - /url: https://zenmux.ai/docs/about/intro.html
+- link "博客":
+  - /url: /blog
+- link "更新日志":
+  - /url: /changelog
+- link "路线图":
+  - /url: https://github.com/ZenMux/zenmux-doc/issues/58
+- dialog "Cookie 偏好设置":
+  - paragraph:
+    - text: 我们使用必要 Cookie 来保障 ZenMux 正常运行。经您同意，可选 Cookie 将帮助我们记住您的偏好，并了解您如何使用我们的服务。您可以接受或拒绝可选 Cookie，也可以随时管理您的选择。详情请参阅我们的
+    - link "隐私政策":
+      - /url: https://zenmux.ai/docs/privacy.html
+    - text: 。
+  - button "接受"
+  - button "拒绝"
+  - button "管理 Cookie"
+- generic: 收集
+- generic: 个人收藏
+- textbox "搜索 / 新建收集"
+- img "Toggle Drag Area"
+- generic: 创建悬浮图
+- document:
+  - button:
+- document

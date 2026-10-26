@@ -1,0 +1,11 @@
+- iframe
+- button "question":
+  - img "question":
+- generic: 收集
+- generic: 个人收藏
+- textbox "搜索 / 新建收集"
+- img "Toggle Drag Area"
+- generic: 创建悬浮图
+- document
+- document:
+  - button:

@@ -1,0 +1,48 @@
+{
+  "headings": [
+    {
+      "line": "32.5px",
+      "size": "25px",
+      "text": "AI research and products that put safety at the frontier. AI will have",
+      "width": 311,
+      "x": 32,
+      "y": 108
+    },
+    {
+      "line": "37.12px",
+      "size": "32px",
+      "text": "2026 Public Benefit Report",
+      "width": 279,
+      "x": 48,
+      "y": 631.234375
+    },
+    {
+      "line": "25px",
+      "size": "20px",
+      "text": "Introducing Claude Haiku 5.5",
+      "width": 247,
+      "x": 64,
+      "y": 1292.5234375
+    },
+    {
+      "line": "25px",
+      "size": "20px",
+      "text": "Introducing Claude Sonnet 5.5",
+      "width": 247,
+      "x": 64,
+      "y": 1769.5234375
+    },
+    {
+      "line": "25px",
+      "size": "20px",
+      "text": "Introducing Claude Opus 5.5",
+      "width": 247,
+      "x": 64,
+      "y": 2246.5234375
+    }
+  ],
+  "viewport": {
+    "height": 844,
+    "width": 390
+  }
+}

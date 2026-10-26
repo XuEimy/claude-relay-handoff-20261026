@@ -1,0 +1,334 @@
+- banner
+- banner:
+  - link "AIHubMix":
+    - /url: /
+    - img "AIHubMix"
+  - navigation:
+    - link "Models":
+      - /url: /models
+    - link "Playground":
+      - /url: https://playground.aihubmix.com
+    - link "Apps":
+      - /url: /appstore
+    - link "Enterprise":
+      - /url: https://enterprise.aihubmix.com
+    - link "Docs":
+      - /url: https://docs.aihubmix.com/en
+    - link "Dashboard":
+      - /url: https://console.aihubmix.com/statistics
+  - button "Language":
+  - button "Inbox, new updates":
+  - button "Sign in":
+    - generic: Sign in
+- main:
+  - heading "The Unified Gateway for AI Models" [level=1]
+  - paragraph: Access every major model through the SDKs you already use.
+  - button "Get API Key":
+    - generic: Get API Key
+  - link "Explore models":
+    - /url: /models
+    - generic: Explore models
+  - list:
+    - strong: 710+
+    - text: models
+    - text: ·
+    - generic: Official cloud routes
+    - text: ·
+    - generic: Pay as you go
+  - article:
+    - heading "All major models, one key" [level=2]
+    - generic: sk-••••••••
+  - article:
+    - heading "Drop-in for your SDK" [level=2]
+    - code:
+      - generic: "1"
+      - text: client = OpenAI(
+      - generic: −
+      - generic: base_url="https://api.openai.com/v1",
+      - generic: "2"
+      - generic: +
+      - text: base_url="https://aihubmix.com/v1",
+      - generic: "3"
+      - text: api_key="sk-***",
+      - generic: "4"
+      - text: )
+    - generic: OpenAI
+    - generic: Anthropic
+    - generic: Gemini
+  - article:
+    - heading "Auto-failover across clouds" [level=2]
+    - generic: Moonshot AI
+    - generic: ByteDance
+    - generic: DeepInfra
+    - generic: Users
+    - generic: Teams
+    - generic: Agents
+  - region "Connect your agents in one click":
+    - heading "Connect your agents in one click" [level=2]
+    - paragraph: No config files to edit, and every change can be undone.
+    - paragraph:
+      - generic: Coming soon to macOS and Windows
+    - generic: Balance
+    - generic: $128.40
+    - text: Top up
+    - generic: $3.12 spent today
+    - generic: Found on this Mac4
+    - generic: Claude Code
+    - generic: Installed
+    - generic: Verified just now
+    - button:
+      - generic: Connect
+      - generic: Connecting
+    - generic: Normal
+    - generic: Codex
+    - generic: Installed
+    - generic: Verified just now
+    - button:
+      - generic: Connect
+      - generic: Connecting
+    - generic: Normal
+    - generic: OpenCode
+    - generic: Installed
+    - generic: Verified just now
+    - button:
+      - generic: Connect
+      - generic: Connecting
+    - generic: Normal
+    - generic: Gemini CLI
+    - generic: Installed
+    - generic: Verified just now
+    - button:
+      - generic: Connect
+      - generic: Connecting
+    - generic: Normal
+  - region "Works with top AI tools and powers what you build":
+    - heading "Works with top AI tools and powers what you build" [level=2]
+    - list:
+      - generic: Flexible model choice
+      - generic: Developer discount
+      - generic: Resilient access
+    - img "Claude Code"
+    - img "Cursor"
+    - img "Codex"
+    - img "Dify"
+    - img "Cline":
+    - img "Hermes Agent":
+    - link "Join the developer program":
+      - /url: /appstore
+      - text: Join the developer program
+  - heading "Model Rankings" [level=2]
+  - paragraph: What developers are using on AIHubMix.
+  - link "Explore models & pricing":
+    - /url: /models
+    - text: Explore models & pricing
+  - heading "From the Blog" [level=2]
+  - link "View all posts":
+    - /url: /blog
+    - text: View all posts
+  - 'link "Opinion Kimi K3.1 Pro vs K3.1 Pro Highspeed: Is 2–3× the Speed Worth 2× the Price? October 24, 2026·11 min read"':
+    - /url: /blog/kimi-k3-1-pro-vs-k3-1-pro-highspeed-is-2-3x-the-speed-worth-2x-the-price
+    - generic: Opinion
+    - 'heading "Kimi K3.1 Pro vs K3.1 Pro Highspeed: Is 2–3× the Speed Worth 2× the Price?" [level=3]'
+    - time: October 24, 2026
+    - text: ·11 min read
+  - 'link "Opinion Kimi K3.1 Pro vs Qwen 4 vs Claude Fable 5.5: Front-End Quality, Cost per Task, and the Hype Checked October 24, 2026·14 min read"':
+    - /url: /blog/kimi-k3-1-pro-vs-qwen-4-vs-claude-fable-5-5-front-end-quality-cost-per-task-and-the-hype-checked
+    - generic: Opinion
+    - 'heading "Kimi K3.1 Pro vs Qwen 4 vs Claude Fable 5.5: Front-End Quality, Cost per Task, and the Hype Checked" [level=3]'
+    - time: October 24, 2026
+    - text: ·14 min read
+  - 'link "Tutorial Migrating to Kimi K3.1 Pro: Fix the 400s, Mind the Max-Effort Default, and Don''t Mistype Highspeed October 24, 2026·17 min read"':
+    - /url: /blog/migrating-to-kimi-k3-1-pro-fix-the-400s-mind-the-max-effort-default-and-dont-mistype-highspeed
+    - generic: Tutorial
+    - 'heading "Migrating to Kimi K3.1 Pro: Fix the 400s, Mind the Max-Effort Default, and Don''t Mistype Highspeed" [level=3]'
+    - time: October 24, 2026
+    - text: ·17 min read
+  - img "AIHubMix"
+  - paragraph: © 2023 - 2026 AIHubMix, LLC
+  - list "Connect":
+    - link "X":
+      - /url: https://x.com/AiHubMix
+    - link "GitHub":
+      - /url: https://github.com/AIhubmix
+    - link "LinkedIn":
+      - /url: https://www.linkedin.com/company/aihubmix/
+    - link "Discord":
+      - /url: https://discord.gg/chAc9ZFcxR
+    - link "YouTube":
+      - /url: https://www.youtube.com/@AiHubMixcom
+    - link "Medium":
+      - /url: https://aihubmix.medium.com/
+  - heading "Product" [level=2]
+  - list:
+    - link "Models":
+      - /url: /models
+    - link "LLM Router":
+      - /url: /llm-router/auto
+    - link "Compare":
+      - /url: /compare
+    - link "Model Authors":
+      - /url: /authors
+    - link "Apps":
+      - /url: /appstore
+    - link "AI Halloween Photos":
+      - /url: /tools/halloween-photos
+    - link "Playground":
+      - /url: https://playground.aihubmix.com
+    - link "Skills":
+      - /url: https://skills.aihubmix.com/en/
+    - link "Enterprise":
+      - /url: https://enterprise.aihubmix.com
+  - heading "Developer" [level=2]
+  - list:
+    - link "Documentation":
+      - /url: https://docs.aihubmix.com/en
+    - link "API Reference":
+      - /url: https://docs.aihubmix.com/en/quick-start
+    - link "Integration Guide":
+      - /url: /developers
+    - link "For AI Agents":
+      - /url: https://docs.aihubmix.com/en/agents
+    - link "Dashboard":
+      - /url: https://console.aihubmix.com
+    - link "Model Retirements":
+      - /url: /models/retirements
+    - link "Status":
+      - /url: https://status.aihubmix.com
+  - heading "Company" [level=2]
+  - list:
+    - link "About":
+      - /url: /about
+    - link "Blog":
+      - /url: /blog
+    - link "Support":
+      - /url: https://console.aihubmix.com/support
+    - link "Contact":
+      - /url: /contact
+  - heading "Terms & Policies" [level=2]
+  - list:
+    - link "Terms of Service":
+      - /url: /legal/terms
+    - link "Privacy Policy":
+      - /url: /legal/privacy
+    - link "Cookie Policy":
+      - /url: /legal/cookies
+    - link "Data Policy":
+      - /url: https://docs.aihubmix.com/en/api/Data-Pravicy
+    - link "Payment Notice":
+      - /url: /legal/payment
+    - link "ZDR Terms":
+      - /url: /legal/zdr
+    - link "Async Generation Terms":
+      - /url: /legal/asynchronous-generation
+    - button "Your privacy choices":
+      - text: Your privacy choices
+  - generic: Notice
+  - alert:
+    - paragraph: "October 24:New model added: kimi-k3.1-pro,kimi-k3.1-pro-highspeed,coding-kimi-k3.1-pro,coding-kimi-k3.1-pro-highspeed"
+    - paragraph: "October 23:New model added: gemini-omni-1.1-flash,ideogram-vector-1"
+    - paragraph: "October 20:New model added: glm-5.3-prime,grok-imagine-image-2.0"
+    - paragraph: October 19:The new model deepseek-v4.1-flash-1017 is currently 30% off for a limited one-week period.
+    - paragraph: October 19:New model added:minimax-m3.1-flash
+    - paragraph: "October 17:New model added: deepseek-v4.1-flash-1017"
+    - paragraph: "October 13:New model added: muse-wonder,gemini-4-argon"
+    - paragraph: October 12:Google has officially taken the gemini-3.5-flash and gemini-3.7-flash models offline. Requests to gemini-3.5-flash are now automatically routed to gemini-3.6-flash, and requests to gemini-3.7-flash are automatically routed to gemini-3.8-flash.
+    - paragraph: "October 10:New model added: qwen-image-2.1-pro、qwen-image-2.1-turbo"
+    - paragraph: "October 8:New model added: claude-haiku-5-5"
+    - paragraph: "October 7:New model added: gemini-nano-banana-2.1"
+    - paragraph: "October 3:New model added: doubao-seedream-5-0-flash."
+    - paragraph: "September 30: New model added:gpt-6.1-sol"
+    - paragraph: "September 28: Hermes Agent now supports the aihubmix plugin."
+    - paragraph: "September 23: New model added:gpt-6-sol,gpt-6-luna,claude-opus-5-5"
+    - paragraph: "September 22: New model added:mimo-v2.6-flash,mimo-v2.6-pro,mimo-v2.6-pro-ultraspeed"
+    - paragraph: "September 21: New model added:grok-4.7"
+    - paragraph: "September 20: New model added:step-5-preview"
+    - paragraph: "September 18: New model added: jina-ocr-v1,qwen3.8-omni-flash,jev-latest,jev-1.13"
+    - paragraph: "September 9: New model added: gpt-image-2.5-flare,gpt-image-2.5-sunburst"
+    - paragraph: "September 8: New model added: deepseek-v4.1-flash-expires-on-0910"
+    - paragraph: "September 5: New model added: gpt-6-astra"
+    - paragraph: "September 3: New model added: muse-spark-1.3"
+    - paragraph: "September 2: New model added: claude-fable-5-1, mercury-2.5-preview, qwen3.8-max-2026-09-02, minimax-h3-max,gemini-3.8-flash"
+    - paragraph: "August 28: New model added: hy4-preview"
+    - paragraph: "August 26: New model added: glm-5.3-flash,qwen3.8-flash"
+    - paragraph: "August 24: Added new video generation model: wan3.0-video,wan3.0-video-prime"
+    - paragraph: "August 24: gpt-5.6-sol synchronized with the official price reduction of 20% (after the reduction: $4→$20)"
+    - paragraph: "August 21: New model added: deepseek-v4-flash-0731-fast,deepseek-v4-flash-vision-exp"
+    - paragraph: "August 18: New model added: gpt-5.6-sol-disc (GPT-5.6 Sol Limited‑Time 50% Off Edition)"
+    - paragraph: "August 15: added model:mai-thinking-1"
+    - paragraph: "August 14: added model: coding-glm-5.3, gemini-3.7-flash"
+    - paragraph: "August 13: added model: deepseek-v4-pro-0813,grok-4.6,qwen3.8-2.4t-a95b,nemotron-lightning-3.5-30b-a3b,muse-glimmer-30b"
+    - paragraph: "August 12: added model: agnes-2.5-flash,agnes-2.5-pro,agnes-2.5-pro-alpha,agnes-image-2.1-flash"
+    - paragraph: "August 8: added new video generation model:doubao-seedance-2-5-260628"
+    - paragraph: "August 6: added new video generation model:wan3.0-video"
+    - paragraph: "August 5: added model: qwen-image-3.0,qwen-image-3.0-pro"
+    - paragraph: "August 2: added model: qwen3.8-max"
+    - paragraph: "July 31: Added new video generation model: minimax-h3"
+    - paragraph: "July 31: gpt-5.6-luna simultaneously had an official price reduction of 80% (after the reduction: $0.20 → $1.20), gpt-5.6-terra simultaneously had an official price reduction of 20% (after the reduction: $2.00 → $12.00)"
+    - paragraph: "July 29: added model:jina-reranker-v3.5"
+    - paragraph: "July 25: added model:claude-opus-5"
+    - paragraph: "July 24: added model:mai-image-2.5-pro,qwen-audio-3.0-tts-flash,qwen-audio-3.0-tts-plus"
+    - paragraph: "July 21: added model:gemini-3.6-flash,gemini-3.5-flash-lite"
+    - paragraph: "July 19: added model:muse-spark-1.1,qwen 3.8-max-preview"
+    - paragraph: "July 17: added model:kimi-k3,doubao-seedream-5.0-pro,3D generation model: hy-3d-3.1"
+    - paragraph: "July 14: added model:gpt-4o-transcribe-diarize,gpt-audio-1.5"
+    - paragraph: "New feature: Structured Output Repair https://docs.aihubmix.com/cn/api/structured-output-repair"
+    - paragraph: "July 10: added model:gpt-5.6-sol,gpt-5.6-terra,gpt-5.6-luna"
+    - paragraph: "July 9: added model: grok-4.5"
+    - paragraph: "July 6: added model: tencent-hy3"
+    - paragraph: "July 3: added model: command-a-plus-05-2026"
+    - paragraph: "July 1: added model: claude-sonnet-5,mai-image-2.5,mai-image-2.5-flash"
+    - paragraph: June 30:model added:gemma-4-31b,longcat-2.0,gemini-3.1-flash-lite-image
+    - paragraph: "If requests to http://aihubmix.com fail, you can try using a VPN, or switch to the alternative baseURL: https://api.inferera.com"
+    - paragraph: June 23:model added:doubao-seed-2-1-pro,doubao-seed-2-1-turbo,happyhorse-1.1-t2v,happyhorse-1.1-r2v,happyhorse-1.1-i2v
+    - paragraph: June 15:model added:glm-5.2
+    - paragraph: June 15:model added:kimi-k2.7-code-highspeed
+    - paragraph: June 13:model added:coding-glm-5.2,coding-glm-5.2-free
+    - paragraph: June 12:model added:kimi-k2.7-code
+    - paragraph: "June 12: Launch of Model Mapping and Fallback features"
+    - paragraph: "June 11: The step-3.7-flash model is available at a limited-time 90% discount: input is only $0.022 per million tokens and output is only $0.132 per million tokens. Everyone is welcome to try it."
+    - paragraph: "June 11: The models claude-opus-4-20250514 and claude-sonnet-4-20250514 will be officially taken down on June 15; the platform will automatically route the removed models to the corresponding 4-5 versions in the same series."
+    - paragraph: June 10:model added:claude-fable-5
+    - paragraph: June 5:model added:grok-build-0.1,hy3-preview,step-3.7-flash-free
+    - paragraph: June 4:model added:qwen3.7-plus
+    - paragraph: June 1:model added:minimax-m3
+    - paragraph: "May 29:model added: claude-opus-4-8"
+    - paragraph: "May 28:model added: qwen3.7-plus-preview、qwen3.7-plus-preview-free"
+    - paragraph: "May 21:model added: qwen3.7-max"
+    - paragraph: "May 20:model added: gemini-3.5-flash"
+    - paragraph: "May 18:model added: gpt-5.5-pro"
+    - paragraph: "May 10:model added: ernie-5.1,ernie-5.0,mimo-v2-omni-free,xiaomi-mimo-v2-pro-free,xiaomi-mimo-v2.5-free,xiaomi-mimo-v2.5-pro-free"
+    - paragraph: "May 8:model added: gemini-3.1-flash-lite,doubao-seed-2-0-lite-260428,doubao-seed-2-0-mini-260428"
+    - paragraph: "May 7:model added: gpt-chat-latest"
+    - paragraph: "May 1:model added: grok-4.3.grok-4.3"
+    - paragraph: "April 25: model added:happyhorse-1.0-t2v,happyhorse-1.0-i2v,happyhorse-1.0-r2v,happyhorse-1.0-video-edit"
+    - paragraph: "April 25: model added:gpt-5.5"
+    - paragraph: "April 24: model added:deepseek-v4-flash,deepseek-v4-pro,deepseek-v4-flash-think"
+    - paragraph: "April 23: model added:xiaomi-mimo-v2.5-pro,xiaomi-mimo-v2.5"
+    - paragraph: "April 22: model added:gpt-image-2,cohere-rerank-v4.0-pro,cohere-rerank-v4.0-fast"
+    - paragraph: "April 21: model added:qwen3.6-max-preview"
+    - paragraph: "April 20: model added:kimi-k2.6,qwen3.6-flash,qwen3.6-35b-a3b"
+    - paragraph: "April 16:model added: claude-opus-4-7-think,claude-opus-4-7"
+    - paragraph: "April 8: model added:glm-5.1"
+    - paragraph: "April 4: model added:wan2.7-t2v,wan2.7-i2v,wan2.7-r2v,wan2.7-videoedit"
+    - paragraph: "April 2: model added:glm-5v-turbo,qwen3.6-plus,doubao-seedance-2-0-fast-260128,doubao-seedance-2-0-fast-260128"
+    - paragraph: "April 1: model added:glm-ocr."
+    - paragraph: "March 22: Added a new open-source tool: wechat-agent-sdk, which makes it simple to connect any AI to WeChat. GitHub: https://github.com/AIhubmix/wechat-agent-sdk."
+    - paragraph: "March 22: model added:：minimax-m2.7"
+    - paragraph: "March 19: model added:mimo-v2-pro,mimo-v2-omni"
+    - paragraph: "March 18: model added: GPT-5.4 mini,GPT-5.4 nano"
+    - paragraph: "March 16: model added:glm-5-turbo"
+    - paragraph: March 15:AIHubmix has added edge-node request routing that automatically assigns the server location nearest to you. This feature is now available for preview at api.aihubmix.com. If your API requests usually feel slow or occasionally time out, try changing the base URL to api.aihubmix.com.
+    - paragraph: "March 12: model added:nvidia-nemotron-3-super-120b-a12b"
+    - paragraph: "March 10: Added a unified Responses interface, which can be used to call models such as GPT, Claude, Gemini, GLM, etc."
+    - paragraph: March 7:Temporarily take the OpenAI Pro series off sale; it will be restored next week.
+    - paragraph: "March 1: model added:gemini-3.1-flash-lite-preview"
+    - paragraph:
+      - text: "March 2: The Status page is now live at"
+      - link "https://status.aihubmix.com/":
+        - /url: https://status.aihubmix.com/
+      - text: ", offering real-time system monitoring and access to historical incident records. Subscribe to receive automatic incident notifications and live updates."
+    - paragraph: "March 1: Google will discontinue Gemini 3 Pro Preview on March 9. At 11:00 PM (UTC−8) on March 8, traffic will be automatically rerouted to Gemini 3.1 Pro Preview."
+    - paragraph: "March 1: model added:doubao-seedream-5.0-lite"
+- document
+- document:
+  - button:

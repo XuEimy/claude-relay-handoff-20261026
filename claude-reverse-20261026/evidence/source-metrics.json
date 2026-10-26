@@ -1,0 +1,680 @@
+{
+  "glyphs": [
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "Hide sidebar",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 16,
+        "y": 16
+      },
+      "text": ""
+    },
+    {
+      "cls": "text-secondary group-hover:text-primary group-data-[selected=focused]:text-primary",
+      "color": "rgb(11, 11, 11)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "700",
+      "label": "New⇧Shift⌘CommandO",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 16,
+        "y": 60
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "20px",
+      "fontWeight": "433.25",
+      "label": "Projects",
+      "lineHeight": "20px",
+      "rect": {
+        "height": 20,
+        "width": 20,
+        "x": 14,
+        "y": 90.5
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "20px",
+      "fontWeight": "433.25",
+      "label": "Artifacts",
+      "lineHeight": "20px",
+      "rect": {
+        "height": 20,
+        "width": 20,
+        "x": 14,
+        "y": 123
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "20px",
+      "fontWeight": "433.25",
+      "label": "CodeUpgrade",
+      "lineHeight": "20px",
+      "rect": {
+        "height": 20,
+        "width": 20,
+        "x": 14,
+        "y": 155.5
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "20px",
+      "fontWeight": "433.25",
+      "label": "Customize",
+      "lineHeight": "20px",
+      "rect": {
+        "height": 20,
+        "width": 20,
+        "x": 14,
+        "y": 188
+      },
+      "text": ""
+    },
+    {
+      "cls": "shrink-0 transition-transform duration-fast motion-reduce:transition-none group-data-[hover-within]/section:opacity-100 group-focus-visible/label:opacity-100 opacity-0",
+      "color": "rgb(137, 135, 129)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "12px",
+      "fontWeight": "577.75",
+      "label": "Pinned",
+      "lineHeight": "12px",
+      "rect": {
+        "height": 12,
+        "width": 12,
+        "x": 60.328125,
+        "y": 248.5
+      },
+      "text": ""
+    },
+    {
+      "cls": "transition-transform ",
+      "color": "rgb(137, 135, 129)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "20px",
+      "fontWeight": "433.25",
+      "lineHeight": "20px",
+      "rect": {
+        "height": 20,
+        "width": 20,
+        "x": 14,
+        "y": 275.5
+      },
+      "text": ""
+    },
+    {
+      "cls": "shrink-0 transition-transform duration-fast motion-reduce:transition-none group-data-[hover-within]/section:opacity-100 group-focus-visible/label:opacity-100 opacity-0",
+      "color": "rgb(137, 135, 129)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "12px",
+      "fontWeight": "577.75",
+      "label": "Chats and tasks",
+      "lineHeight": "12px",
+      "rect": {
+        "height": 12,
+        "width": 12,
+        "x": 116.125,
+        "y": 248.5
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "View all",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 224.5,
+        "y": 246.5
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "Group and sort",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 252.5,
+        "y": 246.5
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "More options for Qwen audio GEO 优化执行策略",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 252.5,
+        "y": 279.5
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "More options for AI生成内容的所有权认知与记忆准确性研究",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 252.5,
+        "y": 313
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "More options for 消息发送中断",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 252.5,
+        "y": 346.5
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "More options for Initial greeting",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 252.5,
+        "y": 380
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "More options for Greeting",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 252.5,
+        "y": 413.5
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "More options for 卡通3D角色识别",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 252.5,
+        "y": 447
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "More options for 感到疲惫和压力",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 252.5,
+        "y": 480.5
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "More options for 💬 你好",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 252.5,
+        "y": 514
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "More options for Checking availability",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 252.5,
+        "y": 547.5
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "More options for 检查文本中的AI写作痕迹",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 252.5,
+        "y": 581
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "More options for 播前话术 Benchmark 标准验证",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 252.5,
+        "y": 614.5
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "More options for 四级考试成绩评估",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 252.5,
+        "y": 648
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "More options for 对比分析的清晰度",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 252.5,
+        "y": 681.5
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "More options for 四级建议类作文模板",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 252.5,
+        "y": 715
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "More options for 论文参考文献真实性检查",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 252.5,
+        "y": 748.5
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "More options for 大语言模型的浮窗提示词助手",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 252.5,
+        "y": 782
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "More options for 选题的设计理念",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 252.5,
+        "y": 815.5
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "More options for 挡风玻璃游戏化智能座舱设计",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 252.5,
+        "y": 849
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "More options for CHI 2026 HRI机器人生命感论文查找",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 252.5,
+        "y": 882.5
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "More options for Niche market的定义",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 252.5,
+        "y": 916
+      },
+      "text": ""
+    },
+    {
+      "cls": "df-user-menu-trailing shrink-0 text-muted-as-secondary",
+      "color": "rgb(137, 135, 129)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "12px",
+      "fontWeight": "577.75",
+      "label": "EEimy·Free",
+      "lineHeight": "12px",
+      "rect": {
+        "height": 12,
+        "width": 12,
+        "x": 134.71875,
+        "y": 756
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "Get apps and extensions",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 223.5,
+        "y": 754
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "label": "Search",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 16,
+        "width": 16,
+        "x": 255.5,
+        "y": 754
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(11, 11, 11)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "20px",
+      "fontWeight": "433.25",
+      "label": "Add files, connectors, and more",
+      "lineHeight": "20px",
+      "rect": {
+        "height": 20,
+        "width": 20,
+        "x": 519.5,
+        "y": 409
+      },
+      "text": ""
+    },
+    {
+      "cls": "shrink-0 !hidden",
+      "color": "rgb(11, 11, 11)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "text": ""
+    },
+    {
+      "cls": "shrink-0 !hidden",
+      "color": "rgb(82, 81, 78)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "16px",
+      "fontWeight": "533.25",
+      "lineHeight": "16px",
+      "rect": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(11, 11, 11)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "20px",
+      "fontWeight": "433.25",
+      "label": "Dictate",
+      "lineHeight": "20px",
+      "rect": {
+        "height": 20,
+        "width": 20,
+        "x": 1056.5,
+        "y": 409
+      },
+      "text": ""
+    },
+    {
+      "cls": "text-muted",
+      "color": "rgb(137, 135, 129)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "12px",
+      "fontWeight": "577.75",
+      "label": "Microphone",
+      "lineHeight": "12px",
+      "rect": {
+        "height": 12,
+        "width": 12,
+        "x": 1081.5,
+        "y": 413
+      },
+      "text": ""
+    },
+    {
+      "cls": "",
+      "color": "rgb(255, 255, 255)",
+      "fontFamily": "Anthropicons-Variable",
+      "fontSize": "20px",
+      "fontWeight": "433.25",
+      "label": "Send message",
+      "lineHeight": "20px",
+      "rect": {
+        "height": 20,
+        "width": 20,
+        "x": 1111.5,
+        "y": 409
+      },
+      "text": ""
+    }
+  ],
+  "greeting": [
+    {
+      "cls": "select-none",
+      "color": "rgb(11, 11, 11)",
+      "fontFamily": "anthropic-serif, \"Anthropic Serif Fallback Georgia\", \"Anthropic Serif Fallback Times\", \"Anthropic Serif Fallback DejaVu\", \"Anthropic Serif Fallback Noto\", Georgia, \"Arial Hebrew\", \"Noto Sans Hebrew\", \"Times New Roman\", Times, \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", \"PingFang TC\", \"Microsoft JhengHei\", \"Noto Sans CJK TC\", \"Hiragino Sans\", \"Yu Gothic\", Meiryo, \"Noto Sans CJK JP\", \"Apple SD Gothic Neo\", \"Malgun Gothic\", \"Noto Sans CJK KR\", \"Kohinoor Devanagari\", \"Kohinoor Bangla\", \"Kohinoor Telugu\", \"Tamil Sangam MN\", \"Kohinoor Gujarati\", \"Malayalam Sangam MN\", \"Nirmala UI\", \"Noto Sans Devanagari UI\", \"Noto Sans Devanagari\", \"Noto Sans Bengali UI\", \"Noto Sans Bengali\", \"Noto Sans Telugu UI\", \"Noto Sans Telugu\", \"Noto Sans Tamil UI\", \"Noto Sans Tamil\", \"Noto Sans Gujarati UI\", \"Noto Sans Gujarati\", \"Noto Sans Kannada UI\", \"Noto Sans Kannada\", \"Noto Sans Malayalam UI\", \"Noto Sans Malayalam\", Thonburi, \"Leelawadee UI\", \"Noto Sans Thai UI\", \"Noto Sans Thai\", Kefa, Ebrima, \"Noto Sans Ethiopic\", \"Abyssinica SIL\", serif",
+      "fontSize": "38px",
+      "fontWeight": "330",
+      "lineHeight": "47.5px",
+      "rect": {
+        "height": 47.5,
+        "width": 373.2734375,
+        "x": 658.2421875,
+        "y": 256.5
+      },
+      "text": "Happy Monday, Eimy"
+    }
+  ],
+  "tokens": [
+    [
+      "--cds-page-bg",
+      "#fcfcfb"
+    ],
+    [
+      "--cds-bg-surface-1",
+      ""
+    ],
+    [
+      "--cds-bg-surface-2",
+      ""
+    ],
+    [
+      "--cds-bg-surface-3",
+      ""
+    ],
+    [
+      "--cds-text-secondary",
+      "#52514e"
+    ]
+  ]
+}

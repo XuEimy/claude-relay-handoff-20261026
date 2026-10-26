@@ -1,0 +1,153 @@
+- link:
+  - /url: /
+- link "我们做什么":
+  - /url: "#product"
+- link "可用应用":
+  - /url: "#application"
+- link "计费":
+  - /url: "#pricing"
+- link "开通":
+  - /url: "#start"
+- link "FAQ":
+  - /url: "#faq"
+- link "API文档":
+  - /url: https://api2d-doc.apifox.cn/
+- button "登录 · 注册":
+  - generic: 登录 · 注册
+- generic: 像用电一样用API
+- generic: 注册、充值、填Key即用
+- generic: 流|
+- button "一分钟开通":
+  - link "一分钟开通":
+    - /url: "#start"
+- button "新手教学视频":
+  - link "新手教学视频":
+    - /url: https://www.bilibili.com/video/BV1Ds4y177W6/
+- generic: API2D做什么
+- generic: 为用户提供无需关心技术、「填Key即用」的省心体验；为开发者提供参数兼容的全球精选API，及云端增强
+- button "OpenAI":
+  - text: OpenAI
+- button "StableDiffusion":
+  - text: StableDiffusion
+- button "腾讯云":
+  - text: 腾讯云
+- button "Claude":
+  - text: Claude
+- button "向量数据库":
+  - text: 向量数据库
+- button "Tools":
+  - text: Tools
+- button "Api2D":
+  - text: Api2D
+- button "大量SDK/AI应用":
+  - text: 大量SDK/AI应用
+- button "😃 用户":
+  - generic: 😃 用户
+- link "React Flow attribution":
+  - /url: https://reactflow.dev
+  - text: React Flow
+- generic: 可用应用
+- generic: 支持填写API URL的GPT3.5/4应用基本都可以使用 API2D 的 API，以下是其中很小一部分
+- link "聊天 Chat酱 简洁的聊天应用，支持网页、Win10+/Mac，支持GPT4，可独立部署":
+  - /url: https://a.ftqq.com/2023/04/11/chatchan/
+  - generic: 聊天
+  - generic: Chat酱
+  - generic: 简洁的聊天应用，支持网页、Win10+/Mac，支持GPT4，可独立部署
+- link "聊天 Bot郡 Android客户端，可创建多Bot设置不同参数和提示词，切换方便":
+  - /url: https://a.ftqq.com/2023/04/19/botjun/
+  - generic: 聊天
+  - generic: Bot郡
+  - generic: Android客户端，可创建多Bot设置不同参数和提示词，切换方便
+- link "聊天 OpenCat iOS/Mac原生客户端，支持Mac电脑、iPhone、iPad":
+  - /url: https://www.bilibili.com/video/BV1pV4y1f7A6/
+  - generic: 聊天
+  - generic: OpenCat
+  - generic: iOS/Mac原生客户端，支持Mac电脑、iPhone、iPad
+- link "聊天 GPTNextWeb 可一键部署的ChatGPT网站，代码开源可在GitHub下载":
+  - /url: https://www.bilibili.com/video/BV1zT411p7dg
+  - generic: 聊天
+  - generic: GPTNextWeb
+  - generic: 可一键部署的ChatGPT网站，代码开源可在GitHub下载
+- link "代码 GPT VSCode VSCode插件，可在编辑器中用ChatGPT生成、分析、和优化代码":
+  - /url: https://a.ftqq.com/2023/04/20/chatgpt-vscode/
+  - generic: 代码
+  - generic: GPT VSCode
+  - generic: VSCode插件，可在编辑器中用ChatGPT生成、分析、和优化代码
+- link "翻译 沉浸式翻译 网页双语翻译，能识别主要内容后按段落同时显示原文和译文":
+  - /url: https://a.ftqq.com/2023/04/16/immersive-translate/
+  - generic: 翻译
+  - generic: 沉浸式翻译
+  - generic: 网页双语翻译，能识别主要内容后按段落同时显示原文和译文
+- link "工具 chatGPTBox 浏览器插件可将ChatGPT深度集成到浏览器，适配各种搜索引擎和常用站点":
+  - /url: https://www.bilibili.com/video/BV1bo4y1h7Hb
+  - generic: 工具
+  - generic: chatGPTBox
+  - generic: 浏览器插件可将ChatGPT深度集成到浏览器，适配各种搜索引擎和常用站点
+- link "工具 GPT::BAT GPT长文本处理工具，可以将超长文本分段处理后自动合并，支持GPT4":
+  - /url: https://r.ftqq.com/gpt-bat/
+  - generic: 工具
+  - generic: GPT::BAT
+  - generic: GPT长文本处理工具，可以将超长文本分段处理后自动合并，支持GPT4
+- generic: 计费说明
+- generic: 无需昂贵的月费，API2D按实际使用的Token数量收费，聊天接口价格约为OpenAI的1.5倍（3.5元充值档位除外）。
+- generic: ✲ 每次调用最低消耗1P，命中缓存免费。重复率高的聊天场景，甚至比OpenAI官方接口更省钱
+- text: 虽然Token和字符数并非一一对应，但你可以通过
+- link "Token计算器":
+  - /url: https://tiktokenizer-api2d.vercel.app
+- text: 来估算费用
+- generic: ✲ 很多聊天工具为了让GPT了解上下文，会发送聊天记录从而导致费用增加。建议换话题时新建对话或者清空历史。
+- generic: 一分钟开通
+- generic: 简单三步 —— 注册、充值、复制Key
+- list:
+  - button "1"
+  - button "2"
+  - button "3"
+- button "立刻注册":
+  - generic: 立刻注册
+- generic: FAQ
+- button "哪些软件、网站和SDK可以使用API2D？" [expanded]:
+  - generic: 哪些软件、网站和SDK可以使用API2D？
+- region "哪些软件、网站和SDK可以使用API2D？":
+  - paragraph:
+    - text: 所有使用OpenAI接口，又支持设置自定义API域名/地址的软件、网站和SDK都可以使用API2D。您可以在登录后左侧菜单的「
+    - link "兼容应用":
+      - /url: /wiki/app
+    - text: 」页面找到数十种应用的使用教程。
+- button "API2D 如何收费？":
+  - generic: API2D 如何收费？
+- button "API2D 支持哪些模型和接口？":
+  - generic: API2D 支持哪些模型和接口？
+- button "API2D 是否支持哪些充值方式？":
+  - generic: API2D 是否支持哪些充值方式？
+- button "为什么API2D接口的GPT4聊天结果和ChatGPT的GPT4不一样？":
+  - generic: 为什么API2D接口的GPT4聊天结果和ChatGPT的GPT4不一样？
+- button "我可以代理销售你们的API吗？":
+  - generic: 我可以代理销售你们的API吗？
+- button "为什么 GPT-4 不知道自己是 GPT-4？":
+  - generic: 为什么 GPT-4 不知道自己是 GPT-4？
+- button "点数有效期过期后会如何消失吗？":
+  - generic: 点数有效期过期后会如何消失吗？
+- button "支付成功但点数没有更新怎么办？":
+  - generic: 支付成功但点数没有更新怎么办？
+- button "为什么多次请求返回的内容是一样的？":
+  - generic: 为什么多次请求返回的内容是一样的？
+- button "API2D的计费是精确的按照OpenAI官方的1.5倍吗？有哪些例外？":
+  - generic: API2D的计费是精确的按照OpenAI官方的1.5倍吗？有哪些例外？
+- button "小狐狸平台报错【key 已用尽，请等待平台处理】":
+  - generic: 小狐狸平台报错【key 已用尽，请等待平台处理】
+- button "langchain 设置":
+  - generic: langchain 设置
+- generic: API2D.com © 版权所有
+- link "API文档":
+  - /url: https://api2d-doc.apifox.cn/
+- generic: ·
+- link "联系我们":
+  - /url: https://support.qq.com/product/544571
+- generic: 收集
+- generic: 个人收藏
+- textbox "搜索 / 新建收集"
+- img "Toggle Drag Area"
+- generic: 创建悬浮图
+- document
+- document:
+  - button:

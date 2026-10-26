@@ -1,0 +1,152 @@
+- banner:
+  - link "ChatAnywhere 首页":
+    - /url: /
+    - img "ChatAnywhere"
+  - navigation "页面导航":
+    - link "首页":
+      - /url: /
+    - link "模型价格":
+      - /url: /pricing
+    - link "帮助文档":
+      - /url: https://docs.chatanywhere.tech/
+    - link "用户后台":
+      - /url: /auth/login
+    - link "免登录后台(旧版)":
+      - /url: /anonymous
+  - text: 
+  - button "切换到深色模式":
+    - generic: 
+- main:
+  - generic: AI API INFRASTRUCTURE
+  - heading "一个 API， 连接全球主流 AI" [level=1]:
+    - text: 一个 API，
+    - text: 连接全球主流 AI
+  - paragraph:
+    - text: 用同一套鉴权、计费与管理能力接入 OpenAI、Claude 等主流模型。
+    - text: 兼容官方 SDK，以及 Codex、Claude Code 等开发工具。
+  - link "登录获取 API Key":
+    - /url: /auth/login
+    - generic: 
+    - generic: 登录获取 API Key
+  - link "免登录后台(旧版)":
+    - /url: /anonymous
+    - generic: 
+    - generic: 免登录后台(旧版)
+  - generic: "*建议登录使用，免登录后台缺少管控功能。"
+  - generic "平台优势":
+    - generic: 
+    - strong: 余额长期有效
+    - generic: 
+    - strong: 充值享折扣
+    - generic: 
+    - strong: 最低官方1-2折
+  - generic "API 调用示例":
+    - tablist "API 示例类型":
+      - tab "Chat Completions"
+      - tab "Responses"
+      - tab "Claude Messages" [selected]
+    - generic: 
+    - text: 200 OK
+    - generic: POST
+    - code: /v1/messages
+    - generic: ANTHROPIC
+    - tabpanel "Claude Messages":
+      - generic: REQUEST · CURL
+      - code: "curl -X POST \"https://api.chatanywhere.tech/v1/messages\" \\ -H \"x-api-key: YOUR_API_KEY\" \\ -H \"anthropic-version: 2023-06-01\" \\ -H \"Content-Type: application/json\" \\ -d '{ \"model\": \"claude-sonnet-5\", \"max_tokens\": 1024, \"messages\": [{\"role\": \"user\", \"content\": \"Hello!\"}] }'"
+      - generic: RESPONSE
+      - code: "{ \"id\": \"msg_01...\", \"type\": \"message\", \"role\": \"assistant\", \"model\": \"claude-sonnet-5\", \"content\": [{ \"type\": \"text\", \"text\": \"Hello! How can I help?\" }], \"stop_reason\": \"end_turn\" }"
+    - generic: 
+    - text: Anthropic compatible
+    - generic: 3 / 3
+  - generic: 
+  - generic: 免费开放计划
+  - generic: 注册并授权 GitHub，领取免费 Key 配额
+  - generic: 全部已开放兼容接口均可调用，并由 7 天点数额度与 24 小时共享请求额度双重控制。
+  - link "免费开始":
+    - /url: /auth/register
+    - generic: 
+    - generic: 免费开始
+  - link "向下滚动查看接入步骤":
+    - /url: "#landing-guide"
+    - generic: 
+  - heading "主流模型，一处接入" [level=2]
+  - paragraph: 覆盖常用国内外模型厂商，并持续接入更多模型。
+  - link "查看模型价格":
+    - /url: /pricing
+    - generic: 
+    - generic: 查看模型价格
+  - generic "支持的模型厂商":
+    - img "OpenAI 图标"
+    - strong: OpenAI
+    - generic: GPT 系列
+    - img "Anthropic 图标"
+    - strong: Anthropic
+    - generic: Claude 系列
+    - img "Google 图标"
+    - strong: Google
+    - generic: Gemini 系列
+    - img "DeepSeek 图标"
+    - strong: DeepSeek
+    - generic: DeepSeek 系列
+    - img "阿里云通义 图标"
+    - strong: 阿里云通义
+    - generic: Qwen 系列
+    - img "智谱 AI 图标"
+    - strong: 智谱 AI
+    - generic: GLM 系列
+    - img "月之暗面 图标"
+    - strong: 月之暗面
+    - generic: Kimi 系列
+    - img "MiniMax 图标"
+    - strong: MiniMax
+    - generic: MiniMax 系列
+    - generic: +
+    - strong: 更多厂商
+    - generic: 持续接入与更新
+  - heading "快速接入" [level=2]
+  - paragraph: 兼容 OpenAI/Claude 官方 SDK，以及Codex/ClaudeCode 等应用，几分钟即可完成接入。
+  - link "使用文档":
+    - /url: https://docs.chatanywhere.tech/
+    - generic: 
+    - generic: 使用文档
+  - note:
+    - generic: 
+    - strong: API Host
+    - code: https://api.chatanywhere.tech
+    - generic: 或
+    - code: https://api.chatanywhere.org
+    - generic: 境外推荐 .org
+  - article:
+    - generic: 
+    - generic: 步骤 01
+    - heading "创建 API 访问密钥" [level=3]
+    - paragraph: 登录用户后台，在 ApiKey 管理中创建密钥，并根据场景设置模型分组与使用限额。
+  - article:
+    - generic: 
+    - generic: 步骤 02
+    - heading "配置 ApiKey 与 Host" [level=3]
+    - paragraph: 在官方 SDK 或 Codex/ClaudeCode 等兼容软件中配置 Host 和 APIKey。Host 境内推荐 api.chatanywhere.tech，境外推荐 api.chatanywhere.org。
+  - article:
+    - generic: 
+    - generic: 步骤 03
+    - heading "开始调用并查看用量" [level=3]
+    - paragraph: 调用后可在用量详情核对每次请求，并通过用量分析了解趋势、花费和模型分布。
+  - generic: 
+  - strong: 准备好开始了吗？
+  - generic: 创建账户，获得统一的密钥管理、调用记录和用量分析能力。
+  - link "免费创建账户":
+    - /url: /auth/register
+    - generic: 
+    - generic: 免费创建账户
+  - link "使用文档":
+    - /url: https://docs.chatanywhere.tech/
+    - generic: 
+    - generic: 使用文档
+- generic: 收集
+- generic: 个人收藏
+- textbox "搜索 / 新建收集"
+- img "Toggle Drag Area"
+- generic: 创建悬浮图
+- document
+- document:
+  - button:

@@ -1,0 +1,138 @@
+- banner:
+  - img "BurnCloud"
+  - navigation:
+    - list:
+      - link "Home":
+        - /url: /
+      - link "LLM API":
+        - /url: /aiapi.html
+      - link "Cloud GPU":
+        - /url: /gpu.html
+      - link "Blog":
+        - /url: /blog.html
+      - link "About":
+        - /url: /about.html
+      - link "Contact":
+        - /url: /contact.html
+  - button "切换语言":
+  - link "Log in":
+    - /url: https://ai.burncloud.com/login
+  - link "Sign up":
+    - /url: https://ai.burncloud.com/register
+- generic: Welcome to BurnCloud
+- heading "Empowering AI Innovation with Cutting-edge GPU and AI Solutions" [level=1]
+- paragraph: Experience the future of AI with our GPU rental services, advanced model APIs, and expert insights.
+- link "Try for Free →":
+  - /url: https://ai.burncloud.com
+- link "See More":
+  - /url: /blog.html
+- generic: 900+
+- generic: Active Users
+- generic: 30+
+- generic: Countries
+- generic: 24/7
+- generic: Support
+- heading "Our Services" [level=2]
+- paragraph: Explore our comprehensive range of AI and GPU solutions
+- img "GPU Rental Services"
+- heading "Cloud GPU Services" [level=3]
+- paragraph: High-performance GPU solutions tailored for AI training, rendering, and scientific computing.
+- link "Learn More":
+  - /url: /gpu.html
+  - generic: Learn More
+- img "AI Model API Services"
+- heading "AI API Services" [level=3]
+- paragraph: Seamlessly integrate advanced AI models into your applications with our easy-to-use APIs.
+- link "Learn More":
+  - /url: /aiapi.html
+  - generic: Learn More
+- img "AI Knowledge Blog"
+- heading "AI Knowledge Blog" [level=3]
+- paragraph: Stay ahead with in-depth AI tutorials, industry insights, and practical applications.
+- link "Learn More":
+  - /url: /blog.html
+  - generic: Learn More
+- generic: 📦
+- heading "Products & Services" [level=4]
+- paragraph: Discover our cutting-edge GPU and AI solutions.
+- generic: 📝
+- heading "Blog" [level=4]
+- paragraph: Explore the latest AI trends and insights.
+- generic: ✉️
+- heading "Contact Us" [level=4]
+- paragraph: Have questions? Get in touch with us.
+- heading "Why Clients Choose Us" [level=2]
+- generic: ⚡
+- paragraph: Our clients consistently praise BurnCloud for its exceptional services, particularly in enhancing AI computing efficiency and streamlining technology integration.
+- paragraph: With our high-performance GPU rental services and user-friendly API solutions, clients can rapidly deploy complex AI models and significantly reduce development cycles, gaining a competitive edge in their industries.
+- generic: 95%
+- text: Client Satisfaction
+- generic: 60%
+- text: Cost Reduction
+- generic: 2x
+- text: Deployment Speed
+- img "HealthPlus AI Case Study"
+- generic: "*"
+- heading "Quantum AI Solutions." [level=2]
+- list:
+  - listitem: ✔ Boosted AI model training efficiency by 30% with our GPU rental services.
+  - listitem: ✔ Enabled seamless scaling of AI workloads with on-demand infrastructure.
+  - listitem: ✔ Streamlined operational efficiency with scalable and secure cloud infrastructure.
+- link "Read Case Study":
+  - /url: /posts/how-quantum-ai-solutions-achieved-30percent-faster-ai-training-and-40percent-cost-savings.html
+- generic: "*"
+- heading "HealthPlus AI" [level=2]
+- list:
+  - listitem: ✔ Accelerated medical imaging analysis by 50% using our cloud computing platform.
+  - listitem: ✔ Improved diagnostic accuracy with AI-powered solutions tailored to healthcare needs.
+  - listitem: ✔ Streamlined operational efficiency with scalable and secure cloud infrastructure.
+- link "Read Case Study":
+  - /url: /posts/cloud-computing-revolutionizes-healthcare:-healthplus-ai-achieves-50-percents-faster-medical-imaging-analysis.html
+- img "HealthPlus AI Case Study"
+- blockquote:
+  - paragraph: "\"Ready to unlock the power of AI? Join us today and take your projects to the next level.\""
+  - generic: Huang Wei
+  - generic: CEO, BurnCloud
+- heading "Watch, Read, Listen" [level=2]
+- article
+- heading "Join 900+ subscribers" [level=2]
+- paragraph: Stay in the loop with everything you need to know.
+- textbox "Enter your email"
+- button "Submit"
+- contentinfo:
+  - img "BurnCloud"
+  - paragraph: Redefining the Future with AI.
+  - link "Contact@BurnCloud.com":
+    - /url: mailto:Contact@BurnCloud.com
+  - heading "About" [level=4]
+  - list:
+    - link "Team":
+      - /url: /about.html#team
+    - link "History":
+      - /url: /about.html#history
+    - link "Careers":
+      - /url: /careers.html
+  - heading "Privacy" [level=4]
+  - list:
+    - link "Privacy Policy":
+      - /url: /privacy.html
+    - link "Terms and Conditions":
+      - /url: /terms.html
+    - link "Contact Us":
+      - /url: /contact.html
+  - heading "Social" [level=4]
+  - list:
+    - link "Facebook":
+      - /url: https://www.facebook.com/profile.php?id=61556811563312
+    - link "Github":
+      - /url: https://github.com/burncloud
+    - link "Twitter":
+      - /url: https://twitter.com/burncloud_com
+- document:
+  - button:
+- generic: 收集
+- generic: 个人收藏
+- textbox "搜索 / 新建收集"
+- img "Toggle Drag Area"
+- generic: 创建悬浮图
+- document

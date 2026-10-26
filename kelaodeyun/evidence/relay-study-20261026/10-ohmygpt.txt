@@ -1,0 +1,364 @@
+- banner:
+  - link "ohmygpt-logo OhMyGPT":
+    - /url: /
+    - img "ohmygpt-logo"
+    - generic: OhMyGPT
+  - navigation:
+    - button "Change language":
+      - generic: Change language
+    - button:
+    - link "模型":
+      - /url: /models
+      - text: 模型
+    - link "公告":
+      - /url: /announcements/zh-CN
+      - text: 公告
+    - button "开始使用":
+      - text: 开始使用
+- generic: Aya Expanse 32B
+- generic: Aya Vision 32B
+- generic: Azure TTS-1
+- generic: Babbage-002
+- generic: Bing Search V7
+- generic: ChatGPT-4o
+- generic: Claude Fable 5
+- generic: Claude Fable 5.1
+- generic: Claude Haiku 4.5
+- generic: Claude Haiku 4.5
+- generic: Claude Haiku 5.5
+- generic: Claude Opus 4.5
+- generic: Aya Expanse 32B
+- generic: Aya Vision 32B
+- generic: Azure TTS-1
+- generic: Babbage-002
+- generic: Bing Search V7
+- generic: ChatGPT-4o
+- generic: Claude Fable 5
+- generic: Claude Fable 5.1
+- generic: Claude Haiku 4.5
+- generic: Claude Haiku 4.5
+- generic: Claude Haiku 5.5
+- generic: Claude Opus 4.5
+- generic: Claude Opus 4.5 (20251101)
+- generic: Claude Opus 4.6
+- generic: Claude Opus 4.7
+- generic: Claude Opus 4.8
+- generic: Claude Opus 5
+- generic: Claude Opus 5.5
+- generic: Claude Sonnet 4.5
+- generic: Claude Sonnet 4.5 (20250929)
+- generic: Claude Sonnet 4.6
+- generic: Claude Sonnet 5
+- generic: Claude Sonnet 5.5
+- generic: Command A (03-2025)
+- generic: Claude Opus 4.5 (20251101)
+- generic: Claude Opus 4.6
+- generic: Claude Opus 4.7
+- generic: Claude Opus 4.8
+- generic: Claude Opus 5
+- generic: Claude Opus 5.5
+- generic: Claude Sonnet 4.5
+- generic: Claude Sonnet 4.5 (20250929)
+- generic: Claude Sonnet 4.6
+- generic: Claude Sonnet 5
+- generic: Claude Sonnet 5.5
+- generic: Command A (03-2025)
+- generic: Command R (08-2024)
+- generic: Command R+ (08-2024)
+- generic: Command R7B (12-2024)
+- generic: DaVinci-002
+- generic: DeepSeek Chat
+- generic: DeepSeek R1
+- generic: DeepSeek R1 (250528)
+- generic: DeepSeek Reasoner
+- generic: DeepSeek V3
+- generic: DeepSeek V3.1
+- generic: DeepSeek V4 Flash
+- generic: DeepSeek V4 Flash (Alibaba Cloud)
+- generic: Command R (08-2024)
+- generic: Command R+ (08-2024)
+- generic: Command R7B (12-2024)
+- generic: DaVinci-002
+- generic: DeepSeek Chat
+- generic: DeepSeek R1
+- generic: DeepSeek R1 (250528)
+- generic: DeepSeek Reasoner
+- generic: DeepSeek V3
+- generic: DeepSeek V3.1
+- generic: DeepSeek V4 Flash
+- generic: DeepSeek V4 Flash (Alibaba Cloud)
+- generic: DeepSeek V4 Flash 0731 (Alibaba Cloud)
+- generic: DeepSeek V4 Flash Vision Exp
+- generic: DeepSeek V4 Pro
+- generic: DeepSeek V4 Pro (Alibaba Cloud)
+- generic: DeepSeek V4 Pro 0813 (Alibaba Cloud)
+- generic: DeepSeek V4.1 Flash
+- generic: DeepSeek V4.1 Flash
+- generic: DeepSeek V4.1 Flash
+- generic: DeepSeek V4.1 Flash (Alibaba Cloud)
+- generic: DeepSeek V4.1 Flash 1017
+- generic: DeepSeek V4.1 Flash 1017
+- generic: Doubao Embedding Large Text (240915)
+- generic: DeepSeek V4 Flash 0731 (Alibaba Cloud)
+- generic: DeepSeek V4 Flash Vision Exp
+- generic: DeepSeek V4 Pro
+- generic: DeepSeek V4 Pro (Alibaba Cloud)
+- generic: DeepSeek V4 Pro 0813 (Alibaba Cloud)
+- generic: DeepSeek V4.1 Flash
+- generic: DeepSeek V4.1 Flash
+- generic: DeepSeek V4.1 Flash
+- generic: DeepSeek V4.1 Flash (Alibaba Cloud)
+- generic: DeepSeek V4.1 Flash 1017
+- generic: DeepSeek V4.1 Flash 1017
+- generic: Doubao Embedding Large Text (240915)
+- generic: Doubao Embedding Text (240715)
+- generic: Doubao Seed 2.0 Code Preview (260215)
+- generic: Doubao Seed 2.0 Lite (260215)
+- generic: Doubao Seed 2.0 Lite (260428)
+- generic: Doubao Seed 2.0 Mini (260215)
+- generic: Doubao Seed 2.0 Pro (260215)
+- generic: Doubao Seed 2.1 Lite (260915)
+- generic: Doubao Seed 2.1 Pro (260915)
+- generic: Ember-1
+- generic: File V1
+- generic: Flux 1.1 Pro
+- generic: Flux 1.1 Pro Ultra
+- generic: Doubao Embedding Text (240715)
+- generic: Doubao Seed 2.0 Code Preview (260215)
+- generic: Doubao Seed 2.0 Lite (260215)
+- generic: Doubao Seed 2.0 Lite (260428)
+- generic: Doubao Seed 2.0 Mini (260215)
+- generic: Doubao Seed 2.0 Pro (260215)
+- generic: Doubao Seed 2.1 Lite (260915)
+- generic: Doubao Seed 2.1 Pro (260915)
+- generic: Ember-1
+- generic: File V1
+- generic: Flux 1.1 Pro
+- generic: Flux 1.1 Pro Ultra
+- generic: Flux Dev
+- generic: Flux Pro
+- generic: Flux Schnell
+- generic: Gemini 2.5 Flash Image
+- generic: Gemini 3 Flash Preview
+- generic: Gemini 3 Pro Image
+- generic: Gemini 3 Pro Image Preview
+- generic: Gemini 3.1 Flash Image
+- generic: Gemini 3.1 Flash Image Preview
+- generic: Gemini 3.1 Flash-Lite
+- generic: Gemini 3.1 Flash-Lite Preview
+- generic: Gemini 3.1 Pro Preview
+- generic: Flux Dev
+- generic: Flux Pro
+- generic: Flux Schnell
+- generic: Gemini 2.5 Flash Image
+- generic: Gemini 3 Flash Preview
+- generic: Gemini 3 Pro Image
+- generic: Gemini 3 Pro Image Preview
+- generic: Gemini 3.1 Flash Image
+- generic: Gemini 3.1 Flash Image Preview
+- generic: Gemini 3.1 Flash-Lite
+- generic: Gemini 3.1 Flash-Lite Preview
+- generic: Gemini 3.1 Pro Preview
+- generic: Gemini 3.5 Flash
+- generic: Gemini 3.5 Flash-Lite
+- generic: Gemini 3.6 Flash
+- generic: Gemini 3.7 Flash
+- generic: Gemini 3.8 Flash
+- generic: Gemini 4 Argon
+- generic: GLM-4 Long
+- generic: GLM-4.5 Air
+- generic: GLM-4.5 AirX
+- generic: GLM-4.5V
+- generic: GLM-4.6
+- generic: GLM-4.6V
+- generic: Gemini 3.5 Flash
+- generic: Gemini 3.5 Flash-Lite
+- generic: Gemini 3.6 Flash
+- generic: Gemini 3.7 Flash
+- generic: Gemini 3.8 Flash
+- generic: Gemini 4 Argon
+- generic: GLM-4 Long
+- generic: GLM-4.5 Air
+- generic: GLM-4.5 AirX
+- generic: GLM-4.5V
+- generic: GLM-4.6
+- generic: GLM-4.6V
+- generic: GLM-4.6V Flash
+- generic: GLM-4.6V FlashX
+- generic: GLM-4.7
+- generic: GLM-4.7 Flash
+- generic: GLM-4.7 FlashX
+- generic: GLM-5
+- generic: GLM-5 Turbo
+- generic: GLM-5.1
+- generic: GLM-5.1 (Alibaba Cloud)
+- generic: GLM-5.2
+- generic: GLM-5.2 (Alibaba Cloud)
+- generic: GLM-5.3
+- generic: GLM-4.6V Flash
+- generic: GLM-4.6V FlashX
+- generic: GLM-4.7
+- generic: GLM-4.7 Flash
+- generic: GLM-4.7 FlashX
+- generic: GLM-5
+- generic: GLM-5 Turbo
+- generic: GLM-5.1
+- generic: GLM-5.1 (Alibaba Cloud)
+- generic: GLM-5.2
+- generic: GLM-5.2 (Alibaba Cloud)
+- generic: GLM-5.3
+- generic: 任何个人和企业都可用的 AI
+- heading "接入 250+ 全球 AI 模型" [level=1]
+- paragraph: 通过一个 API
+- paragraph: 自研集群架构，超高并发。兼容 OpenAI API。自 2023 年起获得企业信赖。
+- generic: 想要做什么？
+- button "直接开始！给我 API Key":
+  - generic: 直接开始！给我 API Key
+- link "我要配置 Code Agent":
+  - /url: /cli-agent
+  - generic: 我要配置 Code Agent
+- link "先逛逛，有哪些模型？":
+  - /url: /models
+  - generic: 先逛逛，有哪些模型？
+- generic: 向下滚动 ↓
+- generic: 为什么选择 OhMyGPT
+- heading "为快速交付的开发者构建" [level=2]
+- heading "未经修改的模型输出" [level=3]
+- paragraph: 无审查，无内容过滤。获得 AI 模型的真实响应。非常适合研究、基准测试和生产使用。
+- paragraph: 零修改模型输出
+- heading "无需修改代码" [level=3]
+- paragraph: 兼容 OpenAI API。您现有的代码可立即使用。在几分钟而非几周内切换服务商。
+- paragraph: 100% API 兼容
+- heading "在一个地方访问所有模型" [level=3]
+- paragraph: GPT-4、Claude、Gemini、DeepSeek 统一在一个 API 下。无需管理多个账户和密钥。
+- paragraph: 100+ 模型可用
+- heading "灵活的支付方式" [level=3]
+- paragraph: PayPal、支付宝、微信支付、Stripe。自动续费保持服务运行。支持个人和企业发票。
+- paragraph: 多种支付方式
+- generic: 定价
+- heading "简单透明的定价" [level=2]
+- generic: 按需付费
+- generic: 按需付费
+- paragraph: 适合个人、学生和研究人员。
+- list:
+  - generic: 无月费或隐藏费用
+  - generic: 自动续费，服务不中断
+  - generic: 支持发票（个人和企业）
+  - generic: PayPal、支付宝、微信支付、Stripe
+- link "开始使用 →":
+  - /url: /next/v1/login
+  - text: 开始使用
+  - generic: →
+- generic: 企业合作
+- generic: 定制
+- paragraph: 为组织提供定制解决方案。
+- list:
+  - generic: 基于用量的定价
+  - generic: 企业合同和发票
+  - generic: 专属技术支持
+  - generic: 定制 SLA 协议
+- link "联系销售 →":
+  - /url: mailto:support@ohmygpt.com
+  - text: 联系销售
+  - generic: →
+- paragraph:
+  - text: 所有价格以美元计价。用量根据输入和输出 token 计算。
+  - link "查看完整价格表→":
+    - /url: /models
+- generic: 动态
+- heading "最新更新和公告" [level=2]
+- link "查看所有公告 →":
+  - /url: /announcements/zh-CN
+  - text: 查看所有公告
+  - generic: →
+- link "新增如下模型支持：- https://www.ohmygpt.com/models/cloudflare%3Azhipu%2Fglm-5.3-flash- https://www.ohmygpt.com/models/cloudflare%3Azhipu%2Fglm-5.3Cloudflare AI 限时 95% off 中，推荐用于Coding场景 2026-1015公告：新增支持 Cloudflare Worker AI的GLM5.3系列模型 限时95% off中 2026年10月20日":
+  - /url: /announcements/zh-CN/01a15869-6121-7e2a-b587-55527ad6124a
+  - generic: 新增如下模型支持：- https://www.ohmygpt.com/models/cloudflare%3Azhipu%2Fglm-5.3-flash- https://www.ohmygpt.com/models/cloudflare%3Azhipu%2Fglm-5.3Cloudflare AI 限时 95% off 中，推荐用于Coding场景
+  - heading "2026-1015公告：新增支持 Cloudflare Worker AI的GLM5.3系列模型 限时95% off中" [level=3]
+  - time: 2026年10月20日
+- link "简介- 新增支持/v1/decisions API- 新增支持bytedance:deepseek/deepseek-v4-1-flash-261017 ，定价和bytedance:deepseek/deepseek-v4-1-flash-260910一致，缓外Token输入输出5折，缓内Token无优惠 2026-1015公告：模型上新+决策端点支持 字节跳动DeepSeek v4.1 flash 261017 缓外 Token 5折优惠中 2026年10月19日":
+  - /url: /announcements/zh-CN/01a1533f-8919-7faf-87d1-bcfbcfa522dd
+  - generic: 简介- 新增支持/v1/decisions API- 新增支持bytedance:deepseek/deepseek-v4-1-flash-261017 ，定价和bytedance:deepseek/deepseek-v4-1-flash-260910一致，缓外Token输入输出5折，缓内Token无优惠
+  - heading "2026-1015公告：模型上新+决策端点支持 字节跳动DeepSeek v4.1 flash 261017 缓外 Token 5折优惠中" [level=3]
+  - time: 2026年10月19日
+- link "简介今天上午DeepSeek官方API故障中推荐使用字节跳动提供的DeepSeek V4.1 Flash ： https://www.ohmygpt.com/models/bytedance%3Adeepseek%2Fdeepseek-v4-1-flash-260910字节跳动的DeepSeek V4.1 Flash缓外输入输出5折，缓内输入输出原价CodeX特价渠道由于Open 2026-1015公告：DeepSeek官方临时故障 CodeX特价渠道下架 2026年10月15日":
+  - /url: /announcements/zh-CN/01a13d88-7812-70be-bd01-8113614a8a2c
+  - generic: 简介今天上午DeepSeek官方API故障中推荐使用字节跳动提供的DeepSeek V4.1 Flash ： https://www.ohmygpt.com/models/bytedance%3Adeepseek%2Fdeepseek-v4-1-flash-260910字节跳动的DeepSeek V4.1 Flash缓外输入输出5折，缓内输入输出原价CodeX特价渠道由于Open
+  - heading "2026-1015公告：DeepSeek官方临时故障 CodeX特价渠道下架" [level=3]
+  - time: 2026年10月15日
+- link "新增模型支持：- gpt-6-astra另外由于最近CodeX订阅计划的5小时限额回来之后，风控放松，因此CodeX特价渠道已经确认恢复，您可以使用npx omgvibe快速配置您的codex 2026-0905通知：gpt-6上线 CodeX特价渠道恢复 2026年9月5日":
+  - /url: /announcements/zh-CN/01a0710b-757e-7f12-91ca-038d1291e620
+  - generic: 新增模型支持：- gpt-6-astra另外由于最近CodeX订阅计划的5小时限额回来之后，风控放松，因此CodeX特价渠道已经确认恢复，您可以使用npx omgvibe快速配置您的codex
+  - heading "2026-0905通知：gpt-6上线 CodeX特价渠道恢复" [level=3]
+  - time: 2026年9月5日
+- contentinfo:
+  - paragraph:
+    - text: AI for Everyone,
+    - text: Every Business.
+  - paragraph: Since 2023
+  - link "Email":
+    - /url: mailto:help@ohmygpt.com
+  - link "Telegram":
+    - /url: https://t.me/omg_pub
+    - img "Telegram"
+  - link "Discord":
+    - /url: https://discord.gg/rzMZGwuxpZ
+    - img "Discord"
+  - link "GitHub":
+    - /url: https://github.com/DogeNet-LLC
+    - img "GitHub"
+  - link "Twitter":
+    - /url: https://twitter.com/DogeNetLLC
+    - img "X"
+  - generic: 产品
+  - list:
+    - link "模型":
+      - /url: /models
+    - link "文档":
+      - /url: https://docs.ohmygpt.com
+    - link "API 参考":
+      - /url: https://docs.ohmygpt.com/api
+    - link "状态":
+      - /url: https://status.ohmygpt.com
+      - text: 状态
+  - generic: 资源
+  - list:
+    - link "博客":
+      - /url: /announcements/zh-CN
+    - link "更新日志":
+      - /url: https://ohmygpt-docs.apifox.cn/us/doc-7511347
+    - link "常见问题":
+      - /url: https://docs.ohmygpt.com/docs/overview/faq
+    - link "支持":
+      - /url: mailto:help@ohmygpt.com
+  - generic: 社区
+  - list:
+    - link "Telegram":
+      - /url: https://t.me/omg_pub
+    - link "Discord":
+      - /url: https://discord.gg/rzMZGwuxpZ
+    - link "Fanbook":
+      - /url: https://in.fanbook.cn/UM7llFlE
+  - generic: 法律
+  - list:
+    - link "服务条款":
+      - /url: /tos
+    - link "隐私政策":
+      - /url: /privacy
+  - generic: Friends
+  - list:
+    - link "DeepFlood":
+      - /url: https://www.deepflood.com/space/6444
+  - paragraph: DogeNet LLC
+  - paragraph: 131 Lupine Drive, Torrington, 82240, Wyoming, United States
+  - paragraph: © 2023–2026 DogeNet LLC. 保留所有权利。
+- region "Notifications alt+T"
+- generic: 收集
+- generic: 个人收藏
+- textbox "搜索 / 新建收集"
+- img "Toggle Drag Area"
+- generic: 创建悬浮图
+- document
+- document:
+  - button:
+- alert
