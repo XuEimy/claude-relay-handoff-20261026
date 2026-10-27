@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
+import { promises as fs } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
   generateKeyPairSync,
   sign,
@@ -23,14 +26,16 @@ const events = [
 ];
 const stream = (items) =>
   new Response(
-    items.map((d) => "data: " + JSON.stringify(d) + "\n\n").join(""),
+    items
+      .map((d) => "event: " + d.type + "\ndata: " + JSON.stringify(d) + "\n\n")
+      .join(""),
     { headers: { "Content-Type": "text/event-stream" } },
   );
 async function harness(
   t,
-  { upstream = async () => stream(events), payments } = {},
+  { upstream = async () => stream(events), payments, env = {} } = {},
 ) {
-  const api = createApi({}, upstream, { dbPath: ":memory:", payments });
+  const api = createApi(env, upstream, { dbPath: ":memory:", payments });
   const server = http.createServer(async (req, res) => {
     if (!(await api(req, res))) res.writeHead(404).end();
   });
@@ -39,7 +44,7 @@ async function harness(
   t.after(async () => {
     server.closeAllConnections();
     await new Promise((r) => server.close(r));
-    api.close();
+    await api.close();
   });
   const call = async (path, body, cookie, method = "POST", extra = {}) => {
     const res = await fetch(base + "/api" + path, {
@@ -74,12 +79,12 @@ async function harness(
   assert.equal(admin.status, 200);
   return { api, call, base, admin: admin.cookie, adminId: admin.data.user.id };
 }
-async function configure(h) {
+async function configure(h, { baseURL = "https://upstream.example" } = {}) {
   const c = await h.call(
     "/admin/channels",
     {
       name: "测试渠道",
-      base_url: "https://upstream.example",
+      base_url: baseURL,
       api_key: "server-only-secret",
       enabled: true,
     },
@@ -176,7 +181,10 @@ test("chat: streams, persists ownership, settles exact usage and hides keys", as
   assert.match(result.data, /你好，世界/);
   assert.match(result.data, /event: done/);
   assert.equal(captured.url, "https://upstream.example/v1/messages");
-  assert.equal(captured.req.headers.Authorization, "Bearer server-only-secret");
+  assert.equal(
+    new Headers(captured.req.headers).get("authorization"),
+    "Bearer server-only-secret",
+  );
   const billing = await h.call("/billing", undefined, h.admin);
   assert.equal(billing.data.usage[0].cost, 500);
   assert.equal(billing.data.balance, 999500);
@@ -436,7 +444,9 @@ test("simultaneous requests are refused and client stop releases reserved credit
           start(c) {
             c.enqueue(
               new TextEncoder().encode(
-                "data: " + JSON.stringify(events[0]) + "\n\n",
+                "event: message_start\ndata: " +
+                  JSON.stringify(events[0]) +
+                  "\n\n",
               ),
             );
             signal.addEventListener(
@@ -498,4 +508,336 @@ test("consent is required, stored sessions are revoked when disabling a user", a
   assert.equal(u.status, 200);
   await h.call("/admin/users", { id: u.data.user.id, disabled: true }, h.admin);
   assert.equal((await h.call("/billing", undefined, u.cookie)).status, 401);
+});
+
+test("official SDK: pinned channel URL, model, history, version and workspace headers", async (t) => {
+  const requests = [];
+  const h = await harness(t, {
+    env: {
+      ANTHROPIC_VERSION: "2026-10-21",
+      ANTHROPIC_WORKSPACE_ID: "workspace-test",
+    },
+    upstream: async (url, req) => {
+      requests.push({ url, req });
+      return stream(events);
+    },
+  });
+  const model = await configure(h, { baseURL: "https://upstream.example/v1/" });
+  const first = await h.call(
+    "/chat",
+    { model, content: "第一个问题" },
+    h.admin,
+  );
+  const conversationId = JSON.parse(
+    first.data.match(/event: meta\ndata: (.+)/)[1],
+  ).conversationId;
+  const second = await h.call(
+    "/chat",
+    { model, content: "接着说", conversationId },
+    h.admin,
+  );
+  assert.match(second.data, /event: done/);
+  assert.equal(requests.length, 2);
+  for (const { url, req } of requests) {
+    assert.equal(url, "https://upstream.example/v1/messages");
+    const headers = new Headers(req.headers);
+    assert.equal(headers.get("anthropic-version"), "2026-10-21");
+    assert.equal(headers.get("anthropic-workspace-id"), "workspace-test");
+    assert.equal(headers.get("authorization"), "Bearer server-only-secret");
+  }
+  const body = JSON.parse(requests[1].req.body);
+  assert.equal(body.model, "test-model");
+  assert.equal(body.max_tokens, 128);
+  assert.equal(body.stream, true);
+  assert.deepEqual(body.messages, [
+    { role: "user", content: "第一个问题" },
+    { role: "assistant", content: "你好，世界。" },
+    { role: "user", content: "接着说" },
+  ]);
+});
+
+test("official SDK: fragmented UTF-8, CRLF, ping and unknown events keep text and usage intact", async (t) => {
+  const h = await harness(t, {
+    upstream: async () => {
+      const wire =
+        ": heartbeat\r\n\r\nevent: ping\r\ndata: {}\r\n\r\n" +
+        [{ type: "future_event", payload: true }, ...events]
+          .map((e) => `event: ${e.type}\r\ndata: ${JSON.stringify(e)}\r\n\r\n`)
+          .join("");
+      const bytes = new TextEncoder().encode(wire);
+      return new Response(
+        new ReadableStream({
+          start(c) {
+            for (let i = 0; i < bytes.length; i += 3)
+              c.enqueue(bytes.slice(i, i + 3));
+            c.close();
+          },
+        }),
+        { headers: { "Content-Type": "text/event-stream" } },
+      );
+    },
+  });
+  const model = await configure(h);
+  const result = await h.call(
+    "/chat",
+    { model, content: "中文与 emoji 🌏" },
+    h.admin,
+  );
+  assert.match(result.data, /你好，世界。/);
+  assert.match(result.data, /event: done/);
+  assert.doesNotMatch(result.data, /event: error/);
+  const b = await h.call("/billing", undefined, h.admin);
+  assert.equal(b.data.usage[0].input_tokens, 10);
+  assert.equal(b.data.usage[0].output_tokens, 5);
+  assert.equal(b.data.usage[0].cost, 500);
+});
+
+test("official SDK: HTTP errors are sanitized, refunded and never automatically retried", async (t) => {
+  for (const code of [401, 403, 404, 429, 500, 529])
+    await t.test(String(code), async (t) => {
+      let attempts = 0;
+      const h = await harness(t, {
+        upstream: async () => {
+          attempts++;
+          return Response.json(
+            {
+              type: "error",
+              error: {
+                type: "api_error",
+                message: "server-only-secret private diagnostic",
+              },
+            },
+            { status: code },
+          );
+        },
+      });
+      const model = await configure(h);
+      const result = await h.call("/chat", { model, content: "test" }, h.admin);
+      assert.equal(result.status, 502);
+      assert.equal(attempts, 1);
+      assert.doesNotMatch(
+        JSON.stringify(result.data),
+        /server-only-secret|private diagnostic/,
+      );
+      if ([429, 529].includes(code)) assert.match(result.data.error, /繁忙/);
+      if ([401, 403].includes(code))
+        assert.match(result.data.error, /认证失败/);
+      const b = await h.call("/billing", undefined, h.admin);
+      assert.equal(b.data.balance, 1000000);
+      assert.equal(b.data.usage[0].reserved, 0);
+      assert.equal(b.data.usage[0].status, "failed");
+    });
+});
+
+test("official SDK: in-stream provider error preserves partial reply and settles known usage", async (t) => {
+  const h = await harness(t, {
+    upstream: async () =>
+      stream([
+        ...events.slice(0, 2),
+        {
+          type: "error",
+          error: {
+            type: "overloaded_error",
+            message: "private debug server-only-secret",
+          },
+        },
+      ]),
+  });
+  const model = await configure(h);
+  const result = await h.call("/chat", { model, content: "test" }, h.admin);
+  assert.match(result.data, /event: error/);
+  assert.match(result.data, /繁忙/);
+  assert.doesNotMatch(
+    result.data,
+    /private debug|server-only-secret|event: done/,
+  );
+  const b = await h.call("/billing", undefined, h.admin);
+  assert.equal(b.data.balance, 999800);
+  assert.equal(b.data.usage[0].status, "failed");
+  const conv = await h.call("/conversations", undefined, h.admin);
+  const details = await h.call(
+    "/conversations/" + conv.data[0].id,
+    undefined,
+    h.admin,
+  );
+  assert.equal(details.data.messages[1].content, "你好，世界。");
+});
+
+test("official SDK: a successful non-SSE response is not accepted as a completed chat", async (t) => {
+  const h = await harness(t, {
+    upstream: async () => Response.json({ content: "private diagnostic" }),
+  });
+  const model = await configure(h);
+  const result = await h.call("/chat", { model, content: "test" }, h.admin);
+  assert.equal(result.status, 502);
+  assert.doesNotMatch(JSON.stringify(result.data), /private diagnostic/);
+  assert.equal(
+    (await h.call("/billing", undefined, h.admin)).data.balance,
+    1000000,
+  );
+});
+
+test("official SDK model discovery is administrator-only, uses channel credentials and never charges balance", async (t) => {
+  let captured;
+  const h = await harness(t, {
+    upstream: async (url, req) => {
+      captured = { url, req };
+      return Response.json({
+        data: [
+          {
+            id: "claude-test",
+            display_name: "Claude Test",
+            type: "model",
+            created_at: "2026-01-01T00:00:00Z",
+            private: "server-only-secret",
+          },
+        ],
+        has_more: false,
+      });
+    },
+  });
+  await configure(h);
+  const channel = h.api.store.get("SELECT id FROM channels").id;
+  const endpoint = "/admin/channels/" + channel + "/models";
+  assert.equal((await h.call(endpoint, {})).status, 401);
+  const u = await h.call("/register", {
+    name: "用户",
+    email: "models@example.test",
+    password: "long-password",
+    accepted: "on",
+  });
+  assert.equal((await h.call(endpoint, {}, u.cookie)).status, 403);
+  const result = await h.call(endpoint, {}, h.admin);
+  assert.equal(result.status, 200);
+  assert.deepEqual(result.data.models, [
+    { id: "claude-test", name: "Claude Test" },
+  ]);
+  assert.equal(captured.url, "https://upstream.example/v1/models?limit=100");
+  assert.equal(
+    new Headers(captured.req.headers).get("authorization"),
+    "Bearer server-only-secret",
+  );
+  assert.equal(
+    (await h.call("/billing", undefined, h.admin)).data.balance,
+    1000000,
+  );
+  assert.equal(
+    (await h.call("/billing", undefined, h.admin)).data.usage.length,
+    0,
+  );
+});
+
+test("Code HTTP integration: authenticated project access, PUT CSRF and file versions", async (t) => {
+  const root = await fs.mkdtemp(
+    join(await fs.realpath(tmpdir()), "code-http-"),
+  );
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const h = await harness(t, {
+    env: { CODE_DEMO: "1", CODE_WORKSPACE_ROOT: root },
+  });
+  assert.equal((await h.call("/code/projects")).status, 401);
+  const created = await h.call("/code/projects", { name: "集成测试" }, h.admin);
+  assert.equal(created.status, 201);
+  const prefix = "/code/projects/" + created.data.project.id;
+  const original = await h.call(
+    prefix + "/file?path=index.html",
+    undefined,
+    h.admin,
+  );
+  const body = {
+    path: "index.html",
+    content: "<h1>保存成功</h1>",
+    version: original.data.version,
+  };
+  assert.equal(
+    (
+      await h.call(prefix + "/file", body, h.admin, "PUT", {
+        Origin: "https://evil.invalid",
+      })
+    ).status,
+    403,
+  );
+  const saved = await h.call(prefix + "/file", body, h.admin, "PUT");
+  assert.equal(saved.status, 200);
+  assert.equal(saved.data.content, body.content);
+  assert.equal(
+    (await h.call(prefix + "/file", body, h.admin, "PUT")).status,
+    409,
+  );
+  const u = await h.call("/register", {
+    name: "其他用户",
+    email: "other-code@example.test",
+    password: "test-password-long",
+    accepted: "on",
+  });
+  assert.equal(
+    (await h.call(prefix + "/tree", undefined, u.cookie)).status,
+    404,
+  );
+  assert.equal(
+    (await h.call(prefix + "/file?path=index.html", undefined, h.admin)).data
+      .content,
+    body.content,
+  );
+  assert.equal(
+    (await h.call(prefix + "/changes", undefined, h.admin)).data.files.length,
+    1,
+  );
+});
+
+test("feedback: public suggestions, authenticated idempotent voting and submission", async (t) => {
+  const h = await harness(t);
+  const initial = await h.call("/feedback");
+  assert.equal(initial.status, 200);
+  assert.equal(initial.data.items.length, 3);
+  const item = initial.data.items[0];
+  assert.equal(item.up, 0);
+  assert.equal(
+    (await h.call("/feedback/" + item.id + "/vote", { vote: 1 })).status,
+    401,
+  );
+  let voted = await h.call(
+    "/feedback/" + item.id + "/vote",
+    { vote: 1 },
+    h.admin,
+  );
+  assert.equal(voted.status, 200);
+  assert.equal(voted.data.items.find((v) => v.id === item.id).up, 1);
+  voted = await h.call("/feedback/" + item.id + "/vote", { vote: 1 }, h.admin);
+  assert.equal(voted.data.items.find((v) => v.id === item.id).up, 1);
+  voted = await h.call("/feedback/" + item.id + "/vote", { vote: -1 }, h.admin);
+  const switched = voted.data.items.find((v) => v.id === item.id);
+  assert.equal(switched.up, 0);
+  assert.equal(switched.down, 1);
+  assert.equal(switched.myVote, -1);
+  assert.equal(
+    (await h.call("/feedback")).data.items.find((v) => v.id === item.id).myVote,
+    0,
+  );
+  assert.equal(
+    (await h.call("/feedback/" + item.id + "/vote", { vote: 2 }, h.admin))
+      .status,
+    400,
+  );
+  assert.equal(
+    (
+      await h.call(
+        "/feedback/" + item.id + "/vote",
+        { vote: 1 },
+        h.admin,
+        "POST",
+        { Origin: "https://evil.invalid" },
+      )
+    ).status,
+    403,
+  );
+  voted = await h.call("/feedback/" + item.id + "/vote", { vote: 0 }, h.admin);
+  assert.equal(voted.data.items.find((v) => v.id === item.id).down, 0);
+  const submitted = await h.call(
+    "/feedback",
+    { title: "导出会话", description: "希望能下载 Markdown 格式的聊天记录。" },
+    h.admin,
+  );
+  assert.equal(submitted.status, 201);
+  assert.ok(submitted.data.items.some((v) => v.title === "导出会话"));
 });

@@ -27,11 +27,23 @@ await start(
     PORT: "4176",
     DATABASE_PATH: "data/demo.db",
     REGISTRATION_OPEN: "true",
+    CODE_DEMO: "1",
+    CODE_WORKSPACE_ROOT: "data/demo-code-workspaces",
   },
   {
     demo: true,
     payments,
-    fetcher: async (_url, { signal }) => {
+    fetcher: async (url, { signal }) => {
+      if (new URL(url).pathname === "/v1/models")
+        return Response.json({
+          data: ["haiku", "sonnet", "opus"].map((name) => ({
+            id: "demo-" + name,
+            type: "model",
+            display_name:
+              "Claude " + name[0].toUpperCase() + name.slice(1) + " 5.5",
+          })),
+          has_more: false,
+        });
       const encoder = new TextEncoder();
       let stopped = false;
       const answer =
@@ -42,7 +54,13 @@ await start(
             const send = (d) => {
               if (!stopped)
                 c.enqueue(
-                  encoder.encode("data: " + JSON.stringify(d) + "\n\n"),
+                  encoder.encode(
+                    "event: " +
+                      d.type +
+                      "\ndata: " +
+                      JSON.stringify(d) +
+                      "\n\n",
+                  ),
                 );
             };
             signal.addEventListener(

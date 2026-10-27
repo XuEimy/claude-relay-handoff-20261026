@@ -10,7 +10,18 @@ await start(
     DATABASE_PATH: "data/qa.db",
   },
   {
-    fetcher: async () => {
+    fetcher: async (url) => {
+      if (new URL(url).pathname === "/v1/models")
+        return Response.json({
+          data: [
+            {
+              id: "qa-fixed",
+              type: "model",
+              display_name: "验收助手（固定回复）",
+            },
+          ],
+          has_more: false,
+        });
       const encoder = new TextEncoder();
       let cancelled = false;
       return new Response(
@@ -19,7 +30,13 @@ await start(
             const send = (d) => {
               if (!cancelled)
                 c.enqueue(
-                  encoder.encode("data: " + JSON.stringify(d) + "\n\n"),
+                  encoder.encode(
+                    "event: " +
+                      d.type +
+                      "\ndata: " +
+                      JSON.stringify(d) +
+                      "\n\n",
+                  ),
                 );
             };
             send({

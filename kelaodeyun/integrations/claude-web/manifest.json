@@ -1,0 +1,14 @@
+{
+  "source": "../claude-reverse-20261026/app",
+  "restored_at": "2026-10-27",
+  "entry": "integrations/claude-web/app/WebApp.jsx",
+  "sha256": {
+    "original/styles.css": "17d80c3505594cce699eb7a73426cf17d959d443e429399b52c0a86e6acdded9",
+    "original/App.jsx": "6890a2cebfd74e793b308f2d2072bddd001bd460651bc6ae56bf58d0aebb6f2d",
+    "original/assets/incognito.svg": "b539235558d5900edf56e8bb3f1224a24362d4fc079268d1a94ec56cd10d334f",
+    "original/assets/spark.svg": "a5c0160062d3c86d30b48e0d8a9ebfcf7757acc243ea85c6229f2c2876d26fb2",
+    "original/assets/c66fc489e-2VcCjn5t.woff2": "ac9c19c70558c5152b92119f83ca37dded627b524d75552a26fcda015d4106be",
+    "original/assets/cc27851ad-DDVos-BJ.woff2": "542f0e8bf7a27f2300f4cfb4b8ad168bc4cf7dc1eeeb8471cac66802f58e137c",
+    "original/assets/voice.svg": "0329b0961643c30f606bc660fdbb6a353fb54f0c8464e20b251e80eb176faa5c"
+  }
+}

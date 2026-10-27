@@ -132,3 +132,61 @@ final result: pending browser verification
 - 最终 `npm run build` 成功，`npm run test:sites` 4/4 通过；本次没有修改后端或重跑 API 测试。
 
 final result: passed (Hero desktop/mobile, model/rate links, motion controls)
+
+## Claude 官方 SDK 接入验收（2026-10-27）
+
+- `@anthropic-ai/sdk` 1.3.0 已安装并写入 package-lock；`lib/claude.mjs` 为服务端适配，`lib/api.mjs` 改用 SDK Messages 流式调用。旧的手写上游 SSE 解码已替换，网页 meta/delta/done/error 协议不变。
+- 每次请求锁定后台所选渠道 URL/密钥、模型、历史与输出上限。根地址带 `/v1/` 时规范化，避免重复路径。默认使用 SDK 版本头，可覆盖版本和 workspace。
+- 重试、日志、遥测关闭；认证失败、429/529 繁忙、未知模型、HTTP 错误与流内错误返回中文说明，不回传上游诊断或密钥。
+- 新增管理员模型读取接口与按钮，调用 SDK `models.list`，仅返回 ID/显示名，前 100 项。读取结果进入模型 ID 的 datalist；生成权限与余额仍需真实对话确认。
+- 23 项服务端测试通过：原账户/会话/账本/支付测试，以及 SDK 的根地址、请求头、模型、历史、分片 UTF-8/CRLF/ping/未知事件、HTTP 401/403/404/429/500/529、单次请求不重试、流内错误、非 SSE 响应、管理员模型发现。
+- `npm run build` 成功，`npm run test:sites` 4/4 通过。浏览器产物未包含 SDK 客户端或 ANTHROPIC_API_KEY 标识；实际 SDK 只在 Node API 中加载。
+- 浏览器复用已打开日常 Chrome Eimy（扩展 ID 1）：后台读取演示渠道返回 3 个模型，ID 建议为 demo-haiku/demo-sonnet/demo-opus。未新增或改写用户的真实渠道。
+- 通过现有管理员演示账号选择 Sonnet 并发送“验证官方 SDK：请回复一段中文。”，观察到回复先部分显示再完成，历史保留 2 条消息。SQLite 验证 status=complete，input_tokens=120、output_tokens=180，cost=24480（人民币 0.02448 元），reserved=0；余额从 99993400 降至 99968920，与费率 24/120 完全对应。
+- 控制台仅捕获第三方 Chrome 扩展报错，没有本站应用错误。证据：`evidence/claude-sdk-20261027/admin-model-discovery.jpg` 与 `chat-complete.jpg`。
+- 当前仍为隔离 demo.db + 模拟上游 fetch；模拟响应经过真实 SDK 请求构造与 SSE 解码。本次没有真实 API 凭据、付费模型请求、真实支付或生产部署；不能宣称已经完成真实 Claude 上游联调。
+- 使用文档：`docs/Claude-SDK接入.md`。
+
+final result: passed (SDK implementation, isolated integration and browser acceptance; real upstream deferred)
+
+
+## 2026-10-27 Claude Code 工作台与视觉纠正
+
+- `/code` 由官方 Agent SDK 连接服务端 CLI；项目文件、会话、SSE、工具批准、停止、编辑与创建快照差异已实现，32 项服务端测试通过，Sites 4 项通过，生产构建通过。
+- 本机已有官方 CLI 2.0.76 与 Agent SDK 0.3.311 空输入流协议握手成功，未调用推理。SDK 随包原生 CLI 在本机被 SIGKILL，保留显式可执行路径配置；未修改系统保护。美国服务器、订阅实际推理、命令隔离、Code 人民币结算尚未验收。
+- 用户否定初版 IDE 视觉。对照 `evidence/claude-fidelity/source-desktop-new-matched.jpg`，重做为 288px #fafafa 全高侧栏、白色主区、原字体及星标；1370×842 实测输入框 656×104，欢迎/输入框中心对齐。右侧文件/变更/终端默认关闭。
+- 浏览器复用日常 Chrome Eimy，未启动独立浏览器。实际验证：建项目、发任务、Read/Write 事件、刷新后保留待批准、允许后真实改盘、变更显示、按需打开文件、Cmd+S 保存成功。界面图片 `evidence/claude-code-20261027/refined-new.jpg`；初版差异截图仅记录功能，非最终视觉。
+- 本次 live Claude Code 页面加载遇 ERR_NETWORK_CHANGED，视觉取此前已采集原站截图；不声称完成当前 Code 页逐像素匹配。移动端仅 CSS 适配，本次浏览器连接未提供 viewport 能力，未做实际手机视窗验收。
+
+## 2026-10-27 对话全状态与首页后续修订
+
+- 对照原站对话截图，已有会话回复改用 Claude Serif 15px/24px，消息内容宽736px，输入框实测44px高。工具行展开、复制回复、等待批准、拒绝、停止和文件查看均有对应真实状态。
+- Write/Edit 工具及批准事件携带服务端文件快照 preview，差异保留未变行，提供行号、增删统计。测试验证批准前文件未变、批准才写入；多个批准同时等待不会提前隐藏剩余请求。
+- 新增许愿箱 GET/POST `/api/feedback` 与 POST `/api/feedback/:id/vote`。公开读取、登录写入、CSRF、防重复计数及取消/切换投票有测试覆盖。初始提议非客户评价，不含虚构票数。
+- 服务端34项测试通过。浏览器实际观察权限前后差异、拒绝状态、单行输入框、许愿箱投票与刷新保存；截图在 `evidence/code-conversation-20261027/` 与 `evidence/feedback-opening-20261027/`。
+- 开场动画实测三卡 animationName 为 gateway-opening-card，delay分别0.4/0.54/0.68秒；2.1秒后结束开场状态。Hero卡片192px高（动画缩放起始约186px），新顺序为 Hero→许愿箱→模型/保障。
+- 模型图片收至148px、标题18px；保障改为横向图文；FAQ展开列表与大标题双入口已实现。未添加第三方二维码、桌面下载或虚构评价。
+
+## 2026-10-27 最终顺序与精简验收
+
+- 实际 DOM 顺序：整屏 Hero、服务保障、模型栏、隐约链路、功能许愿箱、FAQ。桌面实测 header76px+Hero710px=786px，覆盖当前首屏。
+- 官方目录核对17个非Retired条目；当前4、经典10、受限3，ID无重复。模型小卡实测约236×217px，滚动内容宽4270px、视窗宽1125px。
+- 最新用户纠正已落实：模型筛选/目录控件0个，翻滚文字0个，许愿箱副标题不存在，scrollbar-width:none，服务保障标题存在；17个模型保留。
+- 技术直述已从公开链路区移除，节点高亮一次约3.3秒结束；未声称已部署美国服务器。模型数据与来源见 docs/Claude在线模型目录-20261027.md。
+- 最新生产构建通过；后端34项及Sites4项已通过。新技能 `~/.codex/skills/essential-ui` 完成结构校验。
+
+### 2026-10-27 模型配图与连续滚动
+- image_gen 新生成14张独立版画拼贴，保留已有3张，17个模型图片URL唯一；浏览器确认17张全部加载。
+- FAQ h2 text-align:left，标题与首个问题的左边界均为80px。
+- 横向轨道 scroll-snap-type:none，requestAnimationFrame以22px/s推进，不倒回；前台可见且无悬停/焦点时移动。手动操作后暂停。
+- Chrome Eimy原有审阅页验证；构建通过。React Bits中段交互建议尚未实施。
+
+### 2026-10-27 Card Swap 与开放作品版面
+- 使用 React Bits 官方 CardSwap 源文件，删除默认图库与图标依赖；替换旧链路图。三张首页示意依次为任务、执行、修改确认，不调用模型或批准真实写入。
+- Chrome Eimy现有审阅页确认原 architecture-diagram 不存在；三层牌面与现有米白陶土色一致。方向键切换 front=0→1；写作、编程、文件按钮切换及文件示例3行均验证，无页面横向溢出。
+- 新作品版面为开放式整屏排版，无卡片外壳。滚轮切换、鼠标视差已实现；本轮未通过自动化注入鼠标滚轮事件，尚无滚轮实测证据。未改变当前浏览器窗口尺寸进行移动端实测。
+- npm run build通过。截图：evidence/relay-order-20261027/card-swap.jpg、creative-spread.jpg。
+
+### 2026-10-27 完整原仓库迁入
+
+全量引入 vendor/open-claude-ui，77 个文件哈希一致、Git tracked 文件无修改；原版 JSX 与样式未重写。类型检查、token 检查、上游构建、本项目构建、Sites 四项检查通过。Chrome 验证 /chat 跳转、模型菜单、消息发送/模拟回复、暗色切换。SDK 计划暂停；官网封面未改。当前入口为上游完整组件陈列馆，非真实模型客户端。详见 integrations/open-claude-ui/README.md。

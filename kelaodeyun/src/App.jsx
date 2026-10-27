@@ -1,5 +1,6 @@
+import CardSwap, { Card } from "./components/react-bits/CardSwap.jsx";
+import { CLAUDE_MODELS } from "./model-catalogue.js";
 import DigitalGlobe from "./components/DigitalGlobe.jsx";
-import ClaudeChat from "./ClaudeChat.jsx";
 import React, { useState, useEffect, useRef } from "react";
 import {
   ArrowUp,
@@ -25,6 +26,11 @@ import {
   KeyRound,
   RefreshCw,
   Pencil,
+  FileText,
+  ThumbsUp,
+  ThumbsDown,
+  ChevronRight,
+  Terminal,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -181,6 +187,7 @@ function Art({ kind = 0 }) {
 }
 function Home({ config }) {
   const [menu, setMenu] = useState(false),
+    [opening, setOpening] = useState(true),
     [paused, setPaused] = useState(false),
     [heroModelId, setHeroModelId] = useState(
       () =>
@@ -194,10 +201,14 @@ function Home({ config }) {
     ? "/chat?model=" + encodeURIComponent(heroModel.id)
     : "/chat";
   useEffect(() => {
+    const openingTimer = setTimeout(() => setOpening(false), 2100);
     const esc = (e) => e.key === "Escape" && setMenu(false);
     window.addEventListener("keydown", esc);
     document.title = "kelaodeyun · AI 模型中转站";
-    return () => window.removeEventListener("keydown", esc);
+    return () => {
+      clearTimeout(openingTimer);
+      window.removeEventListener("keydown", esc);
+    };
   }, []);
   return (
     <div className="site relay-home">
@@ -209,6 +220,7 @@ function Home({ config }) {
           <a href="#models">模型与价格</a>
           <a href="#recharge">充值</a>
           <a href="#how">使用指南</a>
+          <a href="/code">Claude Code</a>
         </nav>
         <Brand />
         <div className="header-right">
@@ -247,6 +259,7 @@ function Home({ config }) {
           className="gateway-hero"
           aria-label="云上克劳德"
           data-motion={paused ? "paused" : "playing"}
+          data-opening={opening ? "true" : "false"}
         >
           <div className="gateway-globe" aria-hidden="true">
             <DigitalGlobe paused={paused} />
@@ -367,224 +380,576 @@ function Home({ config }) {
             {paused ? <Play size={14} /> : <Pause size={14} />}
           </IconButton>
         </section>
-        <RelayCards config={config} />
+        <TrustSection />
+        <ModelCarousel config={config} />
+        <RelayArchitecture />
+        <CreativeWork />
+        <UserFeedback config={config} />
+        <HomeQuestions config={config} />
       </main>
       <RelayFooter config={config} />
     </div>
   );
 }
-function RelayCards({ config }) {
-  const models = {
-    haiku: { description: "日常问答与内容整理。", image: "haiku" },
-    sonnet: { description: "写作与代码，兼顾效率与深度。", image: "sonnet" },
-    opus: { description: "复杂任务与深入推理。", image: "opus" },
-  };
-  const formatRate = (n) =>
-    Number(n).toLocaleString("zh-CN", { maximumFractionDigits: 6 });
+function UserFeedback({ config }) {
+  const [items, setItems] = useState([]),
+    [error, setError] = useState(""),
+    [busy, setBusy] = useState(""),
+    [form, setForm] = useState(false),
+    [message, setMessage] = useState("");
+  useEffect(() => {
+    let live = true;
+    api("/feedback")
+      .then((data) => {
+        if (live) setItems(data.items);
+      })
+      .catch((e) => {
+        if (live) setError(e.message);
+      });
+    return () => {
+      live = false;
+    };
+  }, []);
+  async function vote(item, value) {
+    if (!config.user) {
+      setError("登录后即可投票或提交建议");
+      return;
+    }
+    setBusy(item.id);
+    setError("");
+    try {
+      const data = await api("/feedback/" + item.id + "/vote", {
+        vote: item.myVote === value ? 0 : value,
+      });
+      setItems(data.items);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy("");
+    }
+  }
+  async function submit(event) {
+    event.preventDefault();
+    setBusy("submit");
+    setError("");
+    try {
+      const data = await api(
+        "/feedback",
+        Object.fromEntries(new FormData(event.currentTarget)),
+      );
+      setItems(data.items);
+      setForm(false);
+      setMessage("建议已提交");
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy("");
+    }
+  }
   return (
     <section
-      className="relay-card-section content-width"
-      aria-label="模型与服务保障"
+      id="feedback"
+      className="user-feedback feedback-board content-width"
+      aria-labelledby="user-feedback-title"
     >
-      <div id="models" className="relay-model-card-grid">
-        {config.models.map((m) => {
-          const presentation =
-            models[
-              Object.keys(models).find((key) =>
-                m.name.toLowerCase().includes(key),
-              )
-            ];
-          return (
-            <article className="relay-model-card" key={m.id}>
-              {presentation && (
-                <img
-                  className="relay-card-art"
-                  src={"/images/cards/" + presentation.image + ".jpg"}
-                  alt=""
-                  loading="lazy"
-                  width="1536"
-                  height="1024"
-                />
-              )}
-              <div className="relay-model-card-copy">
-                <h3>{m.name}</h3>
-                {presentation && (
-                  <p className="relay-model-card-description">
-                    {presentation.description}
-                  </p>
-                )}
-                <div className="relay-card-actions">
-                  <details className="relay-card-rate">
-                    <summary>
-                      费率 <ChevronDown size={14} />
-                    </summary>
-                    <div>
-                      <p>
-                        <span>输入 / 百万 tokens</span>
-                        <strong>¥{formatRate(m.input_rate)}</strong>
-                      </p>
-                      <p>
-                        <span>输出 / 百万 tokens</span>
-                        <strong>¥{formatRate(m.output_rate)}</strong>
-                      </p>
-                    </div>
-                  </details>
-                  <a
-                    className="relay-card-main-link"
-                    href={"/chat?model=" + encodeURIComponent(m.id)}
-                    aria-label={"使用 " + m.name}
-                  >
-                    开始聊天 <ArrowRight size={16} />
-                  </a>
+      <header>
+        <div>
+          <h2 id="user-feedback-title">功能许愿箱</h2>
+        </div>
+        <button
+          className="feedback-add"
+          onClick={() => {
+            if (!config.user) {
+              setError("登录后即可投票或提交建议");
+              return;
+            }
+            setForm(!form);
+            setMessage("");
+          }}
+          aria-expanded={form}
+        >
+          <Plus size={15} />
+          提个建议
+        </button>
+      </header>
+      {(error || message) && (
+        <div className="feedback-status" role="status">
+          {error || message}
+          {!config.user && (
+            <a href="/login">
+              登录 / 注册 <ArrowUpRight size={13} />
+            </a>
+          )}
+        </div>
+      )}
+      {form && (
+        <form className="feedback-form" onSubmit={submit}>
+          <label>
+            功能名称
+            <input
+              name="title"
+              maxLength={60}
+              required
+              placeholder="你想要的功能"
+              autoFocus
+            />
+          </label>
+          <label>
+            具体建议
+            <textarea
+              name="description"
+              maxLength={400}
+              required
+              rows={3}
+              placeholder="希望解决什么问题？"
+            />
+          </label>
+          <div>
+            <button type="button" onClick={() => setForm(false)}>
+              取消
+            </button>
+            <button className="feedback-submit" disabled={busy === "submit"}>
+              {busy === "submit" ? "提交中…" : "提交建议"}
+            </button>
+          </div>
+        </form>
+      )}
+      <div className="wish-grid">
+        {items.map((item) => (
+          <article className="wish-card" key={item.id}>
+            <h3>{item.title}</h3>
+            <p>{item.description}</p>
+            <div
+              className={"wish-preview wish-" + item.kind}
+              aria-hidden="true"
+            >
+              {item.kind === "compare" ? (
+                <>
+                  <div className="wish-chat">
+                    <span>Haiku</span>
+                    <i />
+                    <i />
+                    <i />
+                  </div>
+                  <div className="wish-chat">
+                    <span>Sonnet</span>
+                    <i />
+                    <i />
+                    <i />
+                  </div>
+                  <div className="wish-chat">
+                    <span>Opus</span>
+                    <i />
+                    <i />
+                    <i />
+                  </div>
+                </>
+              ) : item.kind === "history" ? (
+                <div className="wish-history">
+                  <div>
+                    <FileText size={15} />
+                    <span>index.html</span>
+                    <span className="wish-added">+12 −4</span>
+                  </div>
+                  <div>
+                    <span className="wish-history-dot" />
+                    调整页面布局<small>当前版本</small>
+                  </div>
+                  <div>
+                    <span className="wish-history-dot" />
+                    创建首页
+                    <small>
+                      恢复此版本 <ArrowRight size={10} />
+                    </small>
+                  </div>
                 </div>
+              ) : item.kind === "budget" ? (
+                <div className="wish-budget">
+                  <div>
+                    <span>每日预算</span>
+                    <strong>¥50</strong>
+                  </div>
+                  <div className="wish-budget-bar">
+                    <span />
+                  </div>
+                  <div>
+                    <span>接近预算时提醒</span>
+                    <span className="wish-switch" />
+                  </div>
+                  <div>
+                    <span>余额不足提醒</span>
+                    <span className="wish-switch" />
+                  </div>
+                </div>
+              ) : (
+                <div className="wish-idea">
+                  <MessageSquare size={25} />
+                  <span>你的想法，下一步的方向。</span>
+                </div>
+              )}
+            </div>
+            <div
+              className="wish-votes"
+              role="group"
+              aria-label={"投票：" + item.title}
+            >
+              <button
+                aria-label={"赞成：" + item.title}
+                aria-pressed={item.myVote === 1}
+                disabled={busy === item.id}
+                onClick={() => vote(item, 1)}
+              >
+                <ThumbsUp size={17} />
+                <span>{item.up}</span>
+              </button>
+              <button
+                aria-label={"反对：" + item.title}
+                aria-pressed={item.myVote === -1}
+                disabled={busy === item.id}
+                onClick={() => vote(item, -1)}
+              >
+                <ThumbsDown size={17} />
+                <span>{item.down}</span>
+              </button>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+function ModelCarousel({ config }) {
+  const [playing, setPlaying] = useState(true);
+  const track = useRef(null);
+  const items = CLAUDE_MODELS;
+  const artwork = {
+    "claude-opus-5-5": "opus",
+    "claude-sonnet-5-5": "sonnet",
+    "claude-haiku-5-5": "haiku",
+    "claude-opus-4-5-20251101": "opus-4-5",
+    "claude-sonnet-4-5-20250929": "sonnet-4-5",
+    "claude-haiku-4-5-20251001": "haiku-4-5",
+  };
+  const description = {
+    fable: "长程任务与深度推理",
+    opus: "复杂任务与代码工作",
+    sonnet: "写作、分析与日常编码",
+    haiku: "轻量、高频、快速响应",
+    mythos: "受限的安全研究型号",
+  };
+  const move = (direction, manual = true) => {
+    const el = track.current;
+    if (!el) return;
+    if (manual) setPlaying(false);
+    const distance =
+      (el.firstElementChild?.getBoundingClientRect().width || 236) + 16;
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    el.scrollBy({
+      left: direction * distance,
+      behavior: reduced ? "auto" : "smooth",
+    });
+  };
+  useEffect(() => {
+    const el = track.current;
+    if (!el) return;
+    if (
+      !playing ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    )
+      return;
+    let visible = false;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        visible = entry.isIntersecting;
+      },
+      { threshold: 0.35 },
+    );
+    observer.observe(el);
+    let frame;
+    let previous = 0;
+    let position = el.scrollLeft;
+    const tick = (time) => {
+      const elapsed = previous ? Math.min(time - previous, 50) : 0;
+      previous = time;
+      if (visible && !document.hidden && !el.matches(":hover") &&
+          !el.contains(document.activeElement)) {
+        position = Math.max(position, el.scrollLeft);
+        position = Math.min(el.scrollWidth - el.clientWidth, position + elapsed * 0.022);
+        el.scrollLeft = position;
+      } else {
+        position = el.scrollLeft;
+      }
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  }, [playing]);
+  return (
+    <section
+      id="models"
+      className="model-carousel content-width"
+      aria-labelledby="model-carousel-title"
+    >
+      <header>
+        <h2 id="model-carousel-title">Claude 模型</h2>
+      </header>
+      <div
+        className="model-scroll-track"
+        ref={track}
+        tabIndex={0}
+        role="region"
+        aria-label="Claude 在线模型，横向滚动查看，空格暂停轮播"
+        onPointerDown={() => setPlaying(false)}
+        onWheel={() => setPlaying(false)}
+        onKeyDown={(e) => {
+          if (e.key === " ") {
+            e.preventDefault();
+            setPlaying((old) => !old);
+          }
+          if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+            e.preventDefault();
+            move(e.key === "ArrowRight" ? 1 : -1);
+          }
+        }}
+      >
+        {items.map((model) => {
+          const configured = config.models.find(
+            (m) =>
+              m.name.replace(/\s/g, "").toLowerCase() ===
+              model.name.replace(/\s/g, "").toLowerCase(),
+          );
+          return (
+            <article className="model-mini-card" key={model.id}>
+              <img
+                src={"/images/cards/" + (artwork[model.id] || model.id.replace("claude-", "")) + ".jpg"}
+                alt=""
+                loading="lazy"
+                width="300"
+                height="110"
+              />
+              <div>
+                {model.note && (
+                  <span className={"model-availability " + model.group}>
+                    {model.note}
+                  </span>
+                )}
+                <h3>{model.name}</h3>
+                <p>{description[model.family]}</p>
+                <a
+                  href={
+                    configured
+                      ? "/chat?model=" + encodeURIComponent(configured.id)
+                      : model.url
+                  }
+                  {...(!configured
+                    ? { target: "_blank", rel: "noreferrer" }
+                    : {})}
+                >
+                  {configured ? "开始对话" : "官方资料"}
+                  <ArrowUpRight size={13} />
+                </a>
               </div>
             </article>
           );
         })}
-        {!config.models.length && (
-          <article className="relay-model-card relay-model-empty">
-            <div className="relay-model-card-copy">
-              <h3>模型服务即将开放</h3>
-              <div className="relay-card-actions">
-                <a
-                  className="relay-card-main-link"
-                  href={config.user?.role === "admin" ? "/admin" : "/login"}
-                >
-                  前往账户 <ArrowRight size={16} />
-                </a>
-              </div>
-            </div>
-          </article>
-        )}
       </div>
-      <div className="relay-assurance-grid">
-        <article className="relay-assurance-card">
-          <img
-            className="relay-card-art"
-            src="/images/cards/stability.jpg"
-            alt=""
-            loading="lazy"
-            width="1536"
-            height="1024"
-          />
-          <div className="relay-model-card-copy">
+    </section>
+  );
+}
+function RelayArchitecture() {
+  return (
+    <section id="how-it-works" className="code-sequence" aria-labelledby="architecture-title">
+      <div className="code-swap-section content-width">
+      <h2 id="architecture-title">从一个想法，<br />到下一个作品。</h2>
+      <div className="code-swap-preview">
+        <CardSwap autoplay delay={4200} draggable intro={false}
+          width={440} height={280} cardDistance={22} verticalDistance={24}
+          depth={38} visibleCards={5} skewAmount={3} speed={0.85}
+          bounce={0.12} parallax={0.7} hoverSpread={0.05} dim={0.12}
+          cardRadius={15} theme="light">
+          <Card className="code-demo-card">
+            <div className="code-demo-head"><MessageSquare size={16} />任务</div>
+            <div className="code-demo-conversation">
+              <p className="code-demo-user">把首页做得更简洁一点。</p>
+              <div className="code-demo-answer"><img src="/claude-assets/spark.svg" alt="" /><p>我先看看页面结构，再精简布局和文案。</p></div>
+              <div className="code-demo-composer">继续这个想法 <ArrowUp size={15} /></div>
+            </div>
+          </Card>
+          <Card className="code-demo-card">
+            <div className="code-demo-head"><Search size={16} />读懂项目</div>
+            <div className="code-demo-tree">
+              <div><FileText size={15} /><code>src/App.jsx</code><span>首页结构</span></div>
+              <div><FileText size={15} /><code>src/styles.css</code><span>页面样式</span></div>
+              <div><FileText size={15} /><code>package.json</code><span>项目依赖</span></div>
+            </div>
+            <div className="code-demo-result"><Check size={17} /><span>沿用项目原有的设计。</span></div>
+          </Card>
+          <Card className="code-demo-card">
+            <div className="code-demo-head"><Terminal size={16} />执行</div>
+            <div className="code-demo-tools">
+              <div><Check size={14} /><span>读取页面</span><code>src/App.jsx</code></div>
+              <div><Check size={14} /><span>整理样式</span><code>src/styles.css</code></div>
+              <div><Check size={14} /><span>生成修改</span><code>2 files</code></div>
+            </div>
+            <div className="code-demo-result"><FileText size={17} /><span>去掉重复说明，保留必要入口。</span></div>
+          </Card>
+          <Card className="code-demo-card">
+            <div className="code-demo-head"><FileText size={16} />修改确认 <code>App.jsx</code></div>
+            <div className="code-demo-diff"><div><span>−</span>&lt;h1&gt;让每一次创造更简单&lt;/h1&gt;</div><div><span>+</span>&lt;h1&gt;少操作，多创造。&lt;/h1&gt;</div><div><span>−</span>&lt;p&gt;从这里开启无限可能&lt;/p&gt;</div></div>
+            <div className="code-demo-actions" aria-hidden="true"><span>拒绝</span><span>允许修改 <Check size={13} /></span></div>
+          </Card>
+          <Card className="code-demo-card">
+            <div className="code-demo-head"><Check size={16} />完成</div>
+            <div className="code-demo-finished">
+              <span className="code-demo-finished-mark" aria-hidden="true">✳</span>
+              <h3>少操作，多创造。</h3>
+              <span className="code-demo-finished-link">开始使用 <ArrowUpRight size={13} /></span>
+            </div>
+          </Card>
+        </CardSwap>
+      </div>
+      </div>
+    </section>
+  );
+}
+
+function CreativeWork() {
+  const [mode, setMode] = useState("写作");
+  return (
+    <section className="creative-sequence" aria-labelledby="creative-work-title">
+      <div className="creative-work content-width">
+      <div className="creative-work-intro">
+        <h2 id="creative-work-title">让想法，<br />有个着落。</h2>
+        <div className="creative-work-modes" aria-label="切换作品示例">
+          {["写作", "编程", "文件"].map(name => <button key={name} aria-pressed={mode === name} onClick={() => setMode(name)}>{name}<ArrowUpRight size={19} /></button>)}
+        </div>
+      </div>
+      <div className="creative-work-output" key={mode} aria-label={mode + "作品示例"}>
+        {mode === "写作" ? <div className="creative-letter">
+          <span className="creative-handmark" aria-hidden="true">Dear,</span>
+          <h3>好想法，<br />值得被好好表达。</h3>
+          <p>把零散的念头整理成段落，把冗长的句子写得清楚。</p>
+          <p>一封邮件、一篇文章，<br />或者，那个迟迟没有写下的开头。</p>
+          <div className="creative-signature" aria-hidden="true">从第一句话开始。<span>✳</span></div>
+        </div> : mode === "编程" ? <div className="creative-code">
+          <h3>从一个念头，<br />到可以运行。</h3>
+          <pre><code><span>export default</span> function Idea() {'{'}<br />{'  '}return (<br />{'    '}&lt;main&gt;<br />{'      '}&lt;h1&gt;Hello, idea.&lt;/h1&gt;<br />{'    '}&lt;/main&gt;<br />{'  '});<br />{'}'}</code></pre>
+          <div className="creative-code-line"><Check size={16} />读懂项目。完成修改。由你确认。</div>
+        </div> : <div className="creative-document">
+          <h3>让复杂的资料，<br />变得有条理。</h3>
+          <div className="creative-document-heading">项目笔记</div>
+          {[['01', '提取重点', '从长文中，找到真正重要的部分。'], ['02', '理清结构', '把信息放回合适的位置。'], ['03', '继续完善', '围绕同一份内容，反复打磨。']].map(([n,title,text]) => <div className="creative-document-line" key={n}><span>{n}</span><div><h4>{title}</h4><p>{text}</p></div></div>)}
+        </div>}
+      </div>
+      </div>
+    </section>
+  );
+}
+
+function TrustSection() {
+  return (
+    <section className="trust-section trust-editorial content-width" aria-labelledby="trust-title">
+      <h2 id="trust-title" className="trust-title">服务保障</h2>
+      <div className="trust-editorial-grid">
+        <article className="trust-story">
+          <img className="trust-art" src="/images/cards/stability.jpg" alt="" loading="lazy" width="768" height="512" />
+          <div className="trust-copy">
             <h3>稳定</h3>
-            <div className="relay-card-actions">
-              <details>
-                <summary>
-                  保障详情 <ChevronDown size={14} />
-                </summary>
-                <p>
-                  对话自动保存，请求设有超时保护。异常和中断会释放预留额度，调用状态与费用可在账户页核对。
-                </p>
-              </details>
-              <a className="relay-card-main-link" href="/billing#usage">
-                调用记录 <ArrowRight size={16} />
-              </a>
-            </div>
+            <div className="trust-facts"><p>对话自动保存，请求超时保护。</p><p>异常或中断时，释放预留额度。</p><p>调用状态与费用，随时可查。</p></div>
+            <a href="/billing#usage">调用记录 <ArrowUpRight size={16} /></a>
           </div>
         </article>
-        <article className="relay-assurance-card">
-          <img
-            className="relay-card-art"
-            src="/images/cards/security.jpg"
-            alt=""
-            loading="lazy"
-            width="1536"
-            height="1024"
-          />
-          <div className="relay-model-card-copy">
+        <article className="trust-story">
+          <img className="trust-art" src="/images/cards/security.jpg" alt="" loading="lazy" width="768" height="512" />
+          <div className="trust-copy">
             <h3>安全</h3>
-            <div className="relay-card-actions">
-              <details>
-                <summary>
-                  保障详情 <ChevronDown size={14} />
-                </summary>
-                <p>
-                  账户与会话按用户鉴权，密码加盐哈希保存，模型密钥加密存储。相关对话上下文会发送给所选模型服务商处理。
-                </p>
-              </details>
-              <a className="relay-card-main-link" href="/privacy">
-                隐私说明 <ArrowRight size={16} />
-              </a>
-            </div>
+            <div className="trust-facts"><p>账户与会话按用户鉴权。</p><p>密码加盐哈希，模型密钥加密。</p><p>相关对话由所选模型服务商处理。</p></div>
+            <a href="/privacy">隐私说明 <ArrowUpRight size={16} /></a>
           </div>
         </article>
       </div>
-      <div className="relay-card-utilities">
-        <details id="how">
-          <summary>
-            使用指南 <Plus size={16} />
-          </summary>
-          <div>
-            <a href="/login">
-              注册登录 <ArrowUpRight size={14} />
-            </a>
-            <a href="/billing">
-              充值 <ArrowUpRight size={14} />
-            </a>
-            <a href="/chat">
-              开始聊天 <ArrowUpRight size={14} />
-            </a>
-          </div>
-        </details>
-        <details id="recharge">
-          <summary>
-            充值与账单 <Plus size={16} />
-          </summary>
-          <div>
-            <p>兑换码、支付宝与微信支付，已开放方式以账户页为准。</p>
-            <a href="/billing">
-              前往充值 <ArrowUpRight size={14} />
-            </a>
-          </div>
-        </details>
-        <details id="questions" className="relay-faq-drawer">
-          <summary>
-            常见问题 <Plus size={16} />
-          </summary>
-          <div className="relay-faq-items">
-            {[
-              [
-                "这是一个什么服务？",
-                "kelaodeyun 是独立的 AI 模型中转站。你在网页中发送消息，本站将相关对话上下文转交给所选模型服务商，并展示回复、记录用量。",
-              ],
-              [
-                "和 Claude、Anthropic 是什么关系？",
-                "本站是独立服务，不是 Anthropic 或其他模型服务商的官方网站。模型是否可用，以本站模型列表为准。",
-              ],
-              [
-                "现在能使用真实模型吗？",
-                config.demo
-                  ? "当前是演示环境，聊天为固定回复，充值使用测试余额，尚未调用真实模型。"
-                  : config.models.length
-                    ? "可以登录后选择列表中已开放的模型。余额不足时，需要先充值。"
-                    : "真实模型尚未开放。上方会在模型开放后展示名称与价格。",
-              ],
-              [
-                "费用如何计算？",
-                "输入和输出分别按模型费率与实际返回的 token 用量计费。例如，1,000 个输入 token 的费用为输入费率 × 1,000 ÷ 1,000,000。最终结算和用量明细可在账户页查看。",
-              ],
-              [
-                "对话会保存吗？",
-                "登录后的对话保存在本站服务器，并按账户隔离。你可以从侧栏继续或删除历史对话。消息和相关上下文会发送给所选模型服务商处理。",
-              ],
-              [
-                "支持开发者 API 调用吗？",
-                "当前提供网页聊天服务。面向开发者的 API Key 和 API 调用入口尚未开放。",
-              ],
-            ].map(([q, a]) => (
-              <details key={q}>
-                <summary>
-                  {q}
-                  <Plus size={18} />
-                </summary>
-                <p>{a}</p>
-              </details>
-            ))}
-          </div>
-        </details>
+      <div className="trust-access">
+        <div id="how" className="trust-guide">
+          <h3>使用指南</h3>
+          <nav aria-label="开始使用的步骤"><a href="/login">注册登录 <ArrowUpRight size={14} /></a><span aria-hidden="true">→</span><a href="/billing">充值 <ArrowUpRight size={14} /></a><span aria-hidden="true">→</span><a href="/chat">开始聊天 <ArrowUpRight size={14} /></a></nav>
+        </div>
+        <div id="recharge" className="trust-billing">
+          <h3>充值与账单</h3>
+          <p>兑换码、支付宝与微信支付，以账户页开放方式为准。</p>
+          <a href="/billing">前往充值 <ArrowUpRight size={14} /></a>
+        </div>
       </div>
+    </section>
+  );
+}
+function HomeQuestions({ config }) {
+  return (
+    <section className="home-questions content-width">
+      <section id="questions" className="relay-faq">
+        <h2>常见问题</h2>
+        <div className="relay-faq-items">
+          {[
+            [
+              "这是一个什么服务？",
+              "kelaodeyun 是独立的 AI 模型中转站。你在网页中发送消息，本站将相关对话上下文转交给所选模型服务商，并展示回复、记录用量。",
+            ],
+            [
+              "和 Claude、Anthropic 是什么关系？",
+              "本站是独立服务，不是 Anthropic 或其他模型服务商的官方网站。模型是否可用，以本站模型列表为准。",
+            ],
+            [
+              "现在能使用真实模型吗？",
+              config.demo
+                ? "当前是演示环境，聊天为固定回复，充值使用测试余额，尚未调用真实模型。"
+                : config.models.length
+                  ? "可以登录后选择列表中已开放的模型。余额不足时，需要先充值。"
+                  : "真实模型尚未开放。上方会在模型开放后展示名称与价格。",
+            ],
+            [
+              "费用如何计算？",
+              "输入和输出分别按模型费率与实际返回的 token 用量计费。例如，1,000 个输入 token 的费用为输入费率 × 1,000 ÷ 1,000,000。最终结算和用量明细可在账户页查看。",
+            ],
+            [
+              "对话会保存吗？",
+              "登录后的对话保存在本站服务器，并按账户隔离。你可以从侧栏继续或删除历史对话。消息和相关上下文会发送给所选模型服务商处理。",
+            ],
+            [
+              "支持开发者 API 调用吗？",
+              "当前提供网页聊天服务。面向开发者的 API Key 和 API 调用入口尚未开放。",
+            ],
+          ].map(([q, a]) => (
+            <details key={q}>
+              <summary>
+                {q}
+                <Plus size={18} />
+              </summary>
+              <p>{a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+      <section className="relay-bottom-cta" aria-label="开始使用">
+        <h2>少操作，多创造。</h2>
+        <p>从一次对话，到你的下一个作品。</p>
+        <div>
+          <a className="button dark" href="/chat">
+            开始对话 <ArrowRight size={17} />
+          </a>
+          <a className="button" href="/code">
+            打开 Code 工作台 <ArrowUpRight size={17} />
+          </a>
+        </div>
+        {config.supportEmail && (
+          <a className="relay-contact" href={"mailto:" + config.supportEmail}>
+            联系与反馈 <ArrowUpRight size={13} />
+          </a>
+        )}
+      </section>
     </section>
   );
 }
@@ -737,7 +1102,10 @@ function Auth({ config, refresh }) {
         Object.fromEntries(new FormData(e.target)),
       );
       await refresh();
-      window.location.href = "/chat" + window.location.search;
+      window.location.href =
+        location.pathname === "/code"
+          ? "/code"
+          : "/chat" + window.location.search;
     } catch (e) {
       setError(e.message);
     } finally {
@@ -1246,6 +1614,7 @@ function Admin({ config, refresh }) {
     [notice, setNotice] = useState(""),
     [voucher, setVoucher] = useState(""),
     [channel, setChannel] = useState(null),
+    [discoveredModels, setDiscoveredModels] = useState({}),
     [model, setModel] = useState(null),
     [busy, setBusy] = useState(false);
   const load = () =>
@@ -1264,6 +1633,24 @@ function Admin({ config, refresh }) {
       await refresh();
       setNotice("已保存。");
       return result;
+    } catch (e) {
+      setNotice(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function discoverModels(c) {
+    setBusy(true);
+    setNotice("");
+    try {
+      const result = await api(`/admin/channels/${c.id}/models`, {});
+      setDiscoveredModels((previous) => ({
+        ...previous,
+        [c.id]: result.models,
+      }));
+      setNotice(
+        `已连接「${c.name}」，读取到 ${result.models.length} 个模型${result.hasMore ? "（前 100 项）" : ""}。添加模型时可从上游模型 ID 的建议中选择。`,
+      );
     } catch (e) {
       setNotice(e.message);
     } finally {
@@ -1455,7 +1842,8 @@ function Admin({ config, refresh }) {
           <>
             <h2>上游渠道</h2>
             <p className="muted">
-              使用 Anthropic Messages 协议的授权接口。密钥仅保存在服务端。
+              通过 Anthropic 官方 SDK 连接 Claude 或兼容 Messages
+              协议的授权接口。密钥仅保存在服务端。
             </p>
             <Table
               headers={["渠道", "地址", "状态", "操作"]}
@@ -1463,9 +1851,22 @@ function Admin({ config, refresh }) {
                 c.name,
                 c.base_url,
                 c.enabled ? "已启用" : "已停用",
-                <button className="text-button" onClick={() => setChannel(c)}>
-                  编辑
-                </button>,
+                <div className="form-actions">
+                  <button
+                    className="text-button"
+                    disabled={busy}
+                    onClick={() => setChannel(c)}
+                  >
+                    编辑
+                  </button>
+                  <button
+                    className="text-button"
+                    disabled={busy}
+                    onClick={() => discoverModels(c)}
+                  >
+                    读取模型
+                  </button>
+                </div>,
               ])}
               empty="还没有渠道，先添加一个上游接口。"
             />
@@ -1586,10 +1987,20 @@ function Admin({ config, refresh }) {
               <Field
                 label="上游模型 ID"
                 name="upstream_id"
+                list="available-upstream-models"
                 required
                 maxLength={150}
                 defaultValue={model?.upstream_id}
               />
+              <datalist id="available-upstream-models">
+                {data.channels.flatMap((c) =>
+                  (discoveredModels[c.id] || []).map((m) => (
+                    <option key={`${c.id}:${m.id}`} value={m.id}>
+                      {c.name} · {m.name}
+                    </option>
+                  )),
+                )}
+              </datalist>
               <label>
                 所属渠道
                 <select
@@ -1795,7 +2206,18 @@ function Admin({ config, refresh }) {
     </Workspace>
   );
 }
+function UpstreamUI({ section }) {
+  const target = section ? "/claude-chat/index.html" : "/claude-ui/index.html";
+  useEffect(() => { location.replace(target); }, [target]);
+  return <a href={target}>打开 Open Claude UI</a>;
+}
 export function App() {
+  const path = location.pathname;
+  if (path === "/chat" || path === "/code" || path === "/claude-ui")
+    return <UpstreamUI section={path === "/chat" ? "chat" : path === "/code" ? "v2-lab" : ""} />;
+  return <SiteApp />;
+}
+function SiteApp() {
   const [config, setConfig] = useState(null),
     [error, setError] = useState("");
   const refresh = async () => {
@@ -1834,7 +2256,7 @@ function DemoNotice({ config }) {
   const show =
     config.demo &&
     location.pathname !== "/" &&
-    !(location.pathname === "/chat" && config.user);
+    !(["/chat", "/code"].includes(location.pathname) && config.user);
   useEffect(() => {
     document.body.classList.toggle("demo-mode", !!show);
     return () => document.body.classList.remove("demo-mode");
@@ -1862,8 +2284,6 @@ function AppRoute({ config, refresh }) {
         <a href="/chat">返回对话</a>
       </div>
     );
-  if (path === "/chat")
-    return <ClaudeChat config={config} refresh={refresh} api={api} />;
   return (
     <div className="loading-page">
       <Brand />

@@ -1,0 +1,53 @@
+@font-face {
+  font-family: Inter;
+  src: url("/claude-chat/fonts/inter-latin-wght-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: Newsreader;
+  src: url("/claude-chat/fonts/newsreader-latin-wght-normal.woff2")
+    format("woff2");
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/claude-chat/fonts/jetbrains-mono-latin-wght-normal.woff2")
+    format("woff2");
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+}
+:root {
+  --ui-font-sans:
+    Inter, system-ui, -apple-system, "PingFang SC", "Microsoft YaHei",
+    sans-serif;
+  --ui-font-serif: Newsreader, Georgia, "Songti SC", "Noto Serif SC", serif;
+  --ui-font-mono: "JetBrains Mono", "SF Mono", Menlo, monospace;
+}
+body,
+.font-sans {
+  font-family: var(--ui-font-sans);
+}
+.font-serif,
+.welcome h1,
+.wordmark {
+  font-family: var(--ui-font-serif);
+}
+.font-mono,
+pre,
+code {
+  font-family: var(--ui-font-mono);
+}
+.ui-icon {
+  display: inline-block;
+  vertical-align: -0.125em;
+  flex-shrink: 0;
+  color: currentColor;
+}
+.spark .ui-icon {
+  vertical-align: middle;
+}

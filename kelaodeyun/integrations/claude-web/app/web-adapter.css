@@ -1,0 +1,24 @@
+/* Original web geometry is authoritative. These rules only adapt added views. */
+[hidden]{display:none!important}
+.web-sidebar .icon{width:20px;height:20px;font-family:inherit}
+.web-sidebar .icon svg{width:18px;height:18px}
+.web-sidebar .chat-item .icon{flex-shrink:0;width:6px}
+.web-chat-surface .icon{font-family:inherit}
+.web-chat-surface .messages{scroll-behavior:auto}
+.web-chat-surface .message>div{min-width:0}
+.web-library{max-width:980px;margin:auto;padding:76px 48px;height:100%;overflow:auto}
+.web-library>header{display:flex;justify-content:space-between;align-items:center;margin-bottom:36px}
+.web-library h2{font:36px Anthropic Serif,serif;margin:0}
+.web-library h3{font:26px Anthropic Serif,serif;margin:24px 0}
+.web-library .primary{display:inline-flex;align-items:center;gap:6px}
+.web-empty{color:#898781;padding:40px 0;font-size:15px}
+.web-directory>button{display:flex;gap:16px;align-items:center;width:100%;padding:20px 4px;border-bottom:1px solid #e9e8e5;border-radius:0;text-align:left}
+.web-directory>button>span{flex:1}.web-directory small{display:block;color:#898781;margin-top:6px}
+.web-tabs{display:flex;gap:24px;border-bottom:1px solid #e9e8e5}.web-tabs button{padding:12px 0;border-radius:0;color:#898781}.web-tabs button[aria-selected=true]{color:#171717;border-bottom:2px solid #171717}
+.web-create{display:flex;gap:12px;margin:24px 0}.web-create input{border:1px solid #d4d1ca;border-radius:8px;padding:10px;flex:1;min-width:0}
+.project-instructions{display:block;color:#52514e}.project-instructions textarea{display:block;width:100%;min-height:180px;margin-top:12px;padding:16px;background:white;border:1px solid #dddcd6;border-radius:12px;font:inherit;resize:vertical}
+.web-back{color:#898781}
+@media(max-width:700px){.web-library{padding:64px 24px}.web-library h2{font-size:30px}.web-chat-surface .composer-position{width:calc(100% - 32px)}.web-chat-surface h1{width:100%;font-size:29px}.web-chat-surface h1 img{margin-left:0}.web-create{flex-wrap:wrap}}
+/* Cowork is a conversation channel; execution stays inside its message stream. */
+
+.connection-note{font-size:13px;line-height:1.6;color:#898781;margin:24px 0 36px;padding-left:0}

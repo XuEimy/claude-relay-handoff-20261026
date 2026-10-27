@@ -2,51 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import "./claude-chat.css";
-const glyphs = {
-  sidebar: "\ue0dd",
-  plus: "\ue001",
-  projects: "\ue0c9",
-  artifacts: "\ue017",
-  code: "\ue048",
-  customize: "\ue100",
-  sort: "\ue070",
-  search: "\ue0d3",
-  apps: "\uf031",
-  micdown: "\uf003",
-  down: "\ue027",
-  chat: "\ue037",
-  cowork: "\ue0f1",
-  mic: "\ue0ab",
-  send: "\ue00f",
-  more: "\ue061",
-  copy: "\ue056",
-  audio: "\ue0e4",
-  good: "\ue0fb",
-  bad: "\ue0f9",
-  retry: "\ue11d",
-  files: "\ue06c",
-  share: "\ue0da",
-};
-function Glyph({ name }) {
-  return (
-    <span className="cc-icon" aria-hidden="true">
-      {glyphs[name]}
-    </span>
-  );
-}
-function Tool({ name, label, className = "", children, ...props }) {
-  return (
-    <button
-      type="button"
-      className={"cc-tool " + className}
-      aria-label={label}
-      title={label}
-      {...props}
-    >
-      {name ? <Glyph name={name} /> : children}
-    </button>
-  );
-}
+import { Glyph, Tool, Greeting, Composer, ModelMenu } from "./components/ClaudeUI.jsx";
 export default function ClaudeChat({ config, refresh, api }) {
   const [history, setHistory] = useState([]),
     [conversation, setConversation] = useState(null),
@@ -383,11 +339,10 @@ export default function ClaudeChat({ config, refresh, api }) {
                 <button
                   className="cc-nav-item"
                   key={icon}
-                  onClick={() => unavailable(label)}
+                  onClick={() => icon === "code" ? location.assign("/code") : unavailable(label)}
                 >
                   <Glyph name={icon} />
                   {label}
-                  {icon === "code" && <small>Upgrade</small>}
                 </button>
               ))}
             </nav>
@@ -633,10 +588,7 @@ export default function ClaudeChat({ config, refresh, api }) {
               Free plan <span>·</span>
               <a href="/billing">Upgrade</a>
             </div>
-            <h1 className="cc-greeting">
-              <img src="/claude-assets/spark.svg" alt="" />
-              <span>Good afternoon, {config.user.name}</span>
-            </h1>
+            <Greeting name={config.user.name} />
           </>
         )}
         {hasMessages && (
@@ -742,7 +694,7 @@ export default function ClaudeChat({ config, refresh, api }) {
               {config.user.role === "admin" && <a href="/admin">配置模型</a>}
             </div>
           )}
-          <form className="cc-composer" onSubmit={send}>
+          <Composer onSubmit={send}>
             {hasMessages && (
               <Tool
                 name="plus"
@@ -823,7 +775,7 @@ export default function ClaudeChat({ config, refresh, api }) {
                 </div>
               </div>
             )}
-          </form>
+          </Composer>
           {hasMessages && (
             <div className="cc-composer-footer">
               <span>
@@ -834,37 +786,7 @@ export default function ClaudeChat({ config, refresh, api }) {
               {modelButton}
             </div>
           )}
-          {menu === "model" && (
-            <div
-              className="cc-popover cc-model-menu"
-              role="menu"
-              aria-label="模型"
-            >
-              <div className="cc-menu-heading">Models</div>
-              {config.models.map((m) => (
-                <button
-                  role="menuitemradio"
-                  aria-checked={m.id === model}
-                  key={m.id}
-                  onClick={() => {
-                    setModel(m.id);
-                    setMenu(null);
-                  }}
-                >
-                  <span>
-                    {m.name}
-                    <small>
-                      输入 ¥{m.input_rate} / 输出 ¥{m.output_rate} · 百万 tokens
-                    </small>
-                  </span>
-                  {m.id === model && <span className="cc-check">✓</span>}
-                </button>
-              ))}
-              {!config.models.length && <p>暂无可用模型</p>}
-              <hr />
-              <a href="/billing">查看余额与用量</a>
-            </div>
-          )}
+          {menu === "model" && <ModelMenu value={model} onChange={id => { setModel(id); setMenu(null); }} options={config.models.map(m => ({...m, description: `输入 ¥${m.input_rate} / 输出 ¥${m.output_rate} · 百万 tokens`}))}><hr /><a href="/billing">查看余额与用量</a></ModelMenu>}
           {menu === "attach" && (
             <div className="cc-popover cc-attach-menu">
               <button onClick={() => unavailable("Add files or photos")}>

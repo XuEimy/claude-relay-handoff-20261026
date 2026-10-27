@@ -1,15 +1,19 @@
-# Claude reverse + kelaodeyun handoff (2026-10-26)
+# Claude 完整项目与对话上下文 · 2026-10-27
 
-Private archive of the Claude page reverse-engineering package and the kelaodeyun relay-station project.
+私有交接仓。最新完整交付（含对话上下文）。
 
-## Contents
-- `claude-reverse-20261026/` — Claude UI reconstruction source, reverse notes, raw evidence, QA notes
-- `kelaodeyun/` — relay-station front/back end, research on ten relays, design assets, evidence, backups, deploy templates, existing builds
-- `交付说明.md` — delivery notes (Chinese)
-- `MANIFEST.json` — per-file size and SHA-256
+## 内容
+- `kelaodeyun/`：最新官网、Chat/Cowork 底座、账户/支付/管理后台、暂停的 SDK、vendor、证据与构建产物
+- `claude-reverse-20261026/`：最初网页逆向工程
+- `上下文/`：287 条可见对话与用户附件（见附件索引）
+- `交付说明.md`、`MANIFEST.sha256`、`排除清单.txt`
 
-## Notes
-- Dependencies are not packaged; reinstall from each project's lockfile.
-- Existing `dist` builds may be older than current source; rebuild before use.
-- No real `.env`, local demo passwords, node_modules, or runtime databases are included (`.env.example` kept).
-- The Claude reconstruction is a local mock; the relay demo is not proof of a live Claude upstream or payment integration.
+## 最新决定
+官网定稿；最初 Claude 网页还原作为底座；Chat/Cowork 都是对话工作频道；假流程和任务看板已移除；SDK 仍暂停，真实执行未接入。
+
+## 校验
+合并 ZIP SHA256：`d95d0d70f89f433b2740311b346bc5cae4e9c5a5c27a4c8f455254726b9feea4`  
+解压后原包 634 个文件；本仓因 GitHub 100MB 限制排除 1 个超大 pptx（见 `上下文/用户附件/*.EXCLUDED.md`）。
+
+## 说明
+不含凭据、运行数据库、依赖缓存与 Git 内部数据。历史决定冲突时以最新纠正为准。

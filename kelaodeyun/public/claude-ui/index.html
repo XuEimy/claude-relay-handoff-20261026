@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="h-full scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Design System (CDS 2.0) - All Components Storybook</title>
+  <!-- Tailwind CSS CDN -->
+  
+  <!-- React & ReactDOM 18 UMD -->
+  
+  
+  <!-- Babel Standalone for in-browser JSX -->
+  
+  <!-- Google Fonts: Inter (Sans), Newsreader (Serif), JetBrains Mono (Mono) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+
+  
+
+  <style>
+    /* ==========================================================================
+       Claude Design System (CDS) Production Design Tokens & Keyframes
+       Extracted directly from /Applications/Claude.app ion-dist production build
+       ========================================================================== */
+
+    :root {
+      --cds-surface-0: #f5f5f3;
+      --cds-surface-1: #fcfcfb;
+      --cds-surface-2: #ffffff;
+      --cds-surface-3: #ffffff;
+      --cds-surface-popover: #ffffff;
+      --cds-clay: #d97757;
+      --cds-clay-hover: #cc5a36;
+
+      /* Claude Official Alpha & Border Hierarchy */
+      --cds-alpha-0: hsla(0, 0%, 8%, 0);
+      --cds-alpha-1: hsla(0, 0%, 8%, 0.05); /* Ghost hover, skeleton, disabled */
+      --cds-alpha-2: hsla(0, 0%, 8%, 0.10); /* Standard border, secondary fill */
+      --cds-alpha-3: hsla(0, 0%, 8%, 0.20); /* Border strong, control hover */
+      --cds-alpha-4: hsla(0, 0%, 8%, 0.35); /* Border stronger, heavy divider */
+
+      --cds-border: var(--cds-alpha-2);
+      --cds-border-strong: var(--cds-alpha-3);
+      --cds-ring-hairline: 1px;
+
+      /* Claude Dual-Ring Architecture (Light Mode: 1px outer ring + diffuse shadow) */
+      --cds-ring-inner: 0px;
+      --cds-ring-outer: 1px;
+      --cds-ring-color: var(--cds-border);
+
+      /* Claude Official Elevation Shadow Hierarchy (Exact Extracted Tokens) */
+      --cds-shadow-color: rgba(0, 0, 0, 0.08);
+      --cds-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05), 0 2px 8px 0 var(--cds-shadow-color);
+      --cds-shadow-md: 0 2px 4px 0 rgba(0, 0, 0, 0.05), 0 6px 16px 0 var(--cds-shadow-color);
+      --cds-shadow-lg: 0 4px 8px 0 rgba(0, 0, 0, 0.06), 0 12px 28px -2px var(--cds-shadow-color);
+      --cds-shadow-popover: inset 0 0 0 var(--cds-ring-inner) var(--cds-ring-color), 
+                            0 0 0 var(--cds-ring-outer) var(--cds-ring-color), 
+                            0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
+
+      --cds-panel-shadow: 0 0 0 1px var(--cds-border), var(--cds-shadow-sm);
+      --cds-panel-shadow-hover: 0 0 0 1px var(--cds-border-strong), 0 4px 16px -2px rgba(0, 0, 0, 0.09);
+
+      /* Claude Official Chat Composer Shadow Formula */
+      --cds-shadow-composer: 0 4px 20px rgba(0, 0, 0, 0.035), inset 0 0 0 1px var(--cds-border);
+      --cds-shadow-composer-hover: 0 4px 24px rgba(0, 0, 0, 0.06), inset 0 0 0 1px var(--cds-border-strong);
+      --cds-shadow-composer-focus: 0 4px 24px rgba(0, 0, 0, 0.08), inset 0 0 0 1px var(--cds-border-strong), 0 0 0 1px var(--cds-border-strong);
+
+      /* Triple-Layer Focus Ring & Drop Glow */
+      --cds-focus-shadow: inset 0 0 0 1px var(--cds-surface-1), 0 0 0 1.5px var(--cds-clay), 0 0 6px 1px rgba(217, 119, 87, 0.25);
+      --cds-shadow-drop-glow: inset 0 0 24px -2px rgba(217, 119, 87, 0.20), inset 0 0 0 2px var(--cds-clay);
+
+      /* Interactive Hover / Fill Tokens */
+      --cds-fill-ghost-hover: var(--cds-alpha-1);
+      --cds-fill-ghost-selected: var(--cds-alpha-2);
+      --cds-fill-secondary: var(--cds-alpha-2);
+      --cds-fill-secondary-hover: rgba(21, 21, 21, 0.14);
+
+      --cds-text-primary: #151515;
+      --cds-text-secondary: #525252;
+      --cds-text-muted: #8a8a8a;
+      --cds-bg-tint-blue: #f0f4f8;
+      --cds-segmented-track: rgba(0, 0, 0, 0.06);
+      --cds-segmented-thumb: #ffffff;
+
+      /* Claude Official Radius Hierarchy (Exact Extracted Tokens) */
+      --radius-xs: 2px;
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
+      --cds-panel-radius: 10px;
+      --radius-xl: 12px;
+      --radius-2xl: 16px;
+      --cds-message-bubble-radius: 18px;
+      --cds-radius-composer: 20px;
+      --cds-radius-composer-v2: 12px;
+      --cds-radius-chin: 12px;
+      --cmp-chin-touch-grow: 4px;
+      --cds-surface-canvas: #fcfcfb;
+      --df-radius-pill: 999px;
+    }
+
+    @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx), (resolution >= 2x) {
+      :root {
+        --cds-ring-hairline: 0.5px;
+      }
+    }
+    @media (-webkit-min-device-pixel-ratio: 3), (min-resolution: 3dppx), (resolution >= 3x) {
+      :root {
+        --cds-ring-hairline: calc(1px / 3);
+      }
+    }
+
+    .dark {
+      --cds-surface-0: #0b0b0a;
+      --cds-surface-1: #151515;
+      --cds-surface-canvas: #151515;
+      --cds-surface-2: #1a1a19;
+      --cds-surface-3: #20201e;
+      --cds-surface-popover: #222220;
+      --cds-clay: #d97757;
+      --cds-clay-hover: #e08264;
+
+      /* Claude Official Alpha & Border Hierarchy (Dark Mode) */
+      --cds-alpha-0: hsla(0, 0%, 100%, 0);
+      --cds-alpha-1: hsla(0, 0%, 100%, 0.05); /* Ghost hover, disabled */
+      --cds-alpha-2: hsla(0, 0%, 100%, 0.09); /* Standard border */
+      --cds-alpha-3: hsla(0, 0%, 100%, 0.18); /* Border strong */
+      --cds-alpha-4: hsla(0, 0%, 100%, 0.30); /* Heavy border */
+
+      --cds-border: var(--cds-alpha-2);
+      --cds-border-strong: var(--cds-alpha-3);
+
+      /* Claude Dual-Ring Architecture (Dark Mode: 1px inner rim highlight + 0px outer ring) */
+      --cds-ring-inner: 1px;
+      --cds-ring-outer: 0px;
+      --cds-ring-color: rgba(255, 255, 255, 0.10);
+
+      /* Claude Official Elevation Shadow Hierarchy (Dark Mode) */
+      --cds-shadow-color: rgba(0, 0, 0, 0.40);
+      --cds-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4), 0 2px 8px 0 var(--cds-shadow-color);
+      --cds-shadow-md: 0 2px 4px 0 rgba(0, 0, 0, 0.4), 0 6px 16px 0 var(--cds-shadow-color);
+      --cds-shadow-lg: 0 4px 8px 0 rgba(0, 0, 0, 0.5), 0 16px 36px -2px var(--cds-shadow-color);
+      --cds-shadow-popover: inset 0 0 0 1px rgba(255, 255, 255, 0.10), 
+                            0 8px 28px rgba(0, 0, 0, 0.65), 0 2px 8px rgba(0, 0, 0, 0.45);
+
+      --cds-panel-shadow: 0 0 0 1px var(--cds-border), var(--cds-shadow-sm);
+      --cds-panel-shadow-hover: 0 0 0 1px var(--cds-border-strong), 0 6px 20px rgba(0, 0, 0, 0.6);
+
+      --cds-shadow-composer: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 0 0 1px var(--cds-border);
+      --cds-shadow-composer-hover: 0 4px 24px rgba(0, 0, 0, 0.55), inset 0 0 0 1px var(--cds-border-strong);
+      --cds-shadow-composer-focus: 0 4px 24px rgba(0, 0, 0, 0.65), inset 0 0 0 1px rgba(255, 255, 255, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.22);
+
+      --cds-focus-shadow: inset 0 0 0 1px var(--cds-surface-1), 0 0 0 1.5px var(--cds-clay), 0 0 8px 2px rgba(217, 119, 87, 0.35);
+      --cds-shadow-drop-glow: inset 0 0 24px -2px rgba(217, 119, 87, 0.30), inset 0 0 0 2px var(--cds-clay);
+
+      --cds-fill-ghost-hover: var(--cds-alpha-1);
+      --cds-fill-ghost-selected: var(--cds-alpha-2);
+      --cds-fill-secondary: var(--cds-alpha-2);
+      --cds-fill-secondary-hover: rgba(255, 255, 255, 0.14);
+
+      --cds-text-primary: #f5f5f5;
+      --cds-text-secondary: #a3a3a3;
+      --cds-text-muted: #666666;
+      --cds-bg-tint-blue: rgba(255, 255, 255, 0.06);
+      --cds-segmented-track: rgba(255, 255, 255, 0.08);
+      --cds-segmented-thumb: #2c2c2a;
+    }
+
+    /* CDS Elevation & Hover Utility Classes */
+    .cds-shadow-sm { box-shadow: var(--cds-shadow-sm) !important; }
+    .cds-shadow-md { box-shadow: var(--cds-shadow-md) !important; }
+    .cds-shadow-lg { box-shadow: var(--cds-shadow-lg) !important; }
+    .cds-shadow-popover { box-shadow: var(--cds-shadow-popover) !important; }
+    .cds-panel-shadow { box-shadow: var(--cds-panel-shadow) !important; }
+    
+    .cds-composer-shadow { 
+      box-shadow: var(--cds-shadow-composer) !important;
+      transition: box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1), border-color 220ms ease;
+    }
+    .cds-composer-shadow:hover { 
+      box-shadow: var(--cds-shadow-composer-hover) !important; 
+    }
+    .cds-composer-shadow:focus-within { 
+      box-shadow: var(--cds-shadow-composer-focus) !important; 
+    }
+
+    .cds-hover-ghost {
+      transition: background-color 150ms cubic-bezier(0.16, 1, 0.3, 1), color 150ms ease, transform 100ms ease;
+    }
+    .cds-hover-ghost:hover {
+      background-color: var(--cds-fill-ghost-hover) !important;
+      color: var(--cds-text-primary) !important;
+    }
+    .cds-hover-ghost:active {
+      background-color: var(--cds-fill-ghost-selected) !important;
+      transform: scale(0.98);
+    }
+
+    .cds-card-interactive {
+      box-shadow: var(--cds-panel-shadow);
+      transition: box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1), transform 200ms cubic-bezier(0.16, 1, 0.3, 1), border-color 200ms ease;
+    }
+    .cds-card-interactive:hover {
+      box-shadow: var(--cds-panel-shadow-hover) !important;
+      transform: translateY(-1.5px);
+      border-color: var(--cds-border-strong) !important;
+    }
+    .cds-card-interactive:active {
+      transform: translateY(0);
+    }
+
+    .border-hairline {
+      border-width: var(--cds-ring-hairline);
+    }
+
+    /* 1. 暗色模式光学减薄补偿 (Irradiation Compensation) */
+    .dark .font-medium, .dark [data-optical-compensate] {
+      font-variation-settings: "wght" 465;
+    }
+    .dark .font-semibold {
+      font-variation-settings: "wght" 560;
+    }
+    .dark .font-bold {
+      font-variation-settings: "wght" 660;
+    }
+
+    /* 2. 行内图标光学负偏置 */
+    .align-neg-125 { vertical-align: -0.125em; }
+    .align-neg-075 { vertical-align: -0.075em; }
+    .align-neg-1px  { vertical-align: -1px; }
+
+    /* 3. 文本换行约束 */
+    .text-balance-native { text-wrap: balance; }
+    .text-pretty-native  { text-wrap: pretty; }
+    .overflow-wrap-anywhere { overflow-wrap: anywhere; word-break: normal; }
+
+    /* 4. 等宽数字约束 */
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1;
+    }
+
+    /* 5. 核心关键帧动画 (真实提取) */
+    @keyframes _grapheme-reveal_1plog_1 {
+      0%   { opacity: 0; filter: blur(6px); }
+      100% { opacity: 1; filter: blur(0); }
+    }
+
+    @keyframes timeline-quiet-dot {
+      0%, 8%   { opacity: 0.2; transform: translateY(2px); }
+      22%      { opacity: 1; transform: translateY(-3px); }
+      36%, 70% { opacity: 1; transform: translateY(0); }
+      90%, 100%{ opacity: 0.2; transform: translateY(0); }
+    }
+
+    @keyframes message-fade-up {
+      0%   { opacity: 0; transform: translateY(12px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes saved-check-decay {
+      0%, 75% { opacity: 1; transform: scale(1); }
+      100%    { opacity: 0; transform: scale(0.92); }
+    }
+
+    @keyframes cds-skeleton-sweep {
+      0%   { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    @keyframes dframe-clay-breathe {
+      0%, 100% { filter: brightness(0.96); transform: scale(0.92); }
+      50%      { filter: brightness(1.08); transform: scale(1.08); }
+    }
+
+    @keyframes dframe-dot-pulse {
+      0%, 100% { opacity: 0.3; transform: scale(0.85); }
+      50%      { opacity: 1; transform: scale(1.15); }
+    }
+
+    @keyframes file-thumbnail-grow-in {
+      0%   { opacity: 0; transform: scale(0.85); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes file-thumbnail-upload-pulse {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0.45; }
+    }
+
+    /* 骨架屏扫光条 */
+    .skeleton-shimmer {
+      position: relative;
+      overflow: hidden;
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+    .dark .skeleton-shimmer {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+    .skeleton-shimmer::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+      animation: cds-skeleton-sweep 1.8s infinite cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .dark .skeleton-shimmer::after {
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
+    }
+
+    /* 容器查询自适应定义 */
+    @container (max-width: 254px) {
+      .df-pill-label-collapsible { display: none !important; }
+      .df-pill-collapsible { padding: 0 4px !important; }
+    }
+
+    /* ==========================================================================
+       CDS 2.0 (Claude Desktop 2.0) Compositor Keyframes & Physics Utilities
+       ========================================================================== */
+    @keyframes cds-pill-overshoot {
+      0%   { transform: scale(1); }
+      45%  { transform: scale(1.32); }
+      75%  { transform: scale(0.96); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes cds-shimmer-skew-105 {
+      0%   { transform: translateX(-150%) skewX(-15deg); }
+      100% { transform: translateX(200%) skewX(-15deg); }
+    }
+
+    @keyframes cds-halo-breathe {
+      0%, 100% { opacity: 0.85; transform: scale(1); box-shadow: 0 0 0 0 rgba(217, 119, 87, 0.45); }
+      50%      { opacity: 0.4; transform: scale(1.08); box-shadow: 0 0 0 6px rgba(217, 119, 87, 0); }
+    }
+
+    @keyframes sweep {
+      0%   { transform: translateX(-100%); }
+      100% { transform: translateX(200%); }
+    }
+
+    .cds-card-3d {
+      perspective: 800px;
+      transform-style: preserve-3d;
+      transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 300ms ease;
+    }
+    .cds-card-3d:hover {
+      transform: translateY(-3px) rotateX(2.5deg);
+    }
+
+    .border-hairline-subtle {
+      border-width: 0.5px;
+      border-color: color-mix(in srgb, currentColor 10%, transparent);
+    }
+
+    /* 6. X-Ray 边框透视检测器样式 (Borders & Anti-Bloat Inspector) */
+    .xray-active [class*="border"]:not([class*="border-b"]):not([class*="border-t"]):not([class*="border-l"]):not([class*="border-r"]):not([class*="border-0"]) {
+      outline: 2px dashed #06b6d4 !important;
+      outline-offset: 1px !important;
+    }
+    .xray-active [class*="border"]:not([class*="border-b"]):not([class*="border-t"]):not([class*="border-l"]):not([class*="border-r"]):not([class*="border-0"]) [class*="border"]:not([class*="border-b"]):not([class*="border-t"]):not([class*="border-l"]):not([class*="border-r"]):not([class*="border-0"]) {
+      outline: 2px solid #ef4444 !important;
+      outline-offset: 2px !important;
+      background-color: rgba(239, 68, 68, 0.07) !important;
+    }
+    .xray-active [class*="border-b"],
+    .xray-active [class*="border-t"],
+    .xray-active [class*="border-l"],
+    .xray-active [class*="border-r"] {
+      border-color: #8b5cf6 !important;
+      border-style: dashed !important;
+    }
+  </style>
+<link rel="stylesheet" href="./showcase.css"></head>
+<body class="h-full bg-[#fcfcfb] text-[#151515] font-sans antialiased selection:bg-[#d97757]/20 selection:text-[#d97757]">
+  <div id="root" class="h-full"></div>
+
+  
+<script src="./showcase.js"></script></body>
+</html>

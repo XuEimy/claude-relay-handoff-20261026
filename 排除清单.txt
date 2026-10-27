@@ -1,0 +1,15 @@
+kelaodeyun/.local-demo-accounts.json
+kelaodeyun/data/encryption.key
+kelaodeyun/data/qa.db
+kelaodeyun/data/demo.db
+kelaodeyun/data/demo.db-shm
+kelaodeyun/data/kelaodeyun.db
+kelaodeyun/data/demo.db-wal
+kelaodeyun/data/kelaodeyun.db-wal
+kelaodeyun/data/qa.db-shm
+kelaodeyun/data/kelaodeyun.db-shm
+kelaodeyun/data/qa.db-wal
+kelaodeyun/data/demo-code-workspaces/f1a3f578-dfee-4a98-8c5f-080328c5a87a/6ae98738-36c9-4dad-88a9-01b6d907e5fc/index.html
+kelaodeyun/data/demo-code-workspaces/f1a3f578-dfee-4a98-8c5f-080328c5a87a/6ae98738-36c9-4dad-88a9-01b6d907e5fc/README.md
+node_modules（所有层级）
+.git（所有层级）

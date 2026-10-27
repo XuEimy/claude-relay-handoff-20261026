@@ -11,6 +11,8 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { openStore, id } from "./store.mjs";
 import { createPayments } from "./payments.mjs";
+import { createClaudeClient, claudeErrorMessage } from "./claude.mjs";
+import { createCodeService } from "./code-service.mjs";
 const scrypt = promisify(scryptCallback),
   hash = (s) => createHash("sha256").update(s).digest("hex"),
   now = () => new Date().toISOString();
@@ -42,6 +44,47 @@ export function createApi(env = process.env, fetcher = fetch, options = {}) {
     options.dbPath || env.DATABASE_PATH || resolve("data/kelaodeyun.db"),
   );
   const { get, all, run, tx, ledger } = store;
+  store.db
+    .exec(`CREATE TABLE IF NOT EXISTS feedback(id TEXT PRIMARY KEY,user_id TEXT,title TEXT NOT NULL,description TEXT NOT NULL,kind TEXT NOT NULL,created TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS feedback_votes(feedback_id TEXT NOT NULL REFERENCES feedback(id),user_id TEXT NOT NULL REFERENCES users(id),vote INTEGER NOT NULL CHECK(vote IN(-1,1)),PRIMARY KEY(feedback_id,user_id));`);
+  for (const [fid, title, description, kind] of [
+    [
+      "compare-models",
+      "多模型并排对话",
+      "同一个问题，同时看看不同模型的回答。保留上下文，找到更适合当前任务的思路。",
+      "compare",
+    ],
+    [
+      "file-history",
+      "项目版本回溯",
+      "每次文件修改都能回看，重要节点留一份快照，需要时恢复到之前的版本。",
+      "history",
+    ],
+    [
+      "usage-budget",
+      "用量提醒与预算",
+      "自定义余额提醒和每日预算，在接近上限时收到提示，使用节奏自己掌握。",
+      "budget",
+    ],
+  ])
+    run(
+      "INSERT OR IGNORE INTO feedback VALUES(?,NULL,?,?,?,?)",
+      fid,
+      title,
+      description,
+      kind,
+      now(),
+    );
+  const feedbackList = (user) =>
+    all(
+      `SELECT f.id,f.title,f.description,f.kind,f.created,
+    (SELECT count(*) FROM feedback_votes WHERE feedback_id=f.id AND vote=1) AS up,
+    (SELECT count(*) FROM feedback_votes WHERE feedback_id=f.id AND vote=-1) AS down,
+    COALESCE((SELECT vote FROM feedback_votes WHERE feedback_id=f.id AND user_id=?),0) AS myVote
+    FROM feedback f ORDER BY (f.user_id IS NULL) DESC,f.created DESC LIMIT 30`,
+      user?.id || "",
+    );
+  const code = createCodeService({ store, env, runner: options.codeRunner });
   let key = env.DATA_ENCRYPTION_KEY;
   if (!key) {
     if (env.NODE_ENV === "production")
@@ -251,8 +294,12 @@ export function createApi(env = process.env, fetcher = fetch, options = {}) {
       busy.delete(user.id);
       throw e;
     }
-    const abort = new AbortController(),
-      timeout = setTimeout(() => abort.abort(), 120000);
+    const abort = new AbortController();
+    let timedOut = false;
+    const timeout = setTimeout(() => {
+      timedOut = true;
+      abort.abort();
+    }, 120000);
     res.on("close", () => abort.abort());
     let output = "",
       inputTokens = 0,
@@ -264,38 +311,29 @@ export function createApi(env = process.env, fetcher = fetch, options = {}) {
         res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
     };
     try {
-      const upstream = await fetcher(
-        model.base_url.replace(/\/$/, "") + "/v1/messages",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${unseal(model.api_key)}`,
-            "anthropic-version": env.ANTHROPIC_VERSION || "2026-10-21",
-            ...(env.ANTHROPIC_WORKSPACE_ID
-              ? { "anthropic-workspace-id": env.ANTHROPIC_WORKSPACE_ID }
-              : {}),
-          },
-          body: JSON.stringify({
+      const client = createClaudeClient(
+        model,
+        unseal(model.api_key),
+        env,
+        fetcher,
+      );
+      const { data: upstream, response } = await client.messages
+        .create(
+          {
             model: model.upstream_id,
             messages,
             max_tokens: model.max_output,
             stream: true,
-          }),
-          signal: abort.signal,
-        },
-      );
+          },
+          { signal: abort.signal },
+        )
+        .withResponse();
       if (
-        !upstream.ok ||
-        !upstream.headers.get("content-type")?.includes("text/event-stream")
+        !response.headers.get("content-type")?.includes("text/event-stream")
       ) {
-        await upstream.body?.cancel();
-        fail(
-          502,
-          upstream.status === 429
-            ? "模型服务繁忙，请稍后再试"
-            : "模型暂不可用，请稍后再试",
-        );
+        upstream.controller?.abort();
+        await response.body?.cancel();
+        throw Error("Unexpected upstream response type");
       }
       res.writeHead(200, {
         "Content-Type": "text/event-stream; charset=utf-8",
@@ -303,63 +341,43 @@ export function createApi(env = process.env, fetcher = fetch, options = {}) {
         "X-Accel-Buffering": "no",
       });
       emit("meta", { conversationId: conv.id });
-      let buffer = "",
-        ended = false;
-      const decoder = new TextDecoder();
-      for await (const chunk of upstream.body) {
-        buffer += decoder.decode(chunk, { stream: true }).replace(/\r/g, "");
-        if (buffer.length > 2000000) throw Error("stream too large");
-        let n;
-        while ((n = buffer.indexOf("\n\n")) >= 0) {
-          const block = buffer.slice(0, n);
-          buffer = buffer.slice(n + 2);
-          const dataText = block
-            .split("\n")
-            .filter((l) => l.startsWith("data:"))
-            .map((l) => l.slice(5).trimStart())
-            .join("\n");
-          if (!dataText) continue;
-          let data;
-          try {
-            data = JSON.parse(dataText);
-          } catch {
-            continue;
-          }
-          if (data.type === "error") throw Error("upstream error");
-          const usage = data.message?.usage || data.usage;
-          if (usage) {
-            if (
-              Number.isSafeInteger(usage.input_tokens) &&
-              usage.input_tokens >= 0
-            )
-              inputTokens = usage.input_tokens;
-            if (
-              Number.isSafeInteger(usage.output_tokens) &&
-              usage.output_tokens >= 0
-            )
-              outputTokens = usage.output_tokens;
-          }
+      let ended = false;
+      for await (const data of upstream) {
+        if (data.type === "error") throw Error("upstream error");
+        const usage = data.message?.usage || data.usage;
+        if (usage) {
           if (
-            data.type === "content_block_delta" &&
-            data.delta?.type === "text_delta" &&
-            typeof data.delta.text === "string"
-          ) {
-            output += data.delta.text;
-            if (output.length > 200000) throw Error("output too large");
-            emit("delta", { text: data.delta.text });
-          }
-          if (data.type === "message_stop") {
-            ended = true;
-            status = "complete";
-            break;
-          }
+            Number.isSafeInteger(usage.input_tokens) &&
+            usage.input_tokens >= 0
+          )
+            inputTokens = usage.input_tokens;
+          if (
+            Number.isSafeInteger(usage.output_tokens) &&
+            usage.output_tokens >= 0
+          )
+            outputTokens = usage.output_tokens;
         }
-        if (ended) break;
+        if (
+          data.type === "content_block_delta" &&
+          data.delta?.type === "text_delta" &&
+          typeof data.delta.text === "string"
+        ) {
+          output += data.delta.text;
+          if (output.length > 200000) throw Error("output too large");
+          emit("delta", { text: data.delta.text });
+        }
+        if (data.type === "message_stop") {
+          ended = true;
+          status = "complete";
+          break;
+        }
       }
       if (!ended) throw Error("incomplete stream");
     } catch (e) {
-      status = abort.signal.aborted ? "stopped" : "failed";
-      streamError = e.status ? e.message : "连接中断，已保存收到的回复。";
+      status = abort.signal.aborted && !timedOut ? "stopped" : "failed";
+      streamError = timedOut
+        ? "模型回复超时，已保存收到的内容，请稍后再试。"
+        : claudeErrorMessage(e);
     } finally {
       clearTimeout(timeout);
       abort.abort();
@@ -465,7 +483,11 @@ export function createApi(env = process.env, fetcher = fetch, options = {}) {
         return true;
       }
       let input = {};
-      if (["POST", "PATCH", "DELETE"].includes(req.method)) {
+      if (path === "/api/feedback" && req.method === "GET") {
+        json(res, 200, { items: feedbackList(user) });
+        return true;
+      }
+      if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) {
         try {
           input = JSON.parse((await raw(req)) || "{}");
         } catch (e) {
@@ -544,6 +566,55 @@ export function createApi(env = process.env, fetcher = fetch, options = {}) {
       }
       if (!user) fail(401, "请先登录");
       rate(user.id, 120);
+      if (path === "/api/feedback" && req.method === "POST") {
+        rate("feedback-create:" + user.id, 3);
+        if (
+          !validString(input.title, 60) ||
+          !validString(input.description, 400)
+        )
+          fail(400, "请填写标题和建议内容（最多 60 / 400 字）");
+        const fid = id();
+        run(
+          "INSERT INTO feedback VALUES(?,?,?,?,?,?)",
+          fid,
+          user.id,
+          input.title.trim(),
+          input.description.trim(),
+          "idea",
+          now(),
+        );
+        json(res, 201, { items: feedbackList(user) });
+        return true;
+      }
+      const feedbackVote = path.match(
+        /^\/api\/feedback\/([a-zA-Z0-9-]+)\/vote$/,
+      );
+      if (feedbackVote && req.method === "POST") {
+        rate("feedback-vote:" + user.id, 30);
+        if (![0, 1, -1].includes(input.vote)) fail(400, "投票选项无效");
+        if (!get("SELECT id FROM feedback WHERE id=?", feedbackVote[1]))
+          fail(404, "建议不存在");
+        if (input.vote === 0)
+          run(
+            "DELETE FROM feedback_votes WHERE feedback_id=? AND user_id=?",
+            feedbackVote[1],
+            user.id,
+          );
+        else
+          run(
+            "INSERT INTO feedback_votes VALUES(?,?,?) ON CONFLICT(feedback_id,user_id) DO UPDATE SET vote=excluded.vote",
+            feedbackVote[1],
+            user.id,
+            input.vote,
+          );
+        json(res, 200, { items: feedbackList(user) });
+        return true;
+      }
+      if (
+        path.startsWith("/api/code/") &&
+        (await code.handle(req, res, user, path, input))
+      )
+        return true;
       if (path === "/api/logout" && req.method === "POST") {
         const token = (req.headers.cookie || "").match(
           /kelaode_session=([a-f0-9]{64})/,
@@ -728,6 +799,46 @@ export function createApi(env = process.env, fetcher = fetch, options = {}) {
           });
           return true;
         }
+        const channelModels = path.match(
+          /^\/api\/admin\/channels\/([\w-]+)\/models$/,
+        );
+        if (channelModels && req.method === "POST") {
+          rate("channel-models:" + user.id, 6);
+          const channel = get(
+            "SELECT * FROM channels WHERE id=?",
+            channelModels[1],
+          );
+          if (!channel) fail(404, "渠道不存在");
+          try {
+            const client = createClaudeClient(
+              channel,
+              unseal(channel.api_key),
+              env,
+              fetcher,
+            );
+            const page = await client.models.list(
+              { limit: 100 },
+              { timeout: 15000 },
+            );
+            if (!Array.isArray(page.data)) throw Error("Invalid model list");
+            const models = page.data
+              .slice(0, 100)
+              .filter((m) => validString(m.id, 150))
+              .map((m) => ({
+                id: m.id,
+                name: String(m.display_name || m.id).slice(0, 100),
+              }));
+            audit(user.id, "channel.models", channel.id);
+            json(res, 200, { models, hasMore: page.has_more === true });
+          } catch (e) {
+            json(res, 502, {
+              error: [404, 405, 501].includes(e.status)
+                ? "此渠道未提供模型列表，请检查接口地址或手动填写模型 ID。"
+                : claudeErrorMessage(e),
+            });
+          }
+          return true;
+        }
         if (path === "/api/admin/channels" && req.method === "POST") {
           if (!validString(input.name, 60) || !validString(input.base_url, 500))
             fail(400, "请填写渠道名称和地址");
@@ -883,6 +994,9 @@ export function createApi(env = process.env, fetcher = fetch, options = {}) {
     return true;
   };
   api.store = store;
-  api.close = () => store.db.close();
+  api.close = async () => {
+    await code.close();
+    store.db.close();
+  };
   return api;
 }
