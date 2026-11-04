@@ -3,6 +3,7 @@ import { readFile, stat } from "node:fs/promises";
 import { resolve, extname, sep } from "node:path";
 import { pathToFileURL } from "node:url";
 import { createApi } from "./lib/api.mjs";
+import { createTerminalService } from "./lib/terminal-service.mjs";
 export { createApi };
 export async function start(env = process.env, options = {}) {
   if (
@@ -38,6 +39,7 @@ export async function start(env = process.env, options = {}) {
         appType: "spa",
       });
   const root = resolve("dist/client");
+  const terminal = createTerminalService(env);
   const mime = {
     ".html": "text/html; charset=utf-8",
     ".js": "text/javascript",
@@ -54,6 +56,11 @@ export async function start(env = process.env, options = {}) {
       "Content-Security-Policy",
       "frame-ancestors 'none'; base-uri 'self'; object-src 'none'",
     );
+    if (terminal.handle(req, res)) return;
+    if (req.url?.split('?')[0] === '/claude-chat/index.html') {
+      res.writeHead(302, { Location: '/terminal' }).end();
+      return;
+    }
     if (await api(req, res)) return;
     if (vite) {
       vite.middlewares(req, res);
@@ -81,6 +88,7 @@ export async function start(env = process.env, options = {}) {
       res.writeHead(404).end();
     }
   });
+  terminal.attach(server);
   await new Promise((r) =>
     server.listen(Number(env.PORT) || 4174, env.HOST || "127.0.0.1", r),
   );

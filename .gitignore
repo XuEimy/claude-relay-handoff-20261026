@@ -1,0 +1,16 @@
+
+# Local credentials, runtime state and developer outputs
+**/node_modules/
+**/.DS_Store
+**/.env
+**/.env.local
+**/.env.*.local
+**/.ssh/
+**/access_key
+**/access_key.pub
+**/known_hosts
+**/ssh_config
+**/claudessh-share-*/
+/kelaodeyun-desktop/.t3/
+/kelaodeyun-desktop/release/
+/kelaodeyun-desktop/apps/*/dist-exe/

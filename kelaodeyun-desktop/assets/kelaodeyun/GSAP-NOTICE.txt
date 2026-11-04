@@ -1,0 +1,6 @@
+GSAP 3.15.0
+Copyright 2008-2026, GreenSock. All rights reserved.
+Author: Jack Doyle, jack@greensock.com
+https://gsap.com
+Subject to the Standard No Charge GSAP License:
+https://gsap.com/standard-license/

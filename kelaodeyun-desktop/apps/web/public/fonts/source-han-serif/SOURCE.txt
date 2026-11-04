@@ -1,0 +1,5 @@
+Source Han Serif, Simplified Chinese variable font
+Upstream: https://github.com/adobe-fonts/source-han-serif
+Commit: 7889f11bf31170b5d092a083b357c8c8130f89e0
+Original: Variable/WOFF2/TTF/Subset/SourceHanSerifCN-VF.ttf.woff2
+Unmodified font binary; distributed under SIL OFL 1.1 (LICENSE.txt).

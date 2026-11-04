@@ -1,0 +1,60 @@
+#welcome-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--boot-background, #faf9f6);
+  color: var(--boot-foreground, #272727);
+  isolation: isolate;
+}
+html.dark #welcome-splash {
+  background: var(--boot-background, #08090b);
+  color: var(--boot-foreground, #f6f5f1);
+}
+.welcome-scene {
+  width: min(720px, 90vw);
+  max-height: 80vh;
+  overflow: visible;
+}
+.welcome-skip {
+  position: absolute;
+  right: 28px;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  padding: 8px 10px;
+  opacity: 0.45;
+  font:
+    12px/1.5 -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  cursor: pointer;
+}
+.welcome-skip:hover,
+.welcome-skip:focus-visible {
+  opacity: 1;
+}
+.welcome-skip:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 3px;
+}
+.welcome-skip kbd {
+  margin-left: 8px;
+  font: inherit;
+  opacity: 0.6;
+}
+.welcome-status {
+  position: absolute;
+  bottom: 30px;
+  font-size: 12px;
+  opacity: 0.6;
+}
+@media (prefers-reduced-motion: reduce) {
+  #welcome-splash {
+    display: none;
+  }
+}
