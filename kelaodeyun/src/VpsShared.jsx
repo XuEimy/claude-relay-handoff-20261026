@@ -6,10 +6,12 @@ export const localDate = value => value ? new Date(typeof value === "number" ? v
 export const safeReturn = path => typeof path === "string" && /^\/(?![\/\\])/.test(path) && !/[\x00-\x1f\x7f\\]/.test(path) ? path : "/account";
 export const flag = code => /^[a-z]{2}$/i.test(code || "") ? String.fromCodePoint(...code.toUpperCase().split("").map(c => c.charCodeAt(0) + 127397)) : "";
 export const regionName = center => center ? [flag(center.location), center.city, center.location?.toUpperCase()].filter(Boolean).join(" ") : "未选择";
+export const cycleUnit = (interval, count = 1) => interval === "year" ? count === 1 ? "年" : count === 2 ? "两年" : `${count}年` : count === 1 ? "月" : `${count}个月`;
+export const cycleLabel = (interval, count = 1) => count === 1 ? `按${cycleUnit(interval, count)}` : cycleUnit(interval, count);
 export const labels = { pending_payment: "等待付款", provisioning: "正在开通", purchasing: "正在开通", active: "运行中", past_due: "付款逾期", terminating: "正在清理", terminated: "已终止", needs_attention: "需要处理", checkout_expired: "付款已过期" };
 
-export function StatusPill({ status }) {
-  return <span className={`vps-status vps-status-${status}`}><span aria-hidden="true" />{labels[status] || status}</span>;
+export function StatusPill({ status, simulated }) {
+  return <span className="vps-status-group"><span className={`vps-status vps-status-${status}`}><span aria-hidden="true" />{labels[status] || status}</span>{simulated && <span className="vps-simulated">测试</span>}</span>;
 }
 export function CopyButton({ value, label = "复制" }) {
   const [copied, setCopied] = useState(false), [error, setError] = useState(false), timer = useRef();

@@ -1,5 +1,5 @@
 import { WorkflowEntrypoint } from "cloudflare:workers";
-import { base64url, hostinger, startWorkflow, storeFor } from "./utils.js";
+import { base64url, hostinger, hostingerSimulated, startWorkflow, storeFor } from "./utils.js";
 
 export class ProvisionServer extends WorkflowEntrypoint {
   async run(event, step) {
@@ -8,11 +8,15 @@ export class ProvisionServer extends WorkflowEntrypoint {
     const vmId = existing?.hostinger_vm_id && !existing.termination_requested && ["provisioning", "past_due"].includes(existing.status) ? existing.hostinger_vm_id : await step.do("purchase", { retries: { limit: 0, delay: "1 second", backoff: "constant" } }, async () => {
       const row = await store.beginPurchase(id);
       if (!row) return null;
-      const setup = { template_id: Number(this.env.HOSTINGER_TEMPLATE_ID), data_center_id: row.data_center_id, public_key: { name: "kelaodeyun-" + id, key: row.public_key }, enable_backups: false, install_monarx: false };
-      if (this.env.HOSTINGER_POST_INSTALL_SCRIPT_ID) setup.post_install_script_id = Number(this.env.HOSTINGER_POST_INSTALL_SCRIPT_ID);
       let response;
       try {
-        response = await hostinger(this.env, "/api/vps/v1/virtual-machines", { method: "POST", body: { item_id: row.hostinger_item_id, setup } });
+        if (hostingerSimulated(this.env)) {
+          response = { status: 200, data: { virtual_machine: { id: -Date.now() } } };
+        } else {
+          const setup = { template_id: Number(this.env.HOSTINGER_TEMPLATE_ID), data_center_id: row.data_center_id, public_key: { name: "kelaodeyun-" + id, key: row.public_key }, enable_backups: false, install_monarx: false };
+          if (this.env.HOSTINGER_POST_INSTALL_SCRIPT_ID) setup.post_install_script_id = Number(this.env.HOSTINGER_POST_INSTALL_SCRIPT_ID);
+          response = await hostinger(this.env, "/api/vps/v1/virtual-machines", { method: "POST", body: { item_id: row.hostinger_item_id, setup } });
+        }
       } catch (error) {
         const message = error.status >= 400 && error.status < 500 && error.status !== 408 ? `Hostinger 拒绝购买（HTTP ${error.status}），未购买成功，可修正配置后重试` : "购买结果未知，请在 hPanel 核对";
         await store.attention(id, message, "provision");
@@ -35,6 +39,11 @@ export class ProvisionServer extends WorkflowEntrypoint {
       }
     });
     if (!vmId) return;
+    if (vmId < 0) {
+      await step.sleep("simulate wait", "20 seconds");
+      await step.do("activate simulated", () => store.activate(id, "203.0.113.10", "simulated.kelaodeyun.invalid"));
+      return;
+    }
     for (let i = 0; i < 60; i++) {
       let result;
       try {
@@ -65,6 +74,10 @@ export class TeardownServer extends WorkflowEntrypoint {
     for (let i = 0; row.purchase_inflight && i < 60; i++) {
       await step.sleep("wait purchase " + i, "30 seconds");
       row = await step.do("read purchase " + i, () => store.getServer(id));
+    }
+    if (!row.purchase_inflight && (hostingerSimulated(this.env) || row.hostinger_vm_id < 0)) {
+      await step.do("terminated", () => store.terminate(id));
+      return;
     }
     if (row.purchase_inflight || (row.failure_phase === "provision" && !row.hostinger_vm_id)) {
       await step.do("unknown purchase", () => store.attention(id, "购买结果未知，请在 hPanel 核对", "teardown"));

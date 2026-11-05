@@ -49,7 +49,7 @@
 .vps-section-heading > span { display: grid; place-items: center; flex: 0 0 32px; height: 32px; border-radius: 50%; background: var(--portal-ink); color: #fff; font-size: 14px; }
 .vps-section-heading h2 { font-size: 26px; line-height: 1.25; }
 .vps-section-heading p { margin-top: 6px; font-size: 14px; }
-.vps-cycle { margin-bottom: 22px; }
+.vps-cycle { flex-wrap: wrap; max-width: 100%; margin-bottom: 22px; }
 .vps-cycle button { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; }
 .vps-cycle button span { color: var(--portal-accent); font-size: 11px; }
 .vps-cycle button[aria-pressed="true"] span { color: #f1c8b5; }
@@ -146,6 +146,8 @@
 .vps-server-card { padding: 26px; border: 1px solid var(--portal-line); border-radius: 10px; background: #fffefa; }
 .vps-server-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .vps-server-heading h3 { font: 400 24px/1.3 "Source Han Serif CN", Georgia, serif; }
+.vps-status-group { display: inline-flex; align-items: center; gap: 6px; }
+.vps-simulated { display: inline-flex; align-items: center; padding: 5px 9px; border-radius: 5px; background: #f0eee8; color: #6f695e; font-size: 12px; font-weight: 400; white-space: nowrap; }
 .vps-status { display: inline-flex; align-items: center; gap: 7px; padding: 5px 9px; border-radius: 5px; background: #f0eee8; color: #6f695e; font-size: 12px; white-space: nowrap; }
 .vps-status > span { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 .vps-status-active { background: #e8f0e9; color: #44755a; }
@@ -164,6 +166,7 @@
 .vps-connection > div:first-child > span { color: var(--portal-muted); font-size: 12px; }
 .vps-address { display: flex; align-items: center; gap: 14px; }.vps-address strong { font: 600 24px/1.4 ui-monospace, SFMono-Regular, monospace; overflow-wrap: anywhere; }
 .vps-connection > a { font-size: 14px; }
+.vps-connection .vps-simulated-note { color: var(--portal-muted); font-size: 14px; }
 .vps-inline-notice { margin-top: 20px; padding: 16px; border-radius: 6px; background: var(--portal-surface); font-size: 14px; }
 .vps-inline-notice.warning { background: #f8eedc; }.vps-inline-notice.danger { background: #f7e7e4; }
 .vps-inline-notice button, .vps-inline-notice a { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; color: var(--portal-accent); font-size: 13px; }
@@ -199,6 +202,7 @@
   .vps-table-hint { display: block; }
 }
 @media (max-width: 560px) {
+  .vps-cycle button { padding: 8px 10px; }
   .vps-login-wrap { min-height: 430px; padding: 0 24px; }.vps-login-card { padding: 30px 24px; }.vps-login-card .portal-title h1 { font-size: 27px; }
   .vps-form-section + .vps-form-section { margin-top: 40px; padding-top: 35px; }.vps-plans { grid-template-columns: 1fr; }.vps-plan { min-height: 0; }.vps-plan ul { grid-template-columns: 1fr 1fr; font-size: 12px; }.vps-plan li { gap: 6px; }
   .vps-profile { padding: 20px; }.vps-profile-actions { width: 100%; align-items: stretch; flex-direction: column; }.vps-profile-actions .portal-button { width: 100%; }

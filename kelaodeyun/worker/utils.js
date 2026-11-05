@@ -16,6 +16,7 @@ export const redirect = (location, cookies = []) => {
   return new Response(null, { status: 302, headers });
 };
 export const storeFor = env => env.STORE.get(env.STORE.idFromName("main"));
+export const hostingerSimulated = env => env.HOSTINGER_MODE !== "live" || /^(sk|rk)_test_/.test(env.STRIPE_SECRET_KEY || "");
 export const stripeFor = env => {
   if (!env.STRIPE_SECRET_KEY) fail(503, "Stripe 尚未配置");
   return new Stripe(env.STRIPE_SECRET_KEY, { httpClient: Stripe.createFetchHttpClient() });

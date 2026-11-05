@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Check, Cpu, MemoryStick, HardDrive, Network, Lock, RefreshCw, ChevronDown } from "lucide-react";
 import { PageShell, PageTitle, Message } from "./SitePages.jsx";
 import { api } from "./site-api.js";
-import { money, regionName, flag, validateKey, Skeleton, CopyButton } from "./VpsShared.jsx";
+import { money, regionName, flag, cycleUnit, cycleLabel, validateKey, Skeleton, CopyButton } from "./VpsShared.jsx";
 
 const storageKey = "kelaodeyun-checkout";
 const groups = { "North America": "北美", Europe: "欧洲", Asia: "亚洲", "South America": "南美", "north america": "北美", europe: "欧洲", asia: "亚洲", "south america": "南美" };
@@ -11,7 +11,13 @@ const continentRank = name => { const index = continentOrder.indexOf(name); retu
 const readSelection = () => {
   try { return JSON.parse(sessionStorage.getItem(storageKey) || "{}") || {}; } catch { return {}; }
 };
-const savings = plan => plan.prices.month?.amount > 0 && plan.prices.year ? Math.max(0, Math.round((1 - plan.prices.year.amount / (plan.prices.month.amount * 12)) * 100)) : 0;
+const cycleKey = price => price.intervalCount === 1 ? price.interval : `${price.interval}:${price.intervalCount}`;
+const cycleMonths = price => price.intervalCount * (price.interval === "year" ? 12 : 1);
+const priceForCycle = (plan, cycle) => plan?.prices.find(price => cycleKey(price) === cycle);
+const savings = (plan, cycle) => {
+  const month = priceForCycle(plan, "month"), price = priceForCycle(plan, cycle);
+  return month && price ? Math.max(0, Math.round((1 - price.amount / cycleMonths(price) / month.amount) * 100)) : 0;
+};
 
 function KeyHelp() {
   const [system, setSystem] = useState("unix");
@@ -32,11 +38,11 @@ function KeyHelp() {
 }
 
 function Summary({ selected, cycle, center, ready, missing, busy, mobile }) {
-  const price = selected?.prices[cycle], amount = price ? money(price.amount) : "—";
+  const price = priceForCycle(selected, cycle), amount = price ? money(price.amount) : "—";
   return <aside className={mobile ? "vps-mobile-summary" : "vps-order"} aria-label="订单摘要">
-    {!mobile && <><h2>订单摘要</h2><dl><div><dt>套餐</dt><dd>{selected ? `${selected.name} · ${cycle === "month" ? "按月" : "按年"}` : "未选择"}</dd></div><div><dt>地区</dt><dd>{regionName(center)}</dd></div></dl></>}
+    {!mobile && <><h2>订单摘要</h2><dl><div><dt>套餐</dt><dd>{price ? `${selected.name} · ${cycleLabel(price.interval, price.intervalCount)}` : "未选择"}</dd></div><div><dt>地区</dt><dd>{regionName(center)}</dd></div></dl></>}
     <div className="vps-summary-total"><span>今日支付</span><strong>{amount}</strong></div>
-    {!mobile && <><p>{price ? `之后每${cycle === "month" ? "月" : "年"}自动续费 ${amount}，可随时在账户中关闭` : "选择套餐后查看续费金额。"}</p><p className="vps-summary-warning">订阅结束后服务器及数据会立即清除</p></>}
+    {!mobile && <><p>{price ? `之后每${cycleUnit(price.interval, price.intervalCount)}自动续费 ${amount}，可随时在账户中关闭` : "选择套餐后查看续费金额。"}</p><p className="vps-summary-warning">订阅结束后服务器及数据会立即清除</p></>}
     <button type="submit" form="vps-checkout" className="portal-button primary" disabled={!ready || busy} aria-live="polite"><Lock size={16} />{busy ? "正在跳转…" : "前往安全支付"}</button>
     <small>{!ready ? missing : mobile ? "付款由 Stripe 安全处理" : "付款由 Stripe 安全处理"}</small>
   </aside>;
@@ -44,57 +50,60 @@ function Summary({ selected, cycle, center, ready, missing, busy, mobile }) {
 
 export function Billing({ config }) {
   const [saved] = useState(readSelection);
-  const [plans, setPlans] = useState([]), [centers, setCenters] = useState([]), [cycle, setCycle] = useState(saved.cycle === "year" ? "year" : "month"), [priceId, setPriceId] = useState(saved.priceId || ""), [dataCenterId, setDataCenterId] = useState(String(saved.dataCenterId || "")), [publicKey, setPublicKey] = useState(saved.publicKey || ""), [loading, setLoading] = useState(true), [loadError, setLoadError] = useState(""), [error, setError] = useState(""), [busy, setBusy] = useState(false), [attempt, setAttempt] = useState(0);
+  const [plans, setPlans] = useState([]), [centers, setCenters] = useState([]), [cycle, setCycle] = useState(saved.cycle || "month"), [priceId, setPriceId] = useState(saved.priceId || ""), [dataCenterId, setDataCenterId] = useState(String(saved.dataCenterId || "")), [publicKey, setPublicKey] = useState(saved.publicKey || ""), [loading, setLoading] = useState(true), [loadError, setLoadError] = useState(""), [error, setError] = useState(""), [busy, setBusy] = useState(false), [attempt, setAttempt] = useState(0);
   useEffect(() => {
     let alive = true;
     setLoading(true); setLoadError("");
     Promise.all([api("/plans"), api("/datacenters")]).then(([p, d]) => { if (alive) { setPlans(p); setCenters(d); } }).catch(e => { if (alive) setLoadError(e.message); }).finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
   }, [attempt]);
-  const selected = plans.find(p => p.prices[cycle]?.priceId === priceId);
+  const cycles = [...new Map(plans.flatMap(plan => plan.prices).map(price => [cycleKey(price), price])).values()].sort((a, b) => cycleMonths(a) - cycleMonths(b));
+  const currentCycle = cycles.some(price => cycleKey(price) === cycle) ? cycle : cycleKey(cycles[0] || { interval: "month", intervalCount: 1 });
+  const selected = plans.find(p => priceForCycle(p, currentCycle)?.priceId === priceId);
   const center = centers.find(c => String(c.id) === dataCenterId);
   const key = validateKey(publicKey);
   const ready = !!selected && !!center && key.valid && !loading && !loadError;
   const missing = !selected ? "请选择套餐" : !center ? "请选择地区" : !key.valid ? "请填写有效的 SSH 公钥" : "";
-  const maxSavings = Math.max(0, ...plans.map(savings));
   const grouped = centers.reduce((result, item) => { const name = groups[item.continent] || item.continent || "其他"; (result[name] ||= []).push(item); return result; }, {});
   const regionGroups = Object.entries(grouped).sort(([a], [b]) => continentRank(a) - continentRank(b));
   function changeCycle(next) {
-    if (cycle === next) return;
+    if (currentCycle === next) return;
     setCycle(next);
-    setPriceId(selected?.prices[next]?.priceId || "");
+    setPriceId(priceForCycle(selected, next)?.priceId || "");
   }
   async function submit(event) {
     event.preventDefault();
     if (!ready || busy) return;
     if (!config.user) {
-      try { sessionStorage.setItem(storageKey, JSON.stringify({ cycle, priceId, dataCenterId, publicKey })); } catch { setError("无法保存当前选择，请启用浏览器会话存储后重试。"); return; }
+      try { sessionStorage.setItem(storageKey, JSON.stringify({ cycle: currentCycle, priceId, dataCenterId, publicKey })); } catch { setError("无法保存当前选择，请启用浏览器会话存储后重试。"); return; }
       location.assign("/login?return=%2Fbilling"); return;
     }
     setBusy(true); setError("");
     try { const { url } = await api("/checkout", { priceId, dataCenterId, publicKey }); try { sessionStorage.removeItem(storageKey); } catch {} location.assign(url); }
     catch (e) { setError(e.message); setBusy(false); }
   }
-  const summaryProps = { selected, cycle, center, ready, missing, busy };
+  const summaryProps = { selected, cycle: currentCycle, center, ready, missing, busy };
   return <PageShell config={config} account={!!config.user}><div className="portal-container vps-billing-page" data-ui>
-    <PageTitle title="选择服务器" description="付款后自动开通，按月或按年自动续费，可随时关闭。" />
+    <PageTitle title="选择服务器" description="付款后自动开通，按所选周期自动续费，可随时关闭。" />
     {error && <Message kind="error">{error}</Message>}
     {loadError ? <div className="vps-load-error" role="alert"><h2>套餐暂时无法加载</h2><p>我们正在准备可售套餐，请稍后再来。</p>{config.user?.role === "admin" && <p className="vps-load-error-detail">{loadError}</p>}<button type="button" className="portal-button" onClick={() => setAttempt(n => n + 1)}><RefreshCw size={16} />重试</button></div> : <>
       <div className="vps-billing-layout">
         <form id="vps-checkout" onSubmit={submit}>
           <section className="vps-form-section">
             <div className="vps-section-heading"><span>1</span><div><h2>套餐</h2><p>选择适合你的服务器配置。</p></div></div>
-            <div className="vps-cycle" role="group" aria-label="付款周期"><button type="button" onClick={() => changeCycle("month")} aria-pressed={cycle === "month"}>按月</button><button type="button" onClick={() => changeCycle("year")} aria-pressed={cycle === "year"}>按年 {maxSavings > 0 && <span>最高省 {maxSavings}%</span>}</button></div>
+            {cycles.length > 0 && <div className="vps-cycle" role="group" aria-label="付款周期">{cycles.map(option => {
+              const key = cycleKey(option), maxSavings = Math.max(0, ...plans.map(plan => savings(plan, key)));
+              return <button key={key} type="button" onClick={() => changeCycle(key)} aria-pressed={currentCycle === key}>{cycleLabel(option.interval, option.intervalCount)} {maxSavings > 0 && <span>最高省 {maxSavings}%</span>}</button>;
+            })}</div>}
             {loading ? <div className="vps-plans" aria-label="正在加载套餐" aria-live="polite">{[1, 2, 3, 4].map(n => <Skeleton key={n} />)}</div> : plans.length ? <div className="vps-plans">
               {plans.map(plan => {
-                const price = plan.prices[cycle], chosen = price && price.priceId === priceId;
+                const price = priceForCycle(plan, currentCycle), chosen = price && price.priceId === priceId;
                 const specs = [[Cpu, plan.specs.cpu, "CPU 核心"], [MemoryStick, plan.specs.ramGb, "GB 内存"], [HardDrive, plan.specs.diskGb, "GB NVMe 磁盘"], [Network, plan.specs.bandwidthTb, "TB 流量"]];
-                return <label className={`vps-plan ${chosen ? "selected" : ""} ${!price ? "unavailable" : ""}`} key={plan.productId}>
+                return <label className={`vps-plan ${chosen ? "selected" : ""} ${!price ? "unavailable" : ""}`} key={plan.id}>
                   <input className="vps-visually-hidden" type="radio" name="price" checked={!!chosen} disabled={!price} onChange={() => setPriceId(price.priceId)} />
                   {chosen && <span className="vps-plan-check"><Check size={14} /></span>}
-                  <h3>{plan.name}</h3><div className="vps-plan-price">{price ? <><strong>{money(price.amount)}</strong><span>/{cycle === "month" ? "月" : "年"}</span></> : <span>此周期暂不提供</span>}</div>
-                  {price && cycle === "year" && <p className="vps-plan-month">约 {money(price.amount / 12)}/月</p>}
-                  {plan.description && <p className="vps-plan-description">{plan.description}</p>}
+                  <h3>{plan.name}</h3><div className="vps-plan-price">{price ? <><strong>{money(price.amount)}</strong><span>/{cycleUnit(price.interval, price.intervalCount)}</span></> : <span>此周期暂不提供</span>}</div>
+                  {price && cycleMonths(price) > 1 && <p className="vps-plan-month">约 {money(price.amount / cycleMonths(price))}/月</p>}
                   <ul>{specs.filter(([, value]) => value !== "" && value != null).map(([Icon, value, label]) => <li key={label}><Icon size={16} />{value} {label}</li>)}</ul>
                 </label>;
               })}

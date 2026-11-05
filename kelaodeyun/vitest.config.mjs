@@ -10,9 +10,10 @@ export default defineConfig({
       ADMIN_EMAILS: "admin@example.com",
       GOOGLE_CLIENT_ID: "test-client",
       GOOGLE_CLIENT_SECRET: "test-secret",
-      STRIPE_SECRET_KEY: "sk_test_dummy",
+      STRIPE_SECRET_KEY: "sk_live_dummy",
       STRIPE_WEBHOOK_SECRET: "whsec_test",
       HOSTINGER_API_TOKEN: "test-token",
+      HOSTINGER_MODE: "live",
       HOSTINGER_TEMPLATE_ID: "123"
     } }
   })],

@@ -10,12 +10,14 @@ export class Store extends DurableObject {
     this.sql.exec(`CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY,google_sub TEXT UNIQUE NOT NULL,email TEXT NOT NULL,name TEXT,avatar TEXT,role TEXT NOT NULL,disabled INTEGER NOT NULL DEFAULT 0,stripe_customer_id TEXT UNIQUE,created TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS sessions(hash TEXT PRIMARY KEY,user_id TEXT NOT NULL,expires INTEGER NOT NULL);
       CREATE TABLE IF NOT EXISTS oauth_states(state TEXT PRIMARY KEY,verifier TEXT NOT NULL,return_path TEXT NOT NULL,expires INTEGER NOT NULL);
-      CREATE TABLE IF NOT EXISTS servers(id TEXT PRIMARY KEY,user_id TEXT NOT NULL,stripe_price_id TEXT NOT NULL,interval TEXT NOT NULL,product_name TEXT NOT NULL,hostinger_item_id TEXT NOT NULL,data_center_id INTEGER NOT NULL,public_key TEXT NOT NULL,status TEXT NOT NULL,stripe_subscription_id TEXT UNIQUE,current_period_end INTEGER,cancel_at_period_end INTEGER NOT NULL DEFAULT 0,hostinger_vm_id INTEGER,hostinger_subscription_id TEXT,ipv4 TEXT,hostname TEXT,error TEXT,created TEXT NOT NULL,updated TEXT NOT NULL,purchase_inflight INTEGER NOT NULL DEFAULT 0,termination_requested INTEGER NOT NULL DEFAULT 0,failure_phase TEXT,payment_past_due INTEGER NOT NULL DEFAULT 0);
+      CREATE TABLE IF NOT EXISTS servers(id TEXT PRIMARY KEY,user_id TEXT NOT NULL,stripe_price_id TEXT NOT NULL,interval TEXT NOT NULL,interval_count INTEGER NOT NULL DEFAULT 1,amount INTEGER,product_name TEXT NOT NULL,hostinger_item_id TEXT NOT NULL,data_center_id INTEGER NOT NULL,public_key TEXT NOT NULL,status TEXT NOT NULL,stripe_subscription_id TEXT UNIQUE,current_period_end INTEGER,cancel_at_period_end INTEGER NOT NULL DEFAULT 0,hostinger_vm_id INTEGER,hostinger_subscription_id TEXT,ipv4 TEXT,hostname TEXT,error TEXT,created TEXT NOT NULL,updated TEXT NOT NULL,purchase_inflight INTEGER NOT NULL DEFAULT 0,termination_requested INTEGER NOT NULL DEFAULT 0,failure_phase TEXT,payment_past_due INTEGER NOT NULL DEFAULT 0);
       CREATE TABLE IF NOT EXISTS stripe_events(id TEXT PRIMARY KEY,created TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS hostinger_requests(at INTEGER NOT NULL);
       CREATE TABLE IF NOT EXISTS feedback(id TEXT PRIMARY KEY,user_id TEXT,title TEXT NOT NULL,description TEXT NOT NULL,kind TEXT NOT NULL,created TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS feedback_votes(feedback_id TEXT NOT NULL,user_id TEXT NOT NULL,vote INTEGER NOT NULL CHECK(vote IN(-1,1)),PRIMARY KEY(feedback_id,user_id));`);
     if (!this.all("PRAGMA table_info(servers)").some(column => column.name === "payment_past_due")) this.run("ALTER TABLE servers ADD COLUMN payment_past_due INTEGER NOT NULL DEFAULT 0");
+    if (!this.all("PRAGMA table_info(servers)").some(column => column.name === "interval_count")) this.run("ALTER TABLE servers ADD COLUMN interval_count INTEGER NOT NULL DEFAULT 1");
+    if (!this.all("PRAGMA table_info(servers)").some(column => column.name === "amount")) this.run("ALTER TABLE servers ADD COLUMN amount INTEGER");
   }
   all(query, ...params) { return this.sql.exec(query, ...params).toArray(); }
   get(query, ...params) { return this.all(query, ...params)[0] || null; }
@@ -31,20 +33,24 @@ export class Store extends DurableObject {
     return /^[a-f0-9]{64}$/.test(token) ? this.get("SELECT u.* FROM users u JOIN sessions s ON u.id=s.user_id WHERE s.hash=? AND s.expires>? AND u.disabled=0", await shaHex(token), Date.now()) : null;
   }
   async plans() {
-    if (this.plansCache?.expires > Date.now()) return this.plansCache.value;
-    const stripe = stripeFor(this.env), plans = [];
-    for await (const product of stripe.products.list({ active: true, limit: 100 })) {
-      if (product.metadata?.kelaodeyun_plan !== "true") continue;
-      const prices = {};
-      for await (const price of stripe.prices.list({ product: product.id, active: true, type: "recurring", limit: 100 })) {
-        const interval = price.recurring?.interval;
-        if (!["month", "year"].includes(interval) || price.recurring.interval_count !== 1 || price.currency !== "usd" || !price.metadata?.hostinger_item_id || !Number.isInteger(price.unit_amount)) continue;
-        prices[interval] = { priceId: price.id, amount: price.unit_amount, currency: price.currency, hostingerItemId: price.metadata.hostinger_item_id };
-      }
-      if (Object.keys(prices).length) plans.push({ productId: product.id, name: product.name, description: product.description, specs: { cpu: product.metadata.cpu || "", ramGb: product.metadata.ram_gb || "", diskGb: product.metadata.disk_gb || "", bandwidthTb: product.metadata.bandwidth_tb || "" }, prices, order: Number(product.metadata.order) || 0 });
-    }
-    plans.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
-    this.plansCache = { value: plans, expires: Date.now() + 300000 };
+    const multiplier = Number(this.env.PRICE_MULTIPLIER);
+    if (!Number.isFinite(multiplier) || multiplier < 1) fail(503, "套餐定价尚未配置");
+    if (this.plansCache?.expires > Date.now() && this.plansCache.multiplier === multiplier) return this.plansCache.value;
+    if (this.reserveHostinger() > 0) fail(429, "请求较频繁，请稍后再试");
+    const { data } = await hostinger(this.env, "/api/billing/v1/catalog?category=VPS", { reserved: true });
+    if (!Array.isArray(data)) fail(502, "套餐目录格式无效");
+    const plans = data.filter(item => /^hostingercom-vps-kvm\d+$/.test(item.id)).map(item => {
+      const metadata = item.metadata || {};
+      const prices = (Array.isArray(item.prices) ? item.prices : []).filter(price =>
+        typeof price.id === "string" && price.id && price.currency === "USD" &&
+        ["month", "year"].includes(price.period_unit) && Number.isSafeInteger(price.period) &&
+        price.period > 0 && price.period <= (price.period_unit === "year" ? 3 : 36) &&
+        Number.isSafeInteger(price.price) && price.price > 0 && Number.isSafeInteger(Math.ceil(price.price * multiplier))
+      ).map(price => ({ priceId: price.id, interval: price.period_unit, intervalCount: price.period, amount: Math.ceil(price.price * multiplier), currency: "usd" }));
+      return { id: item.id, name: item.name, specs: { cpu: Number(metadata.cpus), ramGb: Number(metadata.memory) / 1024, diskGb: Number(metadata.disk_space) / 1024, bandwidthTb: Number(metadata.bandwidth) / 1024000 }, prices };
+    }).filter(plan => plan.prices.length);
+    plans.sort((a, b) => a.specs.cpu - b.specs.cpu || Math.min(...a.prices.map(p => p.amount)) - Math.min(...b.prices.map(p => p.amount)));
+    this.plansCache = { value: plans, multiplier, expires: Date.now() + 600000 };
     return plans;
   }
   async datacenters() {
@@ -121,10 +127,20 @@ export class Store extends DurableObject {
     if (!validPublicKey(input.publicKey)) fail(400, "SSH 公钥格式无效");
     if (!Number.isSafeInteger(Number(this.env.HOSTINGER_TEMPLATE_ID)) || Number(this.env.HOSTINGER_TEMPLATE_ID) <= 0 || (this.env.HOSTINGER_POST_INSTALL_SCRIPT_ID && (!Number.isSafeInteger(Number(this.env.HOSTINGER_POST_INSTALL_SCRIPT_ID)) || Number(this.env.HOSTINGER_POST_INSTALL_SCRIPT_ID) <= 0))) fail(503, "服务器模板尚未配置");
     let selection;
-    for (const plan of await this.plans()) for (const [interval, price] of Object.entries(plan.prices)) if (price.priceId === input.priceId) selection = { plan, interval, price };
+    for (const plan of await this.plans()) for (const price of plan.prices) if (price.priceId === input.priceId) selection = { plan, price };
     if (!selection) fail(400, "套餐价格无效");
     if (!(await this.datacenters()).some(center => String(center.id) === String(input.dataCenterId))) fail(400, "数据中心无效");
     const stripe = stripeFor(this.env);
+    const productId = "kld_" + selection.plan.id.replace(/[^A-Za-z0-9_]/g, "_");
+    try { await stripe.products.retrieve(productId); }
+    catch (error) {
+      if (error.code !== "resource_missing") throw error;
+      try { await stripe.products.create({ id: productId, name: selection.plan.name, metadata: { hostinger_item: selection.plan.id } }); }
+      catch (createError) {
+        if (createError.code !== "resource_already_exists" && createError.statusCode !== 409) throw createError;
+        await stripe.products.retrieve(productId);
+      }
+    }
     let customer = user.stripe_customer_id;
     if (!customer) {
       const created = await stripe.customers.create({ email: user.email, name: user.name, metadata: { user_id: user.id } }, { idempotencyKey: "customer-" + user.id });
@@ -132,8 +148,8 @@ export class Store extends DurableObject {
       this.run("UPDATE users SET stripe_customer_id=? WHERE id=?", customer, user.id);
     }
     const id = crypto.randomUUID(), time = now();
-    this.run("INSERT INTO servers(id,user_id,stripe_price_id,interval,product_name,hostinger_item_id,data_center_id,public_key,status,created,updated) VALUES(?,?,?,?,?,?,?,?,?,?,?)", id, user.id, input.priceId, selection.interval, selection.plan.name, selection.price.hostingerItemId, Number(input.dataCenterId), input.publicKey.trim(), "pending_payment", time, time);
-    const session = await stripe.checkout.sessions.create({ mode: "subscription", line_items: [{ price: input.priceId, quantity: 1 }], customer, client_reference_id: id, subscription_data: { metadata: { server_id: id, user_id: user.id } }, metadata: { server_id: id }, success_url: this.env.PUBLIC_ORIGIN + "/account?checkout=success", cancel_url: this.env.PUBLIC_ORIGIN + "/billing" });
+    this.run("INSERT INTO servers(id,user_id,stripe_price_id,interval,interval_count,amount,product_name,hostinger_item_id,data_center_id,public_key,status,created,updated) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", id, user.id, "dynamic", selection.price.interval, selection.price.intervalCount, selection.price.amount, selection.plan.name, selection.price.priceId, Number(input.dataCenterId), input.publicKey.trim(), "pending_payment", time, time);
+    const session = await stripe.checkout.sessions.create({ mode: "subscription", line_items: [{ price_data: { currency: "usd", unit_amount: selection.price.amount, product: productId, recurring: { interval: selection.price.interval, interval_count: selection.price.intervalCount } }, quantity: 1 }], customer, client_reference_id: id, subscription_data: { metadata: { server_id: id, user_id: user.id } }, metadata: { server_id: id }, success_url: this.env.PUBLIC_ORIGIN + "/account?checkout=success", cancel_url: this.env.PUBLIC_ORIGIN + "/billing" });
     return { url: session.url };
   }
   async webhook(request) {
@@ -195,7 +211,7 @@ export class Store extends DurableObject {
       if (path === "/api/auth/google/callback" && method === "GET") return await this.googleCallback(request);
       const user = await this.userFor(request);
       if (path === "/api/config" && method === "GET") return json({ brand: "kelaodeyun", user: user && { id: user.id, email: user.email, name: user.name, avatar: user.avatar, role: user.role }, operator: this.env.PUBLIC_OPERATOR || "", supportEmail: this.env.SUPPORT_EMAIL || "" });
-      if (path === "/api/plans" && method === "GET") return json((await this.plans()).map(({ order, ...plan }) => ({ ...plan, prices: Object.fromEntries(Object.entries(plan.prices).map(([k, { hostingerItemId, ...v }]) => [k, v])) })));
+      if (path === "/api/plans" && method === "GET") return json(await this.plans());
       if (path === "/api/datacenters" && method === "GET") return json(await this.datacenters());
       if (path === "/api/feedback" && method === "GET") return json({ items: this.feedback(user) });
       if (!user) fail(401, "请先登录");
@@ -215,7 +231,7 @@ export class Store extends DurableObject {
         const session = await stripeFor(this.env).billingPortal.sessions.create({ customer: user.stripe_customer_id, return_url: this.env.PUBLIC_ORIGIN + "/account" });
         return json({ url: session.url });
       }
-      if (path === "/api/servers" && method === "GET") return json(this.all("SELECT id,product_name,interval,status,data_center_id,current_period_end,cancel_at_period_end,ipv4,hostname,created FROM servers WHERE user_id=? ORDER BY created DESC", user.id));
+      if (path === "/api/servers" && method === "GET") return json(this.all("SELECT id,product_name,interval,interval_count,amount,status,data_center_id,current_period_end,cancel_at_period_end,ipv4,hostname,created,CASE WHEN hostinger_vm_id<0 THEN 1 ELSE 0 END AS simulated FROM servers WHERE user_id=? ORDER BY created DESC", user.id).map(row => ({ ...row, simulated: Boolean(row.simulated) })));
       if (path === "/api/feedback" && method === "POST") {
         this.rate("feedback:" + user.id, 3);
         if (!validText(input.title, 60) || !validText(input.description, 400)) fail(400, "请填写标题和建议内容（最多 60 / 400 字）");
@@ -233,7 +249,7 @@ export class Store extends DurableObject {
       }
       if (path.startsWith("/api/admin/")) {
         if (user.role !== "admin") fail(403, "无权访问");
-        if (path === "/api/admin/overview" && method === "GET") return json({ users: this.get("SELECT count(*) AS count FROM users").count, statuses: this.all("SELECT status,count(*) AS count FROM servers GROUP BY status"), servers: this.all("SELECT s.id,s.product_name,s.interval,s.data_center_id,s.status,s.error,s.ipv4,s.current_period_end,s.hostinger_vm_id,s.failure_phase,s.created,s.updated,u.email FROM servers s JOIN users u ON u.id=s.user_id ORDER BY s.created DESC LIMIT 100"), accounts: this.all("SELECT id,email,name,avatar,role,disabled,created FROM users ORDER BY created DESC LIMIT 100"), feedback: this.feedback(user) });
+        if (path === "/api/admin/overview" && method === "GET") return json({ users: this.get("SELECT count(*) AS count FROM users").count, statuses: this.all("SELECT status,count(*) AS count FROM servers GROUP BY status"), servers: this.all("SELECT s.id,s.product_name,s.interval,s.interval_count,s.amount,s.data_center_id,s.status,s.error,s.ipv4,s.current_period_end,s.hostinger_vm_id,s.failure_phase,s.created,s.updated,u.email FROM servers s JOIN users u ON u.id=s.user_id ORDER BY s.created DESC LIMIT 100").map(row => ({ ...row, simulated: row.hostinger_vm_id < 0 })), accounts: this.all("SELECT id,email,name,avatar,role,disabled,created FROM users ORDER BY created DESC LIMIT 100"), feedback: this.feedback(user) });
         const action = path.match(/^\/api\/admin\/servers\/([a-zA-Z0-9-]+)\/(retry|mark-terminated|link-vm)$/);
         if (action && method === "POST") {
           const row = this.get("SELECT * FROM servers WHERE id=?", action[1]);

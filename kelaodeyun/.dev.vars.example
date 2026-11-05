@@ -3,4 +3,6 @@ GOOGLE_CLIENT_SECRET=
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 HOSTINGER_API_TOKEN=
+# 本地默认模拟开通，不购买真实服务器；仅 live 且使用 Stripe 正式密钥时才会真实购买。
+HOSTINGER_MODE=simulate
 # PUBLIC_ORIGIN=http://localhost:8787
