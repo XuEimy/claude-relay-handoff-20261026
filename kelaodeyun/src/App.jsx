@@ -205,11 +205,11 @@ function Home({ config }) {
             <h1>云上克劳德</h1>
             <p>连接你的服务器，在桌面使用 Claude Code。</p>
             <div className="gateway-actions">
-              <a className="button dark" href="/download">
-                下载 App <ArrowRight size={17} />
+              <a className="button dark" href="/billing">
+                选择服务器 <ArrowRight size={17} />
               </a>
-              <a className="button" href="/billing">
-                选择服务器
+              <a className="button" href="/download">
+                下载 App
               </a>
             </div>
             <ul className="gateway-facts">
@@ -1012,13 +1012,13 @@ function AppRoute({ config, refresh }) {
   if (path === "/support") return <SupportPage config={config} />;
   if (path === "/privacy" || path === "/terms") return <PolicyPage config={config} terms={path === "/terms"} />;
   if (path === "/login") return <Login config={config} />;
-  if (["/account", "/billing", "/admin"].includes(path)) {
+  if (path === "/billing") return <Billing config={config} />;
+  if (["/account", "/admin"].includes(path)) {
     if (!config.user) {
       location.replace("/login?return=" + encodeURIComponent(path));
       return null;
     }
     if (path === "/account") return <Account config={config} />;
-    if (path === "/billing") return <Billing config={config} />;
     if (path === "/admin" && config.user.role === "admin") return <VpsAdmin config={config} />;
   }
   return <NotFoundPage config={config} />;

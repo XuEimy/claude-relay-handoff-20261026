@@ -233,7 +233,7 @@ export class Store extends DurableObject {
       }
       if (path.startsWith("/api/admin/")) {
         if (user.role !== "admin") fail(403, "无权访问");
-        if (path === "/api/admin/overview" && method === "GET") return json({ users: this.get("SELECT count(*) AS count FROM users").count, statuses: this.all("SELECT status,count(*) AS count FROM servers GROUP BY status"), servers: this.all("SELECT s.id,s.product_name,s.status,s.error,s.ipv4,s.current_period_end,s.hostinger_vm_id,s.failure_phase,u.email FROM servers s JOIN users u ON u.id=s.user_id ORDER BY s.created DESC LIMIT 100"), accounts: this.all("SELECT id,email,name,role,disabled FROM users ORDER BY created DESC LIMIT 100"), feedback: this.feedback(user) });
+        if (path === "/api/admin/overview" && method === "GET") return json({ users: this.get("SELECT count(*) AS count FROM users").count, statuses: this.all("SELECT status,count(*) AS count FROM servers GROUP BY status"), servers: this.all("SELECT s.id,s.product_name,s.interval,s.data_center_id,s.status,s.error,s.ipv4,s.current_period_end,s.hostinger_vm_id,s.failure_phase,s.created,s.updated,u.email FROM servers s JOIN users u ON u.id=s.user_id ORDER BY s.created DESC LIMIT 100"), accounts: this.all("SELECT id,email,name,avatar,role,disabled,created FROM users ORDER BY created DESC LIMIT 100"), feedback: this.feedback(user) });
         const action = path.match(/^\/api\/admin\/servers\/([a-zA-Z0-9-]+)\/(retry|mark-terminated|link-vm)$/);
         if (action && method === "POST") {
           const row = this.get("SELECT * FROM servers WHERE id=?", action[1]);

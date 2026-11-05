@@ -34,7 +34,7 @@ export function PageShell({ config, children, account = false }) {
       {account && <div className="portal-account-nav">
         <nav aria-label="账户导航">
           {[["/account", "账户概览"], ["/billing", "服务器套餐"]].map(([href, label]) => <a key={href} href={href} aria-current={path === href ? "page" : undefined}>{label}</a>)}
-          {config.user?.role === "admin" && <a href="/admin">管理后台</a>}
+          {config.user?.role === "admin" && <a href="/admin" aria-current={path === "/admin" ? "page" : undefined}>管理后台</a>}
         </nav>
         <button onClick={logout} disabled={busy}><LogOut size={16} />{busy ? "正在退出" : "退出登录"}</button>
       </div>}
@@ -48,15 +48,15 @@ export function PageShell({ config, children, account = false }) {
     </div>
   );
 }
-function PageTitle({ title, description, children }) {
+export function PageTitle({ title, description, children }) {
   useEffect(() => { document.title = `${title} · kelaodeyun`; }, [title]);
   return <div className="portal-title"><div><h1>{title}</h1>{description && <p>{description}</p>}</div>{children}</div>;
 }
-function Message({ children, kind = "info" }) {
+export function Message({ children, kind = "info" }) {
   return children ? <div className={"portal-message " + kind} role={kind === "error" ? "alert" : "status"}>{kind === "success" ? <Check size={18} /> : <AlertCircle size={18} />}<div>{children}</div></div> : null;
 }
-function EmptyState({ title, children }) {
-  return <div className="portal-empty"><FileText size={25} /><h3>{title}</h3><p>{children}</p></div>;
+export function EmptyState({ title, children, icon: Icon = FileText, action }) {
+  return <div className="portal-empty"><Icon size={25} /><h3>{title}</h3><p>{children}</p>{action}</div>;
 }
 export function DownloadPage({ config }) {
   return (

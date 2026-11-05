@@ -129,6 +129,16 @@ describe("API", () => {
     const voted = await (await request(`/api/feedback/${created.items[0].id}/vote`, post({ vote: 1 }, session))).json();
     expect(voted.items[0]).toMatchObject({ up: 1, myVote: 1 });
   });
+  it("returns the admin overview fields needed for the server and user tables", async () => {
+    const { server } = await createdServer();
+    const admin = getSession(await login(googlePayload({ email: "admin@example.com", name: "管理员", picture: "https://example.test/avatar.png" })));
+    const response = await request("/api/admin/overview", { headers: { Cookie: admin } });
+    expect(response.status).toBe(200);
+    const data = await response.json();
+    expect(data.servers[0]).toMatchObject({ id: server.id, interval: "month", data_center_id: 1, hostinger_vm_id: null, failure_phase: null, created: expect.any(String), updated: expect.any(String) });
+    expect(data.accounts[0]).toMatchObject({ email: "admin@example.com", name: "管理员", avatar: "https://example.test/avatar.png", created: expect.any(String) });
+    expect(data.servers[0]).not.toHaveProperty("public_key");
+  });
   it("tracks payment failures during provisioning and recovery", async () => {
     const { server } = await createdServer();
     await runInDurableObject(stub(), instance => instance.run("UPDATE servers SET status='provisioning',stripe_subscription_id='sub_1' WHERE id=?", server.id));
