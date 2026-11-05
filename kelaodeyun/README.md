@@ -1,56 +1,21 @@
-# kelaodeyun
+# kelaodeyun 网站
 
-独立的网页模型聊天站。本地预览：<http://127.0.0.1:4174/>。
+React + Vite 前端由 Cloudflare Workers 静态资源提供，`/api/*` 由单例 SQLite Durable Object 处理。Google 登录、Stripe 订阅付款、Hostinger VPS 开通与清理分别使用 OAuth、Checkout/Webhook 和 Workflows。服务器订阅结束后立即发起清理；Hostinger 的机器保留在运营账户中直至其已付费周期结束。上线前必须验证模板能正确安装操作系统与 SSH 公钥，并审查政策文本。
 
-新增 `/code` 网页工作台，通过官方 Claude Agent SDK 驱动服务器上的 Claude Code，支持项目文件、工具过程、网页批准、任务恢复、编辑与差异。接入说明见 [Claude Code 服务接口](docs/code-api-contract.md)。演示站 `/code` 使用模拟模型，文件修改实际保存；尚未连接目标美国服务器。
+## 本地开发
 
-包含 Anthropic 官网视觉参考的品牌首页、注册登录、服务端会话历史、模型选择、流式 Markdown 回复、停止生成、余额/用量、兑换码、管理员充值、支付宝/微信支付适配与管理后台。
+安装依赖：`npm install`。复制 `.dev.vars.example` 到 `.dev.vars`，填写测试值并将 `PUBLIC_ORIGIN` 设置为 `http://localhost:5173`。分别运行 `npx wrangler dev --assets public` 和 `npm run dev`，访问 Vite 显示的地址；Vite 将 `/api` 代理到 Worker 8787 端口，无需构建前端。要直接通过 Worker 预览完整静态站点，先运行 `npm run build`，再运行 `npx wrangler dev`。测试运行 `npm test`；禁止使用生产 Stripe 或 Hostinger 凭据做本地测试。
 
-当前交付是本地功能版。未接入真实模型、支付商户、域名或公网部署；这些按用户要求后置。默认没有虚构模型或可用余额。首次进入聊天页会要求创建管理员。
+## 配置
 
-## 本地运行
+- Google Cloud 创建 OAuth Web 客户端，授权回调 `https://kelaodeyun.com/api/auth/google/callback` 和本地 `http://localhost:5173/api/auth/google/callback`。
+- Stripe 中将产品设为 active 并设置 metadata `kelaodeyun_plan=true`；可填 `cpu`、`ram_gb`、`disk_gb`、`bandwidth_tb` 和排序字段 `order`。每个 USD 月付或年付 recurring Price 设置 `hostinger_item_id`，对应 Hostinger 月付或年付商品。
+- Stripe webhook URL 为 `https://kelaodeyun.com/api/stripe/webhook`，订阅 `checkout.session.completed`、`checkout.session.expired`、`checkout.session.async_payment_succeeded`、`checkout.session.async_payment_failed`、`customer.subscription.updated`、`customer.subscription.deleted`、`invoice.payment_failed`。Webhook 端点 API 版本应与固定的 Stripe SDK 一致，即 `2026-09-30.endive`。在 Stripe dashboard 启用 Billing Portal，仅允许到期取消订阅、更新付款方式和查看账单历史；禁用套餐切换和数量修改，因为更改价格不会调整虚拟机配置。
+- Hostinger 创建 API token，配置 VPS 模板 ID；如有需要配置安装后脚本 ID。Hostinger 购买使用账户默认付款方式。购买结果不确定时禁止盲目重试，应先在 hPanel 确认是否已经购买。
+- `wrangler.jsonc` 的 vars：`PUBLIC_ORIGIN`、逗号分隔的 `ADMIN_EMAILS`、`HOSTINGER_TEMPLATE_ID`、可选 `HOSTINGER_POST_INSTALL_SCRIPT_ID`、`SUPPORT_EMAIL`、`PUBLIC_OPERATOR`。
+- `ADMIN_EMAILS` 的变更在用户下次登录时生效；会话有效期为 7 天。
+- 分别运行 `npx wrangler secret put GOOGLE_CLIENT_ID`、`GOOGLE_CLIENT_SECRET`、`STRIPE_SECRET_KEY`、`STRIPE_WEBHOOK_SECRET`、`HOSTINGER_API_TOKEN`。不将真实值写入版本库。
 
-需要 Node.js 24（使用内置 SQLite）。
+## 上线
 
-```sh
-npm ci
-npm run dev
-```
-
-默认监听本机 127.0.0.1:4174。数据库保存在 `data/kelaodeyun.db`；本地自动生成的渠道加密密钥在 `data/encryption.key`，均已排除于 Git。请将这两者一起安全备份，丢失密钥后原渠道凭据无法解密。
-
-首次初始化管理员 → 管理后台添加授权渠道 → 添加实际支持的模型 ID 与人民币费率 → 给测试用户充值 → 开始对话。模型调用通过 Anthropic 官方 SDK，支持 Anthropic Messages 协议。渠道保存后可「读取模型」获取 ID 建议；其他协议尚未适配。详见 [Claude SDK 接入](docs/Claude-SDK接入.md)。
-
-## 验证
-
-```sh
-npm test
-npm run build
-npm run test:sites
-```
-
-服务端测试覆盖权限、CSRF、会话隔离、余额预留和结算、失败退款、停止/并发、兑换幂等、订单金额校验，以及支付宝 RSA2 / 微信 RSA+AES-GCM 通知校验。没有发起真实模型请求或支付。
-
-`node scripts/qa-server.mjs` 仅供 UI 验收：使用独立的 `data/qa.db` 和带明确说明的固定回复，监听4175。禁止将该脚本作为上线入口。测试产生的账户、余额和模型不属于4174站点。
-
-## 部署入口
-
-```sh
-npm run build
-npm start
-```
-
-生产启动必须设置 HTTPS `PUBLIC_ORIGIN`、`DATA_ENCRYPTION_KEY`、`SETUP_TOKEN`。先在本地 `.env` 填写 `.env.example` 中的配置。初始化口令只在首个管理员创建时使用。已有本地数据迁移时，加密密钥必须延用 `data/encryption.key` 的值。
-
-`Dockerfile` 和 `docs/Caddyfile.example` 是部署准备文件，尚未执行构建或部署。容器需要持久化 `/app/data`。可将主机端口绑定在127.0.0.1后由 HTTPS 反向代理访问。不要把 `.env`、密钥或数据库放入静态目录。
-
-保留的 Sites scaffold 只负责前端静态构建，不能运行 Node/SQLite API。请部署 `server.mjs`，不能仅上传 `dist/client` 就宣称完整服务可用。
-
-详见：
-- [视觉规范与逆向记录](docs/视觉规范与逆向记录.md)
-- [基础服务与支付接入](docs/基础服务与支付接入.md)
-- [验证记录](design-qa.md)
-
-## 面向用户的演示环境
-
-`node scripts/demo-server.mjs` 启动4176独立演示站，支持显式模拟支付宝/微信到账和固定聊天回复，账户及支付流程保留演示说明；首页与聊天页按已确认的极简视觉处理。模拟数据使用 `data/demo.db`；原站4174不受影响。完整操作记录见 [用户流程演示](docs/用户流程演示.md)。禁止使用演示脚本作为生产启动入口。
+完成以上配置、校验 OAuth 与支付及 Hostinger 实际流程后运行 `npm run deploy`。本任务不执行部署。

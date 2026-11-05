@@ -10,6 +10,8 @@ export default defineConfig({
   },
   server: {
     host: "0.0.0.0",
+    proxy: { "/api": "http://127.0.0.1:8787" },
+    fs: { deny: [".dev.vars", ".dev.vars.*", ".env", ".env.*", "*.{crt,pem}", "**/.git/**"] },
     allowedHosts: ["terminal.local"],
     warmup: {
       clientFiles: ["./src/main.jsx"],

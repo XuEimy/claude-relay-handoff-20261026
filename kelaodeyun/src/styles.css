@@ -1264,10 +1264,6 @@ select {
   display: grid;
   place-items: center;
 }
-.payment-logo.wechat {
-  background: #e2ecdf;
-  color: #678a58;
-}
 .redeem {
   margin-top: 26px;
 }
@@ -2510,14 +2506,6 @@ body:has(.chat-app) {
   place-items: center;
   font-size: 23px;
   color: #57554c;
-}
-.relay-payment-icon.alipay {
-  color: #287bac;
-  background: #dde9ea;
-}
-.relay-payment-icon.wechat {
-  color: #4e7653;
-  background: #dde4d3;
 }
 .relay-payment-method > div {
   flex: 1;

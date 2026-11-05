@@ -1,5 +1,6 @@
 import AppShowcase from "./components/AppShowcase.jsx";
-import { AuthScreen, AccountPage, BillingPage, CheckoutPage, SettingsPage, ModelsPage, DownloadPage, GuidePage, SupportPage, PolicyPage, NotFoundPage, RetiredPage } from "./SitePages.jsx";
+import { Login, Billing, Account, Admin as VpsAdmin } from "./VpsPages.jsx";
+import { DownloadPage, GuidePage, SupportPage, PolicyPage, NotFoundPage, RetiredPage } from "./SitePages.jsx";
 import { api } from "./site-api.js";
 export { api } from "./site-api.js";
 import CardSwap, { Card } from "./components/react-bits/CardSwap.jsx";
@@ -16,53 +17,18 @@ import {
   Search,
   MessageSquare,
   Wallet,
-  Settings,
-  LogOut,
   ChevronDown,
   Check,
-  Copy,
-  Trash2,
-  Square,
   LoaderCircle,
-  PanelLeftClose,
   Pause,
   Play,
-  KeyRound,
   RefreshCw,
-  Pencil,
   FileText,
   ThumbsUp,
   ThumbsDown,
   ChevronRight,
   Terminal,
 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-const money = (n, d = 2) =>
-  new Intl.NumberFormat("zh-CN", {
-    style: "currency",
-    currency: "CNY",
-    minimumFractionDigits: d,
-    maximumFractionDigits: d,
-  }).format((n || 0) / 1e6);
-const date = (s) =>
-  new Date(s).toLocaleString("zh-CN", {
-    timeZone: "Asia/Shanghai",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-const statusLabel = {
-  pending: "待支付",
-  paid: "已到账",
-  failed: "未完成",
-  complete: "已完成",
-  streaming: "生成中",
-  stopped: "已停止",
-  interrupted: "已中断",
-};
 function IconButton({ label, children, ...props }) {
   return (
     <button className="icon-button" aria-label={label} title={label} {...props}>
@@ -76,9 +42,6 @@ function Notice({ children }) {
       {children}
     </div>
   ) : null;
-}
-function Empty({ children }) {
-  return <div className="empty-state">{children}</div>;
 }
 function Brand({ compact = false }) {
   return (
@@ -177,15 +140,7 @@ function Art({ kind = 0 }) {
 function Home({ config }) {
   const [menu, setMenu] = useState(false),
     [opening, setOpening] = useState(true),
-    [paused, setPaused] = useState(false),
-    [heroModelId, setHeroModelId] = useState(
-      () =>
-        config.models.find((m) => /sonnet/i.test(m.name))?.id ||
-        config.models[0]?.id ||
-        "",
-    );
-  const heroModel =
-    config.models.find((m) => m.id === heroModelId) || config.models[0];
+    [paused, setPaused] = useState(false);
   useEffect(() => {
     const openingTimer = setTimeout(() => setOpening(false), 2100);
     const esc = (e) => e.key === "Escape" && setMenu(false);
@@ -203,15 +158,14 @@ function Home({ config }) {
       </a>
       <header className="site-header">
         <nav className="header-left">
-          <a href="/models">模型与价格</a>
-          <a href="/billing">充值</a>
+          <a href="/billing">服务器套餐</a>
           <a href="/guide">使用指南</a>
           <a href="/download">下载 App</a>
         </nav>
         <Brand />
         <div className="header-right">
           <a className="pill" href={config.user ? "/account" : "/login"}>
-            {config.user ? "我的账户" : "登录 / 注册"}
+            {config.user ? "我的账户" : "登录"}
           </a>
           <IconButton
             label={menu ? "关闭菜单" : "打开菜单"}
@@ -224,8 +178,7 @@ function Home({ config }) {
       {menu && (
         <nav className="mobile-menu">
           {[
-            ["/models", "模型与价格"],
-            ["/billing", "充值方式"],
+            ["/billing", "服务器套餐"],
             ["/guide", "使用指南"],
             ["/download", "下载 App"],
             ["#questions", "常见问题"],
@@ -255,8 +208,8 @@ function Home({ config }) {
               <a className="button dark" href="/download">
                 下载 App <ArrowRight size={17} />
               </a>
-              <a className="button" href="/models">
-                探索模型
+              <a className="button" href="/billing">
+                选择服务器
               </a>
             </div>
             <ul className="gateway-facts">
@@ -278,7 +231,7 @@ function Home({ config }) {
             <article className="gateway-feature">
               <h2>
                 <MessageSquare size={17} />
-                一个账户，管理用量
+                一个账户，管理服务器
               </h2>
               <div className="gateway-account">
                 <MessageSquare size={21} />
@@ -287,43 +240,20 @@ function Home({ config }) {
               <div className="gateway-route">
                 <span>你的问题</span>
                 <ArrowRight size={15} />
-                <img src="/claude-assets/spark.svg" alt="" />
                 <span>Claude</span>
                 <ArrowRight size={15} />
                 <span>你的答案</span>
               </div>
-              <a href={config.user ? "/account" : "/register"}>
+              <a href={config.user ? "/account" : "/login"}>
                 管理我的账户 <ArrowRight size={13} />
               </a>
             </article>
             <article className="gateway-feature">
               <h2>
                 <RefreshCw size={17} />
-                模型与费率，随时查看
+                云端服务器
               </h2>
-              {config.models.length > 0 && <div
-                className="feature-models"
-                role="group"
-                aria-label="选择模型"
-              >
-                {config.models.map((m) => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    aria-pressed={m.id === heroModel?.id}
-                    onClick={() => setHeroModelId(m.id)}
-                  >
-                    {m.name.replace(/^Claude\s*/i, "").replace(/\s+\d.*$/, "")}
-                  </button>
-                ))}
-              </div>}
-              <p
-                key={heroModel?.id}
-                className="gateway-model-name"
-                aria-live="polite"
-              >
-                {heroModel?.name || "暂无可选模型"}
-              </p>
+              <p className="gateway-model-name">选择适合你的服务器套餐</p>
               <a href="/download">
                 下载桌面 App <ArrowRight size={13} />
               </a>
@@ -331,28 +261,11 @@ function Home({ config }) {
             <article className="gateway-feature">
               <h2>
                 <Wallet size={17} />
-                按需使用，每笔清晰
+                订阅清晰，灵活续费
               </h2>
-              {heroModel ? (
-                <div
-                  key={heroModel.id}
-                  className="gateway-price"
-                  aria-live="polite"
-                >
-                  <div>
-                    <span>输入 / 百万 tokens</span>
-                    <strong>¥{heroModel.input_rate}</strong>
-                  </div>
-                  <div>
-                    <span>输出 / 百万 tokens</span>
-                    <strong>¥{heroModel.output_rate}</strong>
-                  </div>
-                </div>
-              ) : (
-                <p className="gateway-model-name">在账户中查看模型费率</p>
-              )}
+              <p className="gateway-model-name">月付或年付，自动续费</p>
               <a href="/billing">
-                充值与用量 <ArrowRight size={13} />
+                查看套餐 <ArrowRight size={13} />
               </a>
             </article>
           </div>
@@ -366,7 +279,7 @@ function Home({ config }) {
         </section>
         <AppShowcase />
         <TrustSection />
-        <ModelCarousel config={config} />
+        <ModelCarousel config={{ ...config, models: [] }} />
         <RelayArchitecture />
         <CreativeWork />
         <UserFeedback config={config} />
@@ -462,7 +375,7 @@ function UserFeedback({ config }) {
           {error || message}
           {!config.user && (
             <a href="/login">
-              登录 / 注册 <ArrowUpRight size={13} />
+              登录 <ArrowUpRight size={13} />
             </a>
           )}
         </div>
@@ -552,7 +465,7 @@ function UserFeedback({ config }) {
                 <div className="wish-budget">
                   <div>
                     <span>每日预算</span>
-                    <strong>¥50</strong>
+                    <strong>示例</strong>
                   </div>
                   <div className="wish-budget-bar">
                     <span />
@@ -562,7 +475,7 @@ function UserFeedback({ config }) {
                     <span className="wish-switch" />
                   </div>
                   <div>
-                    <span>余额不足提醒</span>
+                    <span>服务状态提醒</span>
                     <span className="wish-switch" />
                   </div>
                 </div>
@@ -761,7 +674,7 @@ function RelayArchitecture() {
             <div className="code-demo-head"><MessageSquare size={16} />任务</div>
             <div className="code-demo-conversation">
               <p className="code-demo-user">把首页做得更简洁一点。</p>
-              <div className="code-demo-answer"><img src="/claude-assets/spark.svg" alt="" /><p>我先看看页面结构，再精简布局和文案。</p></div>
+              <div className="code-demo-answer"><MessageSquare size={16} /><p>我先看看页面结构，再精简布局和文案。</p></div>
               <div className="code-demo-composer">继续这个想法 <ArrowUp size={15} /></div>
             </div>
           </Card>
@@ -845,15 +758,15 @@ function TrustSection() {
           <img className="trust-art" src="/images/cards/stability.jpg" alt="" loading="lazy" width="768" height="512" />
           <div className="trust-copy">
             <h3>稳定</h3>
-            <div className="trust-facts"><p>对话自动保存，请求超时保护。</p><p>异常或中断时，释放预留额度。</p><p>调用状态与费用，随时可查。</p></div>
-            <a href="/billing#usage">调用记录 <ArrowUpRight size={16} /></a>
+            <div className="trust-facts"><p>服务器状态随时可查。</p><p>订阅付款后自动开通。</p></div>
+            <a href="/account">我的服务器 <ArrowUpRight size={16} /></a>
           </div>
         </article>
         <article className="trust-story">
           <img className="trust-art" src="/images/cards/security.jpg" alt="" loading="lazy" width="768" height="512" />
           <div className="trust-copy">
             <h3>安全</h3>
-            <div className="trust-facts"><p>账户与会话按用户鉴权。</p><p>密码加盐哈希，模型密钥加密。</p><p>相关对话由所选模型服务商处理。</p></div>
+            <div className="trust-facts"><p>账户使用 Google 登录。</p><p>SSH 公钥用于开通服务器。</p></div>
             <a href="/privacy">隐私说明 <ArrowUpRight size={16} /></a>
           </div>
         </article>
@@ -861,12 +774,12 @@ function TrustSection() {
       <div className="trust-access">
         <div id="how" className="trust-guide">
           <h3>使用指南</h3>
-          <nav aria-label="开始使用的步骤"><a href="/login">注册登录 <ArrowUpRight size={14} /></a><span aria-hidden="true">→</span><a href="/billing">充值 <ArrowUpRight size={14} /></a><span aria-hidden="true">→</span><a href="/download">下载 App <ArrowUpRight size={14} /></a></nav>
+          <nav aria-label="开始使用的步骤"><a href="/login">登录 <ArrowUpRight size={14} /></a><span aria-hidden="true">→</span><a href="/billing">选择服务器 <ArrowUpRight size={14} /></a><span aria-hidden="true">→</span><a href="/download">下载 App <ArrowUpRight size={14} /></a></nav>
         </div>
         <div id="recharge" className="trust-billing">
-          <h3>充值与账单</h3>
-          <p>兑换码、支付宝与微信支付，以账户页开放方式为准。</p>
-          <a href="/billing">前往充值 <ArrowUpRight size={14} /></a>
+          <h3>订阅与账单</h3>
+          <p>按月或按年订阅，在账户中管理续费。</p>
+          <a href="/billing">查看套餐 <ArrowUpRight size={14} /></a>
         </div>
       </div>
     </section>
@@ -885,19 +798,15 @@ function HomeQuestions({ config }) {
             ],
             [
               "和 Claude、Anthropic 是什么关系？",
-              "本站是独立服务，不是 Anthropic 或其他模型服务商的官方网站。模型是否可用，以本站模型列表为准。",
+              "本站是独立服务，不是 Anthropic 或其他模型服务商的官方网站。",
             ],
             [
-              "现在能使用真实模型吗？",
-              config.demo
-                ? "当前是隔离演示环境，模型配置和充值余额仅用于测试。"
-                : config.models.length
-                  ? "已配置的模型与费率可在模型页面查看；桌面 App 使用你在服务器上配置的 Claude CLI。"
-                  : "真实模型尚未开放。上方会在模型开放后展示名称与价格。",
+              "如何开通服务器？",
+              "选择套餐、地区并提供 SSH 公钥，完成订阅付款后自动开通。",
             ],
             [
               "费用如何计算？",
-              "输入和输出分别按模型费率与实际返回的 token 用量计费。例如，1,000 个输入 token 的费用为输入费率 × 1,000 ÷ 1,000,000。最终结算和用量明细可在账户页查看。",
+              "服务器按月或按年自动续费，以套餐页面的美元价格为准。",
             ],
             [
               "对话会保存吗？",
@@ -943,10 +852,10 @@ function RelayFooter({ config }) {
       ],
     ],
     [
-      "模型与价格",
+      "服务器套餐",
       [
-        ["查看模型", "/models"],
-        ["费用如何计算", "/models"],
+        ["查看套餐", "/billing"],
+        ["费用如何计算", "/billing"],
       ],
     ],
     [
@@ -954,24 +863,24 @@ function RelayFooter({ config }) {
       [["下载 App", "/download"]],
     ],
     [
-      "充值与账单",
+      "订阅与账单",
       [
-        ["账户充值", "/billing"],
-        ["用量明细", "/billing#usage"],
+        ["选择套餐", "/billing"],
+        ["管理订阅", "/account"],
       ],
     ],
     [
       "使用指南",
       [
         ["开始使用", "/guide"],
-        ["充值方式", "/billing"],
+        ["订阅方式", "/billing"],
       ],
     ],
     [
       "账户管理",
       [
         ["登录账户", "/login"],
-        ["账户与余额", "/account"],
+        ["我的服务器", "/account"],
       ],
     ],
     [
@@ -1004,23 +913,13 @@ function RelayFooter({ config }) {
               <a href="/download" aria-label="下载 App" title="下载 App">
                 <MessageSquare size={18} />
               </a>
-              <a href="/billing" aria-label="账户与充值" title="账户与充值">
+              <a href="/billing" aria-label="服务器套餐" title="服务器套餐">
                 <Wallet size={18} />
               </a>
               <a href="#questions" aria-label="常见问题" title="常见问题">
                 <Search size={18} />
               </a>
             </div>
-            {config.icp && (
-              <a
-                href="https://beian.miit.gov.cn/"
-                target="_blank"
-                rel="noreferrer"
-              >
-                {config.icp}
-              </a>
-            )}
-            {config.securityFiling && <span>{config.securityFiling}</span>}
           </div>
         </div>
         <nav className="anthropic-footer-navigation" aria-label="底部导航">
@@ -1065,675 +964,6 @@ function RelayFooter({ config }) {
     </footer>
   );
 }
-function Workspace({ config, refresh, children, active }) {
-  return (
-    <div className="account-shell">
-      <header>
-        <Brand />
-        <nav>
-          <a href="/account">
-            <MessageSquare size={16} />
-            我的账户
-          </a>
-          <a className={active === "billing" ? "active" : ""} href="/billing">
-            <Wallet size={16} />
-            账户与用量
-          </a>
-          {config.user.role === "admin" && (
-            <a className={active === "admin" ? "active" : ""} href="/admin">
-              <Settings size={16} />
-              管理后台
-            </a>
-          )}
-        </nav>
-        <button
-          className="user-button"
-          onClick={async () => {
-            await api("/logout", {});
-            await refresh();
-            window.location.href = "/";
-          }}
-        >
-          {config.user.name}
-          <LogOut size={16} />
-        </button>
-      </header>
-      {children}
-    </div>
-  );
-}
-function Field({ label, ...props }) {
-  return (
-    <label>
-      {label}
-      <input {...props} />
-    </label>
-  );
-}
-function Table({ headers, rows, empty = "暂无记录" }) {
-  return rows.length ? (
-    <div className="table-scroll">
-      <table>
-        <thead>
-          <tr>
-            {headers.map((h) => (
-              <th key={h}>{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => (
-            <tr key={i}>
-              {r.map((v, j) => (
-                <td key={j}>{v}</td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  ) : (
-    <Empty>{empty}</Empty>
-  );
-}
-function Admin({ config, refresh }) {
-  const [data, setData] = useState(null),
-    [tab, setTab] = useState("overview"),
-    [notice, setNotice] = useState(""),
-    [voucher, setVoucher] = useState(""),
-    [channel, setChannel] = useState(null),
-    [discoveredModels, setDiscoveredModels] = useState({}),
-    [model, setModel] = useState(null),
-    [busy, setBusy] = useState(false);
-  const load = () =>
-    api("/admin/overview")
-      .then(setData)
-      .catch((e) => setNotice(e.message));
-  useEffect(() => {
-    load();
-  }, []);
-  async function save(path, body) {
-    setBusy(true);
-    setNotice("");
-    try {
-      const result = await api("/admin/" + path, body);
-      await load();
-      await refresh();
-      setNotice("已保存。");
-      return result;
-    } catch (e) {
-      setNotice(e.message);
-    } finally {
-      setBusy(false);
-    }
-  }
-  async function discoverModels(c) {
-    setBusy(true);
-    setNotice("");
-    try {
-      const result = await api(`/admin/channels/${c.id}/models`, {});
-      setDiscoveredModels((previous) => ({
-        ...previous,
-        [c.id]: result.models,
-      }));
-      setNotice(
-        `已连接「${c.name}」，读取到 ${result.models.length} 个模型${result.hasMore ? "（前 100 项）" : ""}。添加模型时可从上游模型 ID 的建议中选择。`,
-      );
-    } catch (e) {
-      setNotice(e.message);
-    } finally {
-      setBusy(false);
-    }
-  }
-  if (!data)
-    return (
-      <Workspace config={config} refresh={refresh} active="admin">
-        <main className="dashboard">
-          <Notice>{notice || "正在加载管理后台…"}</Notice>
-        </main>
-      </Workspace>
-    );
-  const nav = [
-    ["overview", "概览"],
-    ["users", "用户与余额"],
-    ["channels", "模型渠道"],
-    ["vouchers", "兑换码"],
-    ["orders", "支付订单"],
-    ["logs", "用量与日志"],
-  ];
-  return (
-    <Workspace config={config} refresh={refresh} active="admin">
-      <main className="dashboard admin">
-        <div className="page-heading">
-          <div>
-            <p className="eyebrow">WORKSPACE ADMINISTRATION</p>
-            <h1>管理你的 kelaodeyun。</h1>
-          </div>
-          <span className="subtle-pill">管理员</span>
-        </div>
-        <nav className="tabs admin-tabs">
-          {nav.map(([key, label]) => (
-            <button
-              key={key}
-              className={tab === key ? "active" : ""}
-              onClick={() => {
-                setTab(key);
-                setNotice("");
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </nav>
-        <Notice>{notice}</Notice>
-        {tab === "overview" && (
-          <>
-            <div className="stat-grid">
-              {[
-                ["账户", data.users.length],
-                ["开放模型", config.models.length],
-                [
-                  "已到账订单",
-                  data.orders.filter((o) => o.status === "paid").length,
-                ],
-                ["近期调用", data.usage.length],
-              ].map(([label, value]) => (
-                <div key={label}>
-                  <span>{label}</span>
-                  <strong>{value}</strong>
-                </div>
-              ))}
-            </div>
-            <div className="admin-intro">
-              <div>
-                <p className="eyebrow">开始提供服务</p>
-                <h2>准备好，再开放。</h2>
-                <p>
-                  添加上游渠道、设置模型与费率，给用户充值后，即可开始对话。
-                </p>
-                <button
-                  className="button dark"
-                  onClick={() => setTab("channels")}
-                >
-                  配置模型渠道 <ArrowUpRight size={16} />
-                </button>
-              </div>
-              <ul>
-                <li>
-                  <Check size={17} />
-                  账号和会话服务已就绪
-                </li>
-                <li>
-                  {config.models.length ? (
-                    <Check size={17} />
-                  ) : (
-                    <span className="status-dot" />
-                  )}
-                  模型服务{config.models.length ? "已配置" : "待配置"}
-                </li>
-                {data.payments.map((p) => (
-                  <li key={p.id}>
-                    {p.enabled ? (
-                      <Check size={17} />
-                    ) : (
-                      <span className="status-dot" />
-                    )}
-                    {p.name}
-                    {p.enabled
-                      ? config.demo
-                        ? "模拟模式（未接商户）"
-                        : "已配置，需完成商户验收"
-                      : "待配置商户"}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <p className="muted">
-              概览展示最近 200 个用户、100
-              条订单及调用。完整记录保存在数据库中。
-            </p>
-          </>
-        )}
-        {tab === "users" && (
-          <>
-            <Table
-              headers={["用户", "邮箱", "身份", "余额", "状态", "操作"]}
-              rows={data.users.map((u) => [
-                u.name,
-                u.email,
-                u.role === "admin" ? "管理员" : "用户",
-                money(u.balance),
-                u.disabled ? "已禁用" : "正常",
-                u.role === "admin" ? (
-                  "—"
-                ) : (
-                  <button
-                    className="text-button"
-                    disabled={busy}
-                    onClick={() =>
-                      save("users", { id: u.id, disabled: !u.disabled })
-                    }
-                  >
-                    {u.disabled ? "启用" : "禁用"}
-                  </button>
-                ),
-              ])}
-            />
-            <form
-              className="admin-form inline-form"
-              onSubmit={async (e) => {
-                e.preventDefault();
-                const f = Object.fromEntries(new FormData(e.target));
-                if (
-                  await save("credit", {
-                    ...f,
-                    amount: Math.round(Number(f.amount) * 1e6),
-                  })
-                )
-                  e.target.reset();
-              }}
-            >
-              <h2>管理员充值</h2>
-              <label>
-                账户
-                <select name="user_id" required>
-                  {data.users.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.name} · {u.email}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <Field
-                label="金额（元）"
-                name="amount"
-                type="number"
-                min="0.01"
-                max="10000"
-                step="0.01"
-                required
-              />
-              <Field
-                label="充值备注"
-                name="note"
-                maxLength={100}
-                required
-                placeholder="填写充值原因"
-              />
-              <button disabled={busy} className="button dark">
-                确认充值
-              </button>
-            </form>
-          </>
-        )}
-        {tab === "channels" && (
-          <>
-            <h2>上游渠道</h2>
-            <p className="muted">
-              通过 Anthropic 官方 SDK 连接 Claude 或兼容 Messages
-              协议的授权接口。密钥仅保存在服务端。
-            </p>
-            <Table
-              headers={["渠道", "地址", "状态", "操作"]}
-              rows={data.channels.map((c) => [
-                c.name,
-                c.base_url,
-                c.enabled ? "已启用" : "已停用",
-                <div className="form-actions">
-                  <button
-                    className="text-button"
-                    disabled={busy}
-                    onClick={() => setChannel(c)}
-                  >
-                    编辑
-                  </button>
-                  <button
-                    className="text-button"
-                    disabled={busy}
-                    onClick={() => discoverModels(c)}
-                  >
-                    读取模型
-                  </button>
-                </div>,
-              ])}
-              empty="还没有渠道，先添加一个上游接口。"
-            />
-            <form
-              className="admin-form form-grid"
-              key={channel?.id || "new-channel"}
-              onSubmit={async (e) => {
-                e.preventDefault();
-                const f = Object.fromEntries(new FormData(e.target));
-                if (
-                  await save("channels", {
-                    ...f,
-                    id: channel?.id,
-                    enabled: f.enabled === "true",
-                  })
-                ) {
-                  setChannel(null);
-                  e.target.reset();
-                }
-              }}
-            >
-              <h3>{channel ? "编辑渠道" : "添加渠道"}</h3>
-              <Field
-                label="渠道名称"
-                name="name"
-                defaultValue={channel?.name}
-                required
-                maxLength={60}
-              />
-              <Field
-                label="接口根地址"
-                name="base_url"
-                type="url"
-                defaultValue={channel?.base_url || "https://api.anthropic.com"}
-                required
-              />
-              <Field
-                label={channel ? "密钥（留空保留原值）" : "上游 API 密钥"}
-                name="api_key"
-                type="password"
-                autoComplete="off"
-                required={!channel}
-              />
-              <label>
-                状态
-                <select
-                  name="enabled"
-                  defaultValue={channel?.enabled === 0 ? "false" : "true"}
-                >
-                  <option value="true">启用</option>
-                  <option value="false">停用</option>
-                </select>
-              </label>
-              <div className="form-actions">
-                <button className="button dark" disabled={busy}>
-                  保存渠道
-                </button>
-                {channel && (
-                  <button
-                    type="button"
-                    className="button"
-                    onClick={() => setChannel(null)}
-                  >
-                    取消编辑
-                  </button>
-                )}
-              </div>
-            </form>
-            <h2>模型与计费</h2>
-            <Table
-              headers={[
-                "显示名称",
-                "上游模型 ID",
-                "输入 / 输出（元 / 百万 token）",
-                "状态",
-                "操作",
-              ]}
-              rows={data.models.map((m) => [
-                m.name,
-                m.upstream_id,
-                `${m.input_rate} / ${m.output_rate}`,
-                m.enabled ? "已启用" : "已停用",
-                <button className="text-button" onClick={() => setModel(m)}>
-                  编辑
-                </button>,
-              ])}
-              empty="尚未添加模型。请使用上游实际支持的模型 ID。"
-            />
-            <form
-              className="admin-form form-grid"
-              key={model?.id || "new-model"}
-              onSubmit={async (e) => {
-                e.preventDefault();
-                const f = Object.fromEntries(new FormData(e.target));
-                if (
-                  await save("models", {
-                    ...f,
-                    id: model?.id,
-                    input_rate: Number(f.input_rate),
-                    output_rate: Number(f.output_rate),
-                    max_output: Number(f.max_output),
-                    enabled: f.enabled === "true",
-                  })
-                ) {
-                  setModel(null);
-                  e.target.reset();
-                }
-              }}
-            >
-              <h3>{model ? "编辑模型" : "添加模型"}</h3>
-              <Field
-                label="显示名称"
-                name="name"
-                required
-                maxLength={60}
-                defaultValue={model?.name}
-              />
-              <Field
-                label="上游模型 ID"
-                name="upstream_id"
-                list="available-upstream-models"
-                required
-                maxLength={150}
-                defaultValue={model?.upstream_id}
-              />
-              <datalist id="available-upstream-models">
-                {data.channels.flatMap((c) =>
-                  (discoveredModels[c.id] || []).map((m) => (
-                    <option key={`${c.id}:${m.id}`} value={m.id}>
-                      {c.name} · {m.name}
-                    </option>
-                  )),
-                )}
-              </datalist>
-              <label>
-                所属渠道
-                <select
-                  name="channel_id"
-                  required
-                  defaultValue={model?.channel_id || ""}
-                >
-                  <option value="" disabled>
-                    选择渠道
-                  </option>
-                  {data.channels.map((c) => (
-                    <option value={c.id} key={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                状态
-                <select
-                  name="enabled"
-                  defaultValue={model?.enabled === 0 ? "false" : "true"}
-                >
-                  <option value="true">启用</option>
-                  <option value="false">停用</option>
-                </select>
-              </label>
-              <Field
-                label="输入费率（元 / 百万 token）"
-                name="input_rate"
-                type="number"
-                required
-                step="0.01"
-                min="0"
-                max="10000"
-                defaultValue={model?.input_rate}
-              />
-              <Field
-                label="输出费率（元 / 百万 token）"
-                name="output_rate"
-                type="number"
-                required
-                step="0.01"
-                min="0"
-                max="10000"
-                defaultValue={model?.output_rate}
-              />
-              <Field
-                label="单次最大输出 token"
-                name="max_output"
-                type="number"
-                required
-                min="128"
-                max="16384"
-                defaultValue={model?.max_output || 2048}
-              />
-              <div className="form-actions">
-                <button
-                  className="button dark"
-                  disabled={busy || !data.channels.length}
-                >
-                  保存模型
-                </button>
-                {model && (
-                  <button
-                    className="button"
-                    type="button"
-                    onClick={() => setModel(null)}
-                  >
-                    取消编辑
-                  </button>
-                )}
-              </div>
-            </form>
-          </>
-        )}
-        {tab === "vouchers" && (
-          <>
-            <form
-              className="admin-form inline-form"
-              onSubmit={async (e) => {
-                e.preventDefault();
-                const d = await save("vouchers", {
-                  amount: Math.round(
-                    Number(new FormData(e.target).get("amount")) * 1e6,
-                  ),
-                });
-                if (d) setVoucher(d.code);
-              }}
-            >
-              <h2>生成单次兑换码</h2>
-              <Field
-                label="兑换金额（元）"
-                type="number"
-                name="amount"
-                min="0.01"
-                max="1000"
-                step="0.01"
-                required
-              />
-              <button disabled={busy} className="button dark">
-                生成兑换码
-              </button>
-            </form>
-            {voucher && (
-              <div className="voucher-result">
-                <p>兑换码只展示这一次，请妥善保存。</p>
-                <code>{voucher}</code>
-                <button
-                  className="button"
-                  onClick={async () => {
-                    try {
-                      await navigator.clipboard.writeText(voucher);
-                      setNotice("兑换码已复制");
-                    } catch {
-                      setNotice("请手动复制兑换码");
-                    }
-                  }}
-                >
-                  <Copy size={15} />
-                  复制
-                </button>
-              </div>
-            )}
-            <Table
-              headers={["生成时间", "尾号", "金额", "状态"]}
-              rows={data.vouchers.map((v) => [
-                date(v.created),
-                v.label,
-                money(v.amount),
-                v.used_by ? "已兑换" : "未使用",
-              ])}
-            />
-          </>
-        )}
-        {tab === "orders" && (
-          <>
-            <h2>在线支付</h2>
-            <div className="payment-status">
-              {data.payments.map((p) => (
-                <div key={p.id}>
-                  <strong>{p.name}</strong>
-                  <span>
-                    {p.enabled
-                      ? config.demo
-                        ? "模拟模式（未接商户）"
-                        : "已配置"
-                      : "待接入商户"}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <p className="muted">
-              只有经服务端验签、金额及商户校验通过的成功订单才会入账。商户凭据通过服务端环境变量配置。
-            </p>
-            <Table
-              headers={["时间", "订单号", "用户", "方式", "金额", "状态"]}
-              rows={data.orders.map((o) => [
-                date(o.created),
-                o.id,
-                data.users.find((u) => u.id === o.user_id)?.email || o.user_id,
-                o.provider === "alipay" ? "支付宝" : "微信支付",
-                `¥ ${o.amount / 100}`,
-                statusLabel[o.status],
-              ])}
-            />
-          </>
-        )}
-        {tab === "logs" && (
-          <>
-            <h2>近期调用</h2>
-            <Table
-              headers={[
-                "时间",
-                "用户",
-                "模型",
-                "输入 / 输出 token",
-                "费用",
-                "状态",
-              ]}
-              rows={data.usage.map((u) => [
-                date(u.created),
-                data.users.find((x) => x.id === u.user_id)?.email || u.user_id,
-                u.model,
-                `${u.input_tokens} / ${u.output_tokens}`,
-                money(u.cost, 4),
-                statusLabel[u.status],
-              ])}
-            />
-            <h2>管理操作日志</h2>
-            <Table
-              headers={["时间", "管理员", "操作", "详情"]}
-              rows={data.audit.map((a) => [
-                date(a.created),
-                data.users.find((u) => u.id === a.actor)?.name || a.actor,
-                a.action,
-                a.detail,
-              ])}
-            />
-          </>
-        )}
-      </main>
-    </Workspace>
-  );
-}
 export function App() {
   const path = location.pathname;
   if (path === "/chat" || path === "/code" || path === "/claude-ui")
@@ -1770,42 +1000,26 @@ function SiteApp() {
     );
   return (
     <>
-      <DemoNotice config={config} />
       <AppRoute config={config} refresh={refresh} />
     </>
   );
 }
-function DemoNotice({ config }) {
-  const show =
-    config.demo &&
-    location.pathname !== "/" &&
-    !(["/chat", "/code"].includes(location.pathname) && config.user);
-  useEffect(() => {
-    document.body.classList.toggle("demo-mode", !!show);
-    return () => document.body.classList.remove("demo-mode");
-  }, [show]);
-  return show ? (
-    <div className="demo-banner">
-      隔离演示环境 · 充值为测试余额，不会真实扣款
-    </div>
-  ) : null;
-}
 function AppRoute({ config, refresh }) {
   const path = location.pathname.replace(/\/$/, "") || "/";
   if (path === "/") return <Home config={config} />;
-  if (path === "/models") return <ModelsPage config={config} />;
   if (path === "/download") return <DownloadPage config={config} />;
   if (path === "/guide") return <GuidePage config={config} />;
   if (path === "/support") return <SupportPage config={config} />;
   if (path === "/privacy" || path === "/terms") return <PolicyPage config={config} terms={path === "/terms"} />;
-  if (["/login", "/register", "/setup"].includes(path)) return <AuthScreen config={config} refresh={refresh} register={path === "/register"} setup={path === "/setup"} />;
-  if (["/account", "/billing", "/checkout", "/settings", "/admin"].includes(path)) {
-    if (!config.user) return <AuthScreen config={config} refresh={refresh} />;
-    if (path === "/account") return <AccountPage config={config} />;
-    if (path === "/billing") return <BillingPage config={config} refresh={refresh} />;
-    if (path === "/checkout") return <CheckoutPage config={config} refresh={refresh} />;
-    if (path === "/settings") return <SettingsPage config={config} />;
-    if (path === "/admin" && config.user.role === "admin") return <Admin config={config} refresh={refresh} />;
+  if (path === "/login") return <Login config={config} />;
+  if (["/account", "/billing", "/admin"].includes(path)) {
+    if (!config.user) {
+      location.replace("/login?return=" + encodeURIComponent(path));
+      return null;
+    }
+    if (path === "/account") return <Account config={config} />;
+    if (path === "/billing") return <Billing config={config} />;
+    if (path === "/admin" && config.user.role === "admin") return <VpsAdmin config={config} />;
   }
   return <NotFoundPage config={config} />;
 }

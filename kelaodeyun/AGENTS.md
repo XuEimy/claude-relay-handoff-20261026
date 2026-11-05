@@ -1,3 +1,8 @@
+## 服务器订阅迁移（2026-11-05，最新优先）
+
+- 网站使用 Cloudflare Workers、SQLite Durable Object 和 Workflows；Google 登录，Stripe 美元月付/年付订阅，Hostinger 自动开通服务器。订阅结束立即清理服务器数据，中文界面和现有暖色视觉保留。
+- 网站不再提供余额充值、模型中转、密码登录或 OpenAI Sites 交付。保留功能许愿箱和产品信息页面。
+
 ## 配色恢复（2026-11-05，最新优先）
 
 - 用户取消蓝色方案，恢复原有暖米白背景、炭黑主按钮、陶土强调色。保留现有布局、真实 App 截图及三项功能说明默认展开。
@@ -43,7 +48,7 @@ Before making substantial visual changes, use the Product Design plugin's `get-c
 
 When implementing from a selected generated mock, treat that image as the source of truth for layout, component anatomy, density, spacing, color, typography, visible content, and hierarchy.
 
-Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts/prepare-sites-build.mjs`, and `tests/sites-worker.test.mjs` intact so the same local prototype can be handed to Sites. Before a Sites handoff, run `npm run build` and `npm run test:sites`; the build must leave `dist/client/index.html`, `dist/server/index.js`, and `dist/.openai/hosting.json`.
+Build app UI in `src/`. The Cloudflare Worker serves the Vite build and API; OpenAI Sites handoff is retired.
 
 ## 用户已确认的产品方向（2026-10-26）
 

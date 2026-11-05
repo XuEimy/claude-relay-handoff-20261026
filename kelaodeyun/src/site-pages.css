@@ -462,6 +462,52 @@
   color: var(--portal-muted);
   font-size: 13px;
 }
+.vps-cycle {
+  display: inline-flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  padding: 4px;
+  border-radius: 6px;
+  background: var(--portal-surface);
+}
+.vps-cycle button {
+  padding: 8px 18px;
+  border-radius: 4px;
+}
+.vps-cycle button[aria-pressed="true"] {
+  color: #fff;
+  background: var(--portal-ink);
+}
+.portal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.portal-card {
+  display: block;
+  padding: 24px;
+  margin-bottom: 16px;
+  border: 1px solid var(--portal-line);
+  border-radius: 8px;
+  background: var(--portal-surface);
+  overflow-wrap: anywhere;
+}
+.portal-card:has(input:checked) {
+  border-color: var(--portal-accent);
+}
+.portal-card p {
+  margin-top: 12px;
+}
+.portal-field textarea {
+  width: 100%;
+  padding: 12px 13px;
+  border: 1px solid #cfc7b9;
+  border-radius: 6px;
+  background: #fffdf9;
+  color: var(--portal-ink);
+  resize: vertical;
+}
 .portal-password {
   position: relative;
 }
