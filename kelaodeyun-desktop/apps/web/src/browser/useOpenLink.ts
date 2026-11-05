@@ -13,7 +13,7 @@ import {
   resolveBrowserLinkTargetPreference,
   resolveLinkTarget,
 } from "./browserLinkTarget";
-import { BrowserSettingsReadError, openUrlInPreview } from "./openFileInPreview";
+import { openUrlInPreview } from "./openFileInPreview";
 
 const NO_MODIFIER = { metaKey: false, ctrlKey: false } as const;
 
@@ -46,9 +46,9 @@ export function useOpenLink(threadRef: ScopedThreadRef | null | undefined): (
         return;
       }
       const failure = squashAtomCommandFailure(result);
-      if (failure instanceof BrowserSettingsReadError) throw failure;
-      console.error(result.cause);
+      throw failure;
     }
+    if (target === "app") throw new Error("请先打开对应的云端会话，再在 App 内打开网页。");
     const api = readLocalApi();
     if (!api) throw new Error("Link opening is unavailable.");
     await api.shell.openExternal(url);

@@ -1,3 +1,4 @@
+import * as Option from "effect/Option";
 import { workspaceAreaProps } from "../lib/workspaceFocus";
 import { RefreshIcon } from "~/components/ui/refresh-icon";
 import { scopeProjectRef } from "@t3tools/client-runtime/environment";
@@ -35,6 +36,17 @@ function ChatIndexRouteView() {
 
 function IndexDraftLanding() {
   const projects = useProjects();
+  const { environments } = useEnvironments();
+  const connectedCloudIds = new Set(
+    environments
+      .filter(
+        (environment) =>
+          environment.connection.phase === "connected" &&
+          (environment.entry.target._tag === "SshConnectionTarget" ||
+            Option.getOrNull(environment.entry.profile)?._tag === "SshConnectionProfile"),
+      )
+      .map((environment) => environment.environmentId),
+  );
   const threads = useVisibleThreadShells();
   const bootstrapped = useAllEnvironmentShellsBootstrapped();
   const handleNewThread = useNewThreadHandler();
@@ -46,7 +58,11 @@ function IndexDraftLanding() {
 
   const mostRecentProject =
     sortScopedProjectsForSidebar(
-      projects.filter((project) => project.archivedAt == null),
+      projects.filter(
+        (project) =>
+          project.archivedAt == null &&
+          (connectedCloudIds.size === 0 || connectedCloudIds.has(project.environmentId)),
+      ),
       threads,
       "updated_at",
     )[0] ?? null;

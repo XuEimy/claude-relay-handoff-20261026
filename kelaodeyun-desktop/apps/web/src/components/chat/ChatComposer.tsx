@@ -2545,7 +2545,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
         toastManager.add({
           type: "error",
           title: "无法添加文件夹",
-          description: "输入框正忙，请稍后重试。",
+          description: "请确认文件与对话属于同一台云电脑，且输入框未被占用。",
         });
         break;
       }
@@ -2601,6 +2601,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
 
   // Capture drops before the editor; mention handlers own native propagation and moves.
   const composerMentionDragHandlers = makeComposerMentionDragHandlers({
+    environmentId,
     insertMentionAtEnd: (text) =>
       insertComposerTextAtEndStable(text, { ensureLeadingBoundary: true }),
     insertPullRequestAtEnd: (pullRequest) => {
@@ -2619,7 +2620,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       toastManager.add({
         type: "error",
         title: "无法添加到对话",
-        description: "输入框正忙，请稍后重试。",
+        description: "请确认文件与对话属于同一台云电脑，且输入框未被占用。",
       });
     },
   });
@@ -2716,7 +2717,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
         toastManager.add({
           type: "error",
           title: "无法添加会话",
-          description: "输入框正忙，请稍后重试。",
+          description: "请确认文件与对话属于同一台云电脑，且输入框未被占用。",
         });
         return;
       }
@@ -2730,7 +2731,11 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
   });
 
   const onComposerMentionDragLeaveCapture = (event: React.DragEvent<HTMLFormElement>) => {
-    if (!dataTransferHasComposerMention(event.dataTransfer.types)) return;
+    if (
+      !dataTransferHasComposerMention(event.dataTransfer.types) &&
+      !event.dataTransfer.types.includes("Files")
+    )
+      return;
     event.stopPropagation();
     const nextTarget = event.relatedTarget;
     if (nextTarget instanceof Node && event.currentTarget.contains(nextTarget)) return;
@@ -3169,10 +3174,23 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       }}
       onDragEnterCapture={(event) => {
         if (isInsideRestingComposerControlScope(event.target)) return;
+        if (event.dataTransfer.types.includes("Files")) {
+          event.preventDefault();
+          event.stopPropagation();
+          setIsDragOverComposer(true);
+          return;
+        }
         composerMentionDragHandlers.onDragEnter(event);
       }}
       onDragOverCapture={(event) => {
         if (isInsideRestingComposerControlScope(event.target)) return;
+        if (event.dataTransfer.types.includes("Files")) {
+          event.preventDefault();
+          event.stopPropagation();
+          event.dataTransfer.dropEffect = "copy";
+          setIsDragOverComposer(true);
+          return;
+        }
         composerMentionDragHandlers.onDragOver(event);
       }}
       onDragLeaveCapture={(event) => {
@@ -3181,6 +3199,15 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       }}
       onDropCapture={(event) => {
         if (isInsideRestingComposerControlScope(event.target)) return;
+        if (event.dataTransfer.types.includes("Files")) {
+          event.preventDefault();
+          event.stopPropagation();
+          setIsDragOverComposer(false);
+          const { files, folders } = splitTransferredFiles(event.dataTransfer);
+          if (files.length) void addComposerAttachments(files);
+          if (folders.length) addComposerFoldersStable(folders);
+          return;
+        }
         composerMentionDragHandlers.onDrop(event);
       }}
       className="mx-auto w-full min-w-0 max-w-(--chat-content-max-width)"

@@ -1,3 +1,4 @@
+import * as CloudDownloadSources from "../../electron/CloudDownloadSources.ts";
 import { DesktopSshFileOperationSchema } from "@t3tools/contracts";
 import {
   bootstrapRemoteBearerSession,
@@ -221,5 +222,42 @@ export const sshFileOperation = DesktopIpc.makeIpcMethod({
   handler: Effect.fn("desktop.ipc.sshEnvironment.fileOperation")(function* (input) {
     const ssh = yield* DesktopSshEnvironment.DesktopSshEnvironment;
     return yield* ssh.fileOperation(input);
+  }),
+});
+
+class CloudDownloadError extends Data.TaggedError("CloudDownloadError")<{
+  readonly message: string;
+}> {}
+
+export const registerCloudDownloadSource = DesktopIpc.makeIpcMethod({
+  channel: IpcChannels.REGISTER_CLOUD_DOWNLOAD_SOURCE_CHANNEL,
+  payload: DesktopSshFileOperationSchema,
+  result: Schema.String,
+  handler: Effect.fn("desktop.ipc.registerCloudDownloadSource")(function* (input, event) {
+    if (!event) return yield* new CloudDownloadError({ message: "缺少窗口上下文" });
+    const ssh = yield* DesktopSshEnvironment.DesktopSshEnvironment;
+    const context = yield* Effect.context<never>();
+    const runPromise = Effect.runPromiseWith(context);
+    return yield* Effect.tryPromise(() =>
+      CloudDownloadSources.registerCloudDownloadSource(event.sender.id, (relativePath, directory) =>
+        runPromise(
+          ssh.fileOperation({
+            ...input,
+            relativePath,
+            operation: directory ? "download-directory" : "download",
+          }),
+        ),
+      ),
+    );
+  }),
+});
+
+export const releaseCloudDownloadSource = DesktopIpc.makeIpcMethod({
+  channel: IpcChannels.RELEASE_CLOUD_DOWNLOAD_SOURCE_CHANNEL,
+  payload: Schema.String,
+  result: Schema.Void,
+  handler: Effect.fn("desktop.ipc.releaseCloudDownloadSource")(function* (url, event) {
+    if (!event) return yield* new CloudDownloadError({ message: "缺少窗口上下文" });
+    yield* Effect.sync(() => CloudDownloadSources.releaseCloudDownloadSource(event.sender.id, url));
   }),
 });

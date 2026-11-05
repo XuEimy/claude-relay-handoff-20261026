@@ -1,7 +1,10 @@
+import { CloudProjectSidebar } from "./sidebar/CloudProjectSidebar";
+import { CloudAddProjectDialog } from "./sidebar/CloudAddProjectDialog";
 import { useEnvironmentPresentation } from "../state/presentation";
 import { useRightPanelStore } from "../rightPanelStore";
 import { CloudClaudeSessions } from "./sidebar/CloudClaudeSessions";
 import { SidebarCloudFiles } from "./sidebar/SidebarCloudFiles";
+import { SidebarViewPanel } from "./sidebar/SidebarViewPanel";
 import { liveShellEnvironmentIdsAtom } from "../state/shell";
 import { attachSidebarTree } from "../lib/sidebarTree";
 import { type EnvironmentId, type ScopedProjectRef } from "@t3tools/contracts";
@@ -1032,7 +1035,10 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
   const { presentation: fileEnvironment } = useEnvironmentPresentation(
     fileProject?.environmentId ?? null,
   );
-  const cloudTextOnly = fileEnvironment?.entry.target._tag === "SshConnectionTarget";
+  const cloudTextOnly =
+    fileEnvironment != null &&
+    (fileEnvironment.entry.target._tag === "SshConnectionTarget" ||
+      Option.getOrNull(fileEnvironment.entry.profile)?._tag === "SshConnectionProfile");
   const primaryEnvironmentId = usePrimaryEnvironmentId();
   const clearSelection = useThreadSelectionStore((s) => s.clearSelection);
   const setSelectionAnchor = useThreadSelectionStore((s) => s.setAnchor);
@@ -1102,7 +1108,18 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
   const removeFromSelection = useThreadSelectionStore((s) => s.removeFromSelection);
   const shortcutModifiers = useShortcutModifierState();
   const terminalFocused = useTerminalFocus();
-  const openAddProjectCommandPalette = () => openCommandPalette({ open: "add-project" });
+  const [cloudProjectRequest, setCloudProjectRequest] = useState<{
+    environmentId: EnvironmentId;
+    cwd: string;
+  } | null>(null);
+  const openAddProjectCommandPalette = () => {
+    if (cloudTextOnly && fileProject) {
+      setCloudProjectRequest({
+        environmentId: fileProject.environmentId,
+        cwd: fileThread?.worktreePath ?? fileProject.workspaceRoot,
+      });
+    } else openCommandPalette({ open: "add-project" });
+  };
   const routeThreadRef = resolveActiveThreadRouteRef(routeTarget, routeDraftThread);
   const routeThreadKey = routeThreadRef ? scopedThreadKey(routeThreadRef) : null;
 
@@ -2968,6 +2985,9 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
   );
   const showJumpHints = useThreadJumpHintsVisible(shouldShowJumpHintsNow);
 
+  const hasCurrentThreadProject = Boolean(
+    newThreadContext.activeDraftThread ?? newThreadContext.activeThread,
+  );
   const handleNewThreadClick = (event?: ReactMouseEvent) => {
     if (
       legacySidebarEnabled ||
@@ -2975,6 +2995,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
         event?.shiftKey ?? false,
         scopeGroups.length,
         projectGroups.length,
+        hasCurrentThreadProject,
       )
     ) {
       if (isMobile) setOpenMobile(false);
@@ -2995,7 +3016,12 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
 
   const newThreadShortcutLabel =
     shortcutLabelForCommand(keybindings, "chat.new") ??
-    (shouldCreateNewThreadInCurrentProject(false, scopeGroups.length, projectGroups.length)
+    (shouldCreateNewThreadInCurrentProject(
+      false,
+      scopeGroups.length,
+      projectGroups.length,
+      hasCurrentThreadProject,
+    )
       ? shortcutLabelForCommand(keybindings, "chat.newLocal")
       : undefined);
   const newThreadInProjectShortcutLabel = shortcutLabelForCommand(keybindings, "chat.newLocal");
@@ -3015,10 +3041,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
           key={item.value}
           type="button"
           aria-pressed={sidebarView === item.value}
-          onClick={() => {
-            setSidebarView(item.value);
-            clearThreadSearch();
-          }}
+          onClick={() => setSidebarView(item.value)}
           className={cn(
             "relative self-stretch font-sans text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring",
             sidebarView === item.value
@@ -3035,8 +3058,9 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
     <>
       <ThreadContextDragGhost />
       <SidebarChromeHeader isElectron={isElectron} />
-      {sidebarView === "files" ? (
+      <SidebarViewPanel active={sidebarView === "files"}>
         <SidebarCloudFiles
+          threadRef={fileThreadRef}
           onOpenFile={(path) => {
             if (fileThreadRef) useRightPanelStore.getState().openFile(fileThreadRef, path);
           }}
@@ -3044,7 +3068,8 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
           environmentId={fileProject?.environmentId}
           cwd={fileThread?.worktreePath ?? fileProject?.workspaceRoot}
         />
-      ) : (
+      </SidebarViewPanel>
+      <SidebarViewPanel active={sidebarView === "chat"}>
         <SidebarContent
           ref={sidebarContentRef}
           className="min-h-full"
@@ -3249,6 +3274,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                     false,
                     scopeGroups.length,
                     projectGroups.length,
+                    hasCurrentThreadProject,
                   )
                 }
                 searchInputRef={threadSearchInputRef}
@@ -3267,14 +3293,34 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
           }
         >
           <SidebarGroup className="flex-1" role="presentation">
-            <CloudClaudeSessions
-              key={`${fileProject?.environmentId}:${fileProject?.id}:${fileThread?.worktreePath ?? fileProject?.workspaceRoot}`}
-              currentThreadRef={fileThreadRef}
-              query={threadSearchQuery}
-              environmentId={fileProject?.environmentId}
-              projectId={fileProject?.id}
-              cwd={fileThread?.worktreePath ?? fileProject?.workspaceRoot}
-            />
+            {cloudTextOnly && fileProject ? (
+              <CloudProjectSidebar
+                environmentId={fileProject.environmentId}
+                currentProjectId={fileProject.id}
+                draftProjectId={newThreadContext.activeDraftThread?.projectId}
+                currentThreadRef={fileThreadRef}
+                projectIds={scopedProjectGroups.flatMap((group) =>
+                  group.memberProjects
+                    .filter((project) => project.environmentId === fileProject.environmentId)
+                    .map((project) => project.id),
+                )}
+                query={threadSearchQuery}
+                onAddProject={openAddProjectCommandPalette}
+                onNewThread={handleNewThread}
+                onTogglePin={(threadRef, pinned) =>
+                  pinned ? attemptUnpin(threadRef) : attemptPin(threadRef)
+                }
+              />
+            ) : (
+              <CloudClaudeSessions
+                key={`${fileProject?.environmentId}:${fileProject?.id}:${fileThread?.worktreePath ?? fileProject?.workspaceRoot}`}
+                currentThreadRef={fileThreadRef}
+                query={threadSearchQuery}
+                environmentId={fileProject?.environmentId}
+                projectId={fileProject?.id}
+                cwd={fileThread?.worktreePath ?? fileProject?.workspaceRoot}
+              />
+            )}
             {!cloudTextOnly ? (
               <>
                 {isSearchingThreads ? (
@@ -3729,8 +3775,17 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
             ) : null}
           </SidebarGroup>
         </SidebarContent>
-      )}
+      </SidebarViewPanel>
       <SidebarChromeFooter />
+      {cloudProjectRequest ? (
+        <CloudAddProjectDialog
+          key={`${cloudProjectRequest.environmentId}:${cloudProjectRequest.cwd}`}
+          environmentId={cloudProjectRequest.environmentId}
+          initialCwd={cloudProjectRequest.cwd}
+          onClose={() => setCloudProjectRequest(null)}
+          onCreated={handleNewThread}
+        />
+      ) : null}
     </>
   );
 }

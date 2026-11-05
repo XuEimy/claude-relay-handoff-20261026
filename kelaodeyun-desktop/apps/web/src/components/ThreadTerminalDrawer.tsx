@@ -1,3 +1,5 @@
+import { WorkspaceLoadingPlaceholder } from "./WorkspaceLoadingPlaceholder";
+import { useTerminalFileDrop } from "./terminal/useTerminalFileDrop";
 import { workspaceAreaProps } from "../lib/workspaceFocus";
 import { useAtomMount, useAtomValue } from "@effect/atom-react";
 import {
@@ -516,11 +518,24 @@ function TerminalSessionViewport({
   keybindings,
 }: TerminalViewportProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [initializing, setInitializing] = useState(true);
   const autoFocusedRef = useRef(false);
   const terminalRef = useRef<GhosttyTerminalSurface | null>(null);
   const visibleRef = useRef(visible);
   const environmentId = threadRef.environmentId;
   const canOperateTerminal = useEnvironmentScope(environmentId, AuthTerminalOperateScope);
+  const fileDropHandlers = useTerminalFileDrop({
+    environmentId,
+    cwd: worktreePath ?? cwd,
+    canWrite: canOperateTerminal,
+    paste: async (text) => {
+      const terminal = terminalRef.current;
+      if (!terminal || !readEnvironmentScope(environmentId, AuthTerminalOperateScope))
+        throw new Error("终端尚未就绪或没有写入权限");
+      await terminal.pasteFromClipboard(() => Promise.resolve(text));
+      terminal.focus();
+    },
+  });
   const hasTerminalWriteAccess = useEffectEvent(() =>
     readEnvironmentScope(environmentId, AuthTerminalOperateScope),
   );
@@ -707,6 +722,7 @@ function TerminalSessionViewport({
         void terminal.setFont(terminalFontOptions(currentFont.family, currentFont.size));
       }
       const latestSession = readTerminalSession();
+      if (latestSession.version > 0 || latestSession.error !== null) setInitializing(false);
       terminal.setSharedGrid(latestSession.grid);
       const initialOutput = readTerminalOutputUpdate(
         latestSession.output,
@@ -724,6 +740,7 @@ function TerminalSessionViewport({
       let resizeGeneration = writableSessionGeneration(latestSession, hasTerminalWriteAccess());
       setupCleanups.push(
         subscribeTerminalSession((session) => {
+          if (session.version > 0 || session.error !== null) setInitializing(false);
           const nextResizeGeneration = writableSessionGeneration(session, hasTerminalWriteAccess());
           if (nextResizeGeneration !== resizeGeneration) {
             resizeGeneration = nextResizeGeneration;
@@ -1009,7 +1026,7 @@ function TerminalSessionViewport({
             });
           };
           if (!readEnvironmentScope(environmentId, AuthPreviewOperateScope)) {
-            fallbackToBrowser();
+            writeSystemMessage(latestTerminal, "当前连接没有内置浏览器权限，请检查云电脑连接。");
             return;
           }
           void openLinkInPreview(text, event.metaKey || event.ctrlKey, fallbackToBrowser).catch(
@@ -1118,6 +1135,7 @@ function TerminalSessionViewport({
         setupTerminal?.dispose();
         setupTerminal = null;
         if (cancelled) return;
+        setInitializing(false);
         const message =
           error instanceof Error ? error.message : "Unable to initialize libghostty-vt";
         mount.textContent = `${message}。请关闭并重新打开终端后重试。`;
@@ -1160,11 +1178,20 @@ function TerminalSessionViewport({
     };
   };
   return (
-    <div
-      ref={attachContainer}
-      tabIndex={-1}
-      className="relative h-full w-full overflow-hidden bg-(--terminal-background)"
-    />
+    <div className="relative h-full w-full overflow-hidden bg-(--terminal-background)">
+      <div
+        ref={attachContainer}
+        onDragOverCapture={fileDropHandlers.onDragOver}
+        onDropCapture={fileDropHandlers.onDrop}
+        tabIndex={-1}
+        className="relative h-full w-full overflow-hidden bg-(--terminal-background)"
+      />
+      {initializing ? (
+        <div className="pointer-events-none absolute inset-0 bg-(--terminal-background)">
+          <WorkspaceLoadingPlaceholder terminal />
+        </div>
+      ) : null}
+    </div>
   );
 }
 

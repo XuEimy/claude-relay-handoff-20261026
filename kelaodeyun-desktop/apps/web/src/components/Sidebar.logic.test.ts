@@ -1649,6 +1649,10 @@ describe("resolveSidebarFolderDot", () => {
 });
 
 describe("shouldCreateNewThreadInCurrentProject", () => {
+  it("uses the active conversation project even when multiple servers or projects are open", () => {
+    expect(shouldCreateNewThreadInCurrentProject(false, 4, 6, true)).toBe(true);
+    expect(shouldCreateNewThreadInCurrentProject(false, 4, 6, false)).toBe(false);
+  });
   it("opens the picker when several projects are open, or only archived ones exist", () => {
     expect(shouldCreateNewThreadInCurrentProject(false, 2, 3)).toBe(false);
     expect(shouldCreateNewThreadInCurrentProject(false, 0, 2)).toBe(false);

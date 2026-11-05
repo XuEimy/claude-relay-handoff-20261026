@@ -3,7 +3,7 @@ import { isAtomCommandInterrupted } from "@t3tools/client-runtime/state/runtime"
 import * as Schema from "effect/Schema";
 
 import { resolveBrowserDefaults } from "~/browser/browserDefaults";
-import { isWebUrl, resolveBrowserLinkTargetPreference } from "~/browser/browserLinkTarget";
+import { isWebUrl } from "~/browser/browserLinkTarget";
 import type { OpenPreviewMutation } from "~/browser/openFileInPreview";
 import { isPreviewAvailableFor, previewRuntimeFor } from "~/browser/previewRuntime";
 import { recordVisitForThread } from "~/browserHistoryStore";
@@ -37,16 +37,12 @@ interface OpenTerminalLinkInPreviewInput<E> {
 export async function openTerminalLinkInPreview<E>(
   input: OpenTerminalLinkInPreviewInput<E>,
 ): Promise<void> {
-  const supportsPreview =
-    !input.forceBrowser &&
-    isWebUrl(input.url) &&
-    isPreviewAvailableFor(input.threadRef.environmentId) &&
-    input.threadRef.threadId.length > 0 &&
-    (await resolveBrowserLinkTargetPreference()) === "app";
-
-  if (!supportsPreview) {
+  if (!isWebUrl(input.url)) {
     input.fallbackToBrowser();
     return;
+  }
+  if (!isPreviewAvailableFor(input.threadRef.environmentId) || !input.threadRef.threadId) {
+    throw new Error("当前云端工作区的内置浏览器尚未就绪，请连接后重试。");
   }
 
   const errorContext = {
@@ -71,14 +67,7 @@ export async function openTerminalLinkInPreview<E>(
     if (isAtomCommandInterrupted(result)) {
       return;
     }
-    console.error(
-      new TerminalLinkPreviewOpenError({
-        ...errorContext,
-        cause: result.cause,
-      }),
-    );
-    input.fallbackToBrowser();
-    return;
+    throw new TerminalLinkPreviewOpenError({ ...errorContext, cause: result.cause });
   }
   recordVisitForThread(input.threadRef, input.url);
   applyPreviewServerSnapshot(input.threadRef, result.value);

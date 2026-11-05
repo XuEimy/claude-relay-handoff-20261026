@@ -18,7 +18,6 @@ import { isTriagePrompt } from "~/hooks/useStartTriage";
 import { useClientSettings } from "~/hooks/useSettings";
 import { hasExplicitComposerModelSelection } from "~/lib/chatThreadActions";
 import {
-  deriveLogicalProjectKeyFromSettings,
   pickableProjectGroups,
   selectProjectGroupingSettings,
 } from "@t3tools/client-runtime/state/project-grouping";
@@ -92,7 +91,7 @@ export function DraftHeroHeadline({
   const applyStickyState = useComposerDraftStore((store) => store.applyStickyState);
   const setModelSelection = useComposerDraftStore((store) => store.setModelSelection);
   const openAddProject = () => openCommandPalette({ open: "add-project" });
-  const { scratchEnvironmentId, scratchWorkspaceRootFor, openScratchProject } = useScratchProject();
+  const { scratchEnvironmentId, scratchWorkspaceRootFor } = useScratchProject();
   const openProjectDraft = useNewThreadHandler();
   const keybindings = useAtomValue(primaryServerKeybindingsAtom);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -181,23 +180,11 @@ export function DraftHeroHeadline({
         );
   const selectedPickerItem = pickerItems.find((item) => item.value === activeProjectKey) ?? null;
 
-  // The picker can change the draft's target while the no-project home is
-  // still being opened; a stale continuation must not retarget it again. Picking
-  // a project clears the pending request, and the draft session is compared
-  // against the store when the scratch project arrives.
-  const pendingScratchRef = useRef<symbol | null>(null);
-  const draftTargetKey = () => {
-    const session = draftId ? useComposerDraftStore.getState().getDraftSession(draftId) : null;
-    return session
-      ? `${session.environmentId}:${session.projectId}:${session.logicalProjectKey}`
-      : null;
-  };
   // Retargeting an empty draft would overwrite the project's draft and strand browser tabs.
   const selectProject = (project: (typeof projects)[number], logicalProjectKey: string) => {
     if (!draftId) {
       return;
     }
-    pendingScratchRef.current = null;
     const currentDraft = getComposerDraft(draftId);
     if (!composerDraftHasUserContent(currentDraft)) {
       void openProjectDraft(scopeProjectRef(project.environmentId, project.id));
@@ -244,22 +231,6 @@ export function DraftHeroHeadline({
       }
     }
   };
-  const startScratch = async (): Promise<boolean> => {
-    if (scratchTargetEnvironmentId === null || isScratchDraft) {
-      return false;
-    }
-    const request = Symbol("scratch");
-    pendingScratchRef.current = request;
-    const requestedTarget = draftTargetKey();
-    const project = await openScratchProject(scratchTargetEnvironmentId);
-    if (!project || pendingScratchRef.current !== request || draftTargetKey() !== requestedTarget) {
-      return false;
-    }
-    pendingScratchRef.current = null;
-    selectProject(project, deriveLogicalProjectKeyFromSettings(project, projectGroupingSettings));
-    return true;
-  };
-
   const projectSelector = shouldShowProjectMenu ? (
     <Combobox
       items={pickerItems}
@@ -374,31 +345,6 @@ export function DraftHeroHeadline({
     </button>
   );
 
-  const noProjectShortcut = shortcutLabelForCommand(keybindings, "chat.newWithoutProject");
-  const orStartWithoutProject =
-    scratchWorkspaceRoot !== null && !isScratchDraft && (hasResolvedProject || canChooseProject) ? (
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <InlineButton
-              tone="muted"
-              className="pointer-events-auto"
-              onClick={() =>
-                void startScratch().then((started) => {
-                  if (started) {
-                    document.querySelector<HTMLElement>("[data-draft-project-trigger]")?.focus();
-                  }
-                })
-              }
-            />
-          }
-        >
-          或不选择项目，直接开始
-        </TooltipTrigger>
-        {noProjectShortcut ? <TooltipPopup side="bottom">{noProjectShortcut}</TooltipPopup> : null}
-      </Tooltip>
-    ) : null;
-
   if (isScratchDraft && isTriageDraftPrompt) {
     const environment = environments.find(
       (entry) => entry.environmentId === activeProject.environmentId,
@@ -428,11 +374,11 @@ export function DraftHeroHeadline({
           )}
         </h1>
       )}
-      {scratchWorkspaceRoot === null ? null : (
+      {scratchWorkspaceRoot !== null && isScratchDraft ? (
         <p className="mt-2 flex h-6 w-full items-center justify-center text-sm">
-          {isScratchDraft ? projectSelector : orStartWithoutProject}
+          {projectSelector}
         </p>
-      )}
+      ) : null}
     </div>
   );
 }

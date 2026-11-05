@@ -125,3 +125,9 @@
     transition: none;
   }
 }
+
+[data-ssh-chrome][data-audio-reactive] [data-ssh-part="backdrop"] svg {
+  transform-origin: center top;
+  transform: translateY(var(--audio-lift, 0px)) scaleY(var(--audio-scale, 1));
+  filter: brightness(var(--audio-brightness, 1));
+}

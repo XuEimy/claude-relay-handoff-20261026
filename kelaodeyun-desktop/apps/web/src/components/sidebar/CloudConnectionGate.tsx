@@ -1,3 +1,6 @@
+import * as Option from "effect/Option";
+import { useEnvironmentShellHasSnapshot } from "../../state/shell";
+import { useProjects } from "../../state/entities";
 import { useEffect, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { useEnvironments } from "../../state/environments";
@@ -16,27 +19,63 @@ export function CloudConnectionGate({ children }: { children: ReactNode }) {
   const draft = useComposerDraftStore((store) =>
     target?.kind === "draft" ? store.getDraftSession(target.draftId) : null,
   );
+  const promotedThread = useComposerDraftStore((store) =>
+    target?.kind === "draft" ? store.getPromotedDraftRedirect(target.draftId) : null,
+  );
+  // Finalizing a draft removes it before the router follows its promoted thread.
   const environmentId =
     target?.kind === "server"
       ? target.threadRef.environmentId
-      : draft?.environmentId;
+      : (draft?.environmentId ?? promotedThread?.environmentId);
   const servers = environments.filter(
-    (environment) => environment.entry.target._tag === "SshConnectionTarget",
+    (environment) =>
+      environment.entry.target._tag === "SshConnectionTarget" ||
+      Option.getOrNull(environment.entry.profile)?._tag === "SshConnectionProfile",
   );
   const server =
     servers.find(
-      (environment) =>
-        environment.environmentId === environmentId &&
-        environment.entry.enabled,
+      (environment) => environment.environmentId === environmentId && environment.entry.enabled,
     ) ??
     servers.find(
-      (environment) =>
-        environment.entry.enabled &&
-        environment.connection.phase === "connected",
+      (environment) => environment.entry.enabled && environment.connection.phase === "connected",
     ) ??
     servers.find((environment) => environment.entry.enabled) ??
     servers[0];
   const connected = server?.connection.phase === "connected";
+  const hasSnapshot = useEnvironmentShellHasSnapshot(server?.environmentId ?? null);
+  const projects = useProjects();
+  const hasRemoteProjects = projects.some(
+    (project) => project.environmentId === server?.environmentId && !project.archivedAt,
+  );
+  const workspaceReady =
+    connected &&
+    Boolean(server?.serverConfig) &&
+    hasSnapshot &&
+    (environmentId === server?.environmentId || (!target && !hasRemoteProjects));
+
+  // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- leaves a stale local/other-server route after SSH bootstrap so the landing route can open this cloud workspace
+  useEffect(() => {
+    if (
+      connected &&
+      hasSnapshot &&
+      hasRemoteProjects &&
+      target &&
+      environmentId !== undefined &&
+      environmentId !== server?.environmentId &&
+      !pathname.startsWith("/settings")
+    ) {
+      void navigate({ to: "/", replace: true });
+    }
+  }, [
+    connected,
+    hasSnapshot,
+    hasRemoteProjects,
+    target,
+    environmentId,
+    server?.environmentId,
+    pathname,
+    navigate,
+  ]);
 
   const connecting =
     !isReady ||
@@ -45,38 +84,38 @@ export function CloudConnectionGate({ children }: { children: ReactNode }) {
   const [retainAnimation, setRetainAnimation] = useState(connecting);
   // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- retains the connection overlay until its exit transition finishes and cancels on reconnection
   useEffect(() => {
-    const reduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    const duration = connected && !reduced ? 500 : 0;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const duration = workspaceReady && !reduced ? 500 : 0;
     const timer = window.setTimeout(
-      () => setRetainAnimation(connecting),
+      () => setRetainAnimation(connecting || (connected && !workspaceReady)),
       duration,
     );
     return () => window.clearTimeout(timer);
-  }, [connecting, connected]);
-  useSshConnectionCelebration(connected && !retainAnimation);
+  }, [connecting, connected, workspaceReady]);
+  useSshConnectionCelebration(workspaceReady && !retainAnimation);
   if (pathname.startsWith("/settings")) return children;
-  if (connecting || (connected && retainAnimation)) {
+  if (connecting || (connected && (!workspaceReady || retainAnimation))) {
     return (
       <>
         {connected ? children : null}
         <main
-          className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black transition-opacity duration-500 ease-out motion-reduce:transition-none"
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-background transition-opacity duration-500 ease-out motion-reduce:transition-none"
           style={{
-            opacity: connected ? 0 : 1,
-            pointerEvents: connected ? "none" : "auto",
+            opacity: workspaceReady ? 0 : 1,
+            pointerEvents: workspaceReady ? "none" : "auto",
           }}
           aria-label="正在连接云电脑"
           aria-busy="true"
         >
           <div className="flex flex-col items-center gap-6">
             <SshConnectingAnimation />
-            <div className="max-w-sm space-y-4 px-6 text-center text-white">
+            <div className="max-w-sm space-y-4 px-6 text-center text-foreground">
               <p role="status" className="text-sm">
                 {server?.connection.phase === "reconnecting"
                   ? "连接中断，正在重新连接云电脑。"
-                  : "正在连接云电脑…"}
+                  : connected
+                    ? "正在准备远程工作区…"
+                    : "正在连接云电脑…"}
               </p>
               {server?.connection.phase === "reconnecting" &&
               servers.some((item) => item.connection.phase === "connected") ? (
@@ -106,7 +145,7 @@ export function CloudConnectionGate({ children }: { children: ReactNode }) {
   return (
     <main className="flex h-dvh w-full items-center justify-center bg-background px-6">
       <div className="absolute inset-x-0 top-0 h-12 drag-region" />
-      <section className="w-full max-w-sm space-y-6" aria-label="连接云电脑">
+      <section className="w-full max-w-xl space-y-6" aria-label="连接云电脑">
         <div className="space-y-2 text-center">
           <h1 className="text-xl font-medium">连接你的云电脑</h1>
           <p role="status" className="text-sm text-muted-foreground">
@@ -117,10 +156,7 @@ export function CloudConnectionGate({ children }: { children: ReactNode }) {
           <SshServerCard key={item.environmentId} server={item} />
         ))}
         <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            onClick={() => void navigate({ to: "/settings/connections" })}
-          >
+          <Button variant="ghost" onClick={() => void navigate({ to: "/settings/connections" })}>
             管理服务器
           </Button>
         </div>

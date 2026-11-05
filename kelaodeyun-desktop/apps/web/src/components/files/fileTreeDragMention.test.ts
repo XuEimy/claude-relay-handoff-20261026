@@ -53,3 +53,20 @@ describe("createFileTreeDragMentionController", () => {
     expect(deselected).toEqual(["docs/index.md", "docs/api.md", "src/app.ts"]);
   });
 });
+
+it("carries all selected absolute paths and the originating environment", async () => {
+  const { CLOUD_FILE_DRAG_TYPE, readCloudFileDrag } = await import("../chat/cloudFileDrag");
+  const controller = createFileTreeDragMentionController({
+    fileOrigin: { environmentId: "cloud-one", absolutePath: (path) => `/project/${path}` },
+  });
+  controller.handleSelectionChange(["docs/a.md", "docs/b.md"]);
+  const transfer = makeTransfer();
+  controller.handleDragStart({
+    dataTransfer: transfer,
+    composedPath: () => [rowNode("docs/a.md")],
+  });
+  expect(readCloudFileDrag(transfer.getData(CLOUD_FILE_DRAG_TYPE), "cloud-one")).toEqual([
+    "/project/docs/a.md",
+    "/project/docs/b.md",
+  ]);
+});

@@ -152,6 +152,18 @@ contextBridge.exposeInMainWorld("desktopBridge", {
         ...(options === undefined ? {} : { options }),
       }),
     ),
+  registerCloudDownloadSource: (input) =>
+    ipcRenderer.invoke(IpcChannels.REGISTER_CLOUD_DOWNLOAD_SOURCE_CHANNEL, input),
+  releaseCloudDownloadSource: (url) =>
+    ipcRenderer.invoke(IpcChannels.RELEASE_CLOUD_DOWNLOAD_SOURCE_CHANNEL, url),
+  onCloudDownloadStatus: (listener) => {
+    const handler = (
+      _event: unknown,
+      status: Parameters<Parameters<NonNullable<DesktopBridge["onCloudDownloadStatus"]>>[0]>[0],
+    ) => listener(status);
+    ipcRenderer.on(IpcChannels.CLOUD_DOWNLOAD_STATUS_CHANNEL, handler);
+    return () => ipcRenderer.removeListener(IpcChannels.CLOUD_DOWNLOAD_STATUS_CHANNEL, handler);
+  },
   sshFileOperation: (input) => ipcRenderer.invoke(IpcChannels.SSH_FILE_OPERATION_CHANNEL, input),
   disconnectSshEnvironment: (target) =>
     ipcRenderer.invoke(IpcChannels.DISCONNECT_SSH_ENVIRONMENT_CHANNEL, target),

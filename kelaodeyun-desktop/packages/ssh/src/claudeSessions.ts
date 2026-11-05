@@ -26,7 +26,27 @@ def messages(path, tail=False):
             text = content if isinstance(content, str) else '\n'.join(part.get('text', '') for part in content if isinstance(part, dict) and part.get('type') == 'text')
             if text.lstrip().startswith(('<system-reminder>', '<local-command', '<command-name>')): continue
             if text.strip(): yield {'id': str(row.get('uuid') or stream.tell()), 'role': role, 'text': text[:16000], 'createdAt': row.get('timestamp')}
-if request['operation'] == 'claude-trust':
+if request['operation'] == 'claude-info':
+    session = request['relativePath']
+    if not re.fullmatch(r'[a-fA-F0-9-]{36}', session): raise ValueError('Invalid session id')
+    candidates = [p for p in (config / 'projects').glob('*/' + session + '.jsonl') if not p.is_symlink() and not p.parent.is_symlink()]
+    if len(candidates) > 1: raise ValueError('Ambiguous session id')
+    workspace = None
+    if candidates:
+        with candidates[0].open('rb') as stream:
+            size = stream.seek(0, 2)
+            stream.seek(max(0, size - 2097152))
+            if size > 2097152: stream.readline()
+            for line in stream:
+                if len(line) > 1048576: continue
+                try: row = json.loads(line)
+                except (ValueError, UnicodeDecodeError): continue
+                if not isinstance(row, dict) or row.get('isSidechain') or row.get('isMeta'): continue
+                if row.get('sessionId', session) != session: continue
+                value = row.get('cwd')
+                if isinstance(value, str) and os.path.isabs(value) and not any(ord(c) < 32 for c in value): workspace = os.path.normpath(value)
+    print(json.dumps({'sessionId': session, 'cwd': workspace, 'exists': bool(workspace and os.path.isdir(workspace))}, ensure_ascii=False))
+elif request['operation'] == 'claude-trust':
     import fcntl, tempfile
     project = str(pathlib.Path(cwd).resolve(strict=True))
     configured = os.environ.get('CLAUDE_CONFIG_DIR')

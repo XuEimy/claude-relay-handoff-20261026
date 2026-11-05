@@ -1,3 +1,4 @@
+import { CLOUD_FILE_DRAG_TYPE, readCloudFileDrag } from "./cloudFileDrag";
 import { PullRequestContextMetadata } from "@t3tools/contracts";
 import { serializeComposerFileLink } from "@t3tools/shared/composerTrigger";
 import { Option, Schema } from "effect";
@@ -40,6 +41,7 @@ interface ComposerMentionDragEvent {
 
 /** Insertion focuses next frame; synchronous focus would overwrite the unreconciled mention. */
 export interface ComposerMentionDropHost {
+  environmentId?: string;
   insertMentionAtEnd(text: string): boolean;
   insertPullRequestAtEnd(pullRequest: PullRequestContextMetadata): boolean;
   setDragActive(active: boolean): void;
@@ -92,6 +94,17 @@ export function makeComposerMentionDragHandlers(
           host.onInsertRejected();
         }
         return;
+      }
+      if (event.dataTransfer.types.includes(CLOUD_FILE_DRAG_TYPE)) {
+        try {
+          readCloudFileDrag(
+            event.dataTransfer.getData(CLOUD_FILE_DRAG_TYPE),
+            host.environmentId ?? "",
+          );
+        } catch {
+          host.onInsertRejected();
+          return;
+        }
       }
       const mention = event.dataTransfer.getData(COMPOSER_MENTION_DRAG_TYPE);
       if (mention.length === 0) {

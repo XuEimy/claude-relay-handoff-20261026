@@ -20,11 +20,8 @@ export interface ResolveLinkTargetInput {
 }
 
 export function resolveLinkTarget(input: ResolveLinkTargetInput): BrowserLinkTarget {
-  if (input.event.metaKey || input.event.ctrlKey || input.event.button === 1) return "system";
-  if (input.preference !== "app") return "system";
-  if (!input.canOpenInApp) return "system";
-  if (!isWebUrl(input.url)) return "system";
-  return "app";
+  // Web work stays in the app, including modifier clicks and unavailable-preview errors.
+  return isWebUrl(input.url) ? "app" : "system";
 }
 
 export function isWebUrl(url: string): boolean {

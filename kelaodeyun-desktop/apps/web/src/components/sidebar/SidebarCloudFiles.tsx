@@ -1,15 +1,23 @@
+import { WorkspaceLoadingPlaceholder } from "../WorkspaceLoadingPlaceholder";
+import { SidebarErrorDialog } from "./SidebarErrorDialog";
+import { MaterialFileIcon } from "../files/MaterialFileIcon";
+import { SidebarInteractiveRow } from "./SidebarInteractiveRow";
+import { useCloudSessionWorkspace } from "./useCloudSessionWorkspace";
+import { useCloudDownloadSource } from "./useCloudDownloadSource";
+import { CLOUD_FILE_DRAG_TYPE, setCloudDownloadDragData } from "../chat/cloudFileDrag";
+import {
+  COMPOSER_MENTION_DRAG_TYPE,
+  composerMentionFromTreePath,
+} from "../chat/composerMentionDrag";
 import { useRef, useState, type ReactNode, type DragEvent } from "react";
 import {
   ChevronRightIcon,
-  FileIcon,
-  FolderIcon,
-  FolderOpenIcon,
   FolderPlusIcon,
   SearchIcon,
   UploadIcon,
   RefreshCwIcon,
 } from "lucide-react";
-import type { EnvironmentId, ProjectEntry } from "@t3tools/contracts";
+import type { EnvironmentId, ProjectEntry, ScopedThreadRef } from "@t3tools/contracts";
 import * as Option from "effect/Option";
 import { useEnvironments } from "../../state/environments";
 import { useDirectoryEntries } from "../files/useDirectoryEntries";
@@ -21,7 +29,6 @@ import {
   SidebarInput,
   SidebarMenu,
   SidebarMenuItem,
-  SidebarMenuButton,
 } from "../ui/sidebar";
 import {
   Dialog,
@@ -45,12 +52,15 @@ export function SidebarCloudFiles({
   onOpenFile,
   environmentId,
   cwd,
+  threadRef,
 }: {
+  threadRef: ScopedThreadRef | null;
   viewTabs: ReactNode;
   onOpenFile: (path: string) => void;
   environmentId?: EnvironmentId | undefined;
   cwd?: string | undefined;
 }) {
+  const sessionWorkspace = useCloudSessionWorkspace(threadRef, cwd);
   const { environments } = useEnvironments();
   const environment = environments.find((item) => item.environmentId === environmentId);
   const profile = environment ? Option.getOrNull(environment.entry.profile) : null;
@@ -62,13 +72,32 @@ export function SidebarCloudFiles({
         </p>
       </SidebarContent>
     );
+  const root = sessionWorkspace.sessionId ? sessionWorkspace.cwd : cwd;
+  if (!root)
+    return (
+      <SidebarContent fixedHeader={<SidebarGroup>{viewTabs}</SidebarGroup>}>
+        {sessionWorkspace.loading ? (
+          <WorkspaceLoadingPlaceholder compact label="正在确认项目目录" />
+        ) : (
+          <div className="space-y-2 px-4 py-4">
+            <p role="status" className="text-xs text-muted-foreground">
+              {sessionWorkspace.error || "当前会话没有可确认的项目目录"}
+            </p>
+            <Button variant="ghost" size="sm" onClick={sessionWorkspace.retry}>
+              重试
+            </Button>
+          </div>
+        )}
+      </SidebarContent>
+    );
   return (
     <CloudFileTree
-      key={`${environmentId}:${cwd}`}
+      key={`${environmentId}:${root}`}
       viewTabs={viewTabs}
-      onOpenFile={onOpenFile}
+      onOpenFile={(path) => onOpenFile(`${root.replace(/\/+$/, "")}/${path}`)}
       environmentId={environmentId}
-      cwd={cwd}
+      cwd={root}
+      sessionWorkspace={sessionWorkspace}
       target={profile.target}
       connected={environment?.connection.phase === "connected"}
     />
@@ -82,7 +111,9 @@ function CloudFileTree({
   cwd,
   target,
   connected,
+  sessionWorkspace,
 }: {
+  sessionWorkspace: ReturnType<typeof useCloudSessionWorkspace>;
   viewTabs: ReactNode;
   onOpenFile: (path: string) => void;
   environmentId: EnvironmentId;
@@ -91,13 +122,14 @@ function CloudFileTree({
   connected: boolean;
 }) {
   const tree = useDirectoryEntries(environmentId, cwd);
+  const downloadSource = useCloudDownloadSource(target, cwd, connected);
   const [query, setQuery] = useState("");
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
+  const [rootOpen, setRootOpen] = useState(true);
   const [folder, setFolder] = useState("");
-  const [preview, setPreview] = useState<string | null>(null);
+  const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [newFolderOpen, setNewFolderOpen] = useState(false);
   const [folderName, setFolderName] = useState("");
@@ -122,11 +154,9 @@ function CloudFileTree({
     setBusy(true);
     setError(null);
     const destination = folder;
-    let completed = 0;
     const failures: string[] = [];
     try {
       for (const { file, path } of files) {
-        setNotice(`上传 ${completed + failures.length + 1}/${files.length}：${file.name}`);
         try {
           const relativePath = validateCloudRelativePath(
             destination ? `${destination}/${path}` : path,
@@ -138,12 +168,10 @@ function CloudFileTree({
             operation: "upload",
             contentsBase64: await encodeCloudFile(file),
           });
-          completed++;
         } catch (cause) {
           failures.push(`${file.name}：${cause instanceof Error ? cause.message : "上传失败"}`);
         }
       }
-      setNotice(`上传完成 ${completed}/${files.length}`);
       if (failures.length) setError(failures.join("\n"));
       refresh();
       if (destination) void tree.load(destination, true);
@@ -181,7 +209,6 @@ function CloudFileTree({
       });
       setNewFolderOpen(false);
       setFolderName("");
-      setNotice("文件夹已创建");
       refresh();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "创建失败");
@@ -193,15 +220,44 @@ function CloudFileTree({
     entries.map((entry) => {
       const directory = entry.kind === "directory";
       const open = expanded.has(entry.path);
-      const Icon = directory ? (open ? FolderOpenIcon : FolderIcon) : FileIcon;
+      const currentWorkspace =
+        directory && `${cwd.replace(/\/+$/, "")}/${entry.path}` === sessionWorkspace.cwd;
       return (
         <SidebarMenuItem key={entry.path}>
-          <div style={{ paddingLeft: query ? 0 : level * 14 }}>
-            <SidebarMenuButton
-              size="sm"
-              isActive={directory ? folder === entry.path : preview === entry.path}
+          <div className="flex items-center" style={{ paddingLeft: query ? 0 : level * 14 }}>
+            <SidebarInteractiveRow
+              compact
+              active={selectedPath === entry.path}
+              pending={directory && tree.loadingDirectories.has(entry.path)}
+              disabled={!connected}
+              dimmed={!connected}
+              draggable={Boolean(downloadSource.url)}
+              onDragStart={(event) => {
+                const path = `${cwd.replace(/\/+$/, "")}/${entry.path}`;
+                event.dataTransfer.effectAllowed = "copyMove";
+                event.dataTransfer.setData(
+                  CLOUD_FILE_DRAG_TYPE,
+                  JSON.stringify({ environmentId, path }),
+                );
+                event.dataTransfer.setData(
+                  COMPOSER_MENTION_DRAG_TYPE,
+                  composerMentionFromTreePath(path) ?? path,
+                );
+                event.dataTransfer.setData("text/plain", path);
+                if (downloadSource.url) {
+                  setCloudDownloadDragData(
+                    event.dataTransfer,
+                    downloadSource.url,
+                    entry.path,
+                    directory,
+                  );
+                }
+              }}
+              aria-current={selectedPath === entry.path ? "true" : undefined}
               aria-expanded={directory ? open : undefined}
+              aria-label={currentWorkspace ? `${entry.path}，当前 session 工作目录` : undefined}
               onClick={() => {
+                setSelectedPath(entry.path);
                 if (directory) {
                   if (!busy) setFolder(entry.path);
                   setExpanded((current) => {
@@ -212,7 +268,6 @@ function CloudFileTree({
                   });
                   if (!open) void tree.load(entry.path);
                 } else {
-                  setPreview(entry.path);
                   onOpenFile(entry.path);
                 }
               }}
@@ -220,9 +275,14 @@ function CloudFileTree({
               {directory ? (
                 <ChevronRightIcon className={open ? "size-3 rotate-90" : "size-3"} />
               ) : null}
-              <Icon className="text-(--sidebar-icon-color)" />
-              <span className="truncate">{query ? entry.path : entry.path.split("/").at(-1)}</span>
-            </SidebarMenuButton>
+              <MaterialFileIcon path={entry.path} directory={directory} expanded={open} />
+              <span
+                className="min-w-0 flex-1 truncate"
+                style={currentWorkspace ? { color: "var(--primary)", fontWeight: 600 } : undefined}
+              >
+                {query ? entry.path : entry.path.split("/").at(-1)}
+              </span>
+            </SidebarInteractiveRow>
           </div>
           {directory && open && !query ? (
             <SidebarMenu>
@@ -232,8 +292,13 @@ function CloudFileTree({
                 ),
                 level + 1,
               )}
-              {tree.loadingDirectories.has(entry.path) ? (
-                <li className="px-5 py-1 text-xs text-muted-foreground">加载中…</li>
+              {tree.loadingDirectories.has(entry.path) &&
+              !tree.entries.some(
+                (child) => child.path.slice(0, child.path.lastIndexOf("/")) === entry.path,
+              ) ? (
+                <li>
+                  <WorkspaceLoadingPlaceholder compact label="正在读取文件夹" />
+                </li>
               ) : null}
             </SidebarMenu>
           ) : null}
@@ -319,47 +384,94 @@ function CloudFileTree({
         }
       >
         <SidebarGroup>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => setFolder("")}
-            className="truncate px-2 pb-2 text-left text-xs text-muted-foreground"
-            aria-label={`上传根目录 ${cwd}`}
+          <SidebarInteractiveRow
+            compact
+            active={selectedPath === ""}
+            disabled={!connected}
+            dimmed={!connected}
+            aria-current={selectedPath === "" ? "true" : undefined}
+            aria-expanded={rootOpen}
+            draggable={Boolean(downloadSource.url)}
+            onDragStart={(event) => {
+              event.dataTransfer.effectAllowed = "copyMove";
+              event.dataTransfer.setData(
+                CLOUD_FILE_DRAG_TYPE,
+                JSON.stringify({ environmentId, path: cwd }),
+              );
+              event.dataTransfer.setData(
+                COMPOSER_MENTION_DRAG_TYPE,
+                composerMentionFromTreePath(cwd) ?? cwd,
+              );
+              event.dataTransfer.setData("text/plain", cwd);
+              if (downloadSource.url)
+                setCloudDownloadDragData(
+                  event.dataTransfer,
+                  downloadSource.url,
+                  ".",
+                  true,
+                  cwd.split("/").filter(Boolean).at(-1) || "workspace",
+                );
+            }}
+            onClick={() => {
+              setSelectedPath("");
+              if (!busy) setFolder("");
+              setRootOpen(!rootOpen);
+              if (!rootOpen || tree.error) void tree.load("");
+            }}
+            className="mb-2"
+            aria-label={`${sessionWorkspace.cwd === cwd ? "当前 session 工作目录" : "文件浏览根目录"} ${cwd}，${rootOpen ? "收起" : "展开"}文件夹`}
           >
-            {cwd}
-          </button>
+            <ChevronRightIcon
+              className={`size-3 shrink-0 transition-transform ${rootOpen ? "rotate-90" : ""}`}
+              aria-hidden="true"
+            />
+            <MaterialFileIcon path={cwd} directory expanded={rootOpen} root />
+            <span
+              className="min-w-0 flex-1 truncate"
+              style={sessionWorkspace.cwd === cwd ? { color: "var(--primary)" } : undefined}
+            >
+              {cwd.split("/").filter(Boolean).at(-1) || "/"}
+            </span>
+          </SidebarInteractiveRow>
+          {sessionWorkspace.sessionId ? (
+            <p className="mb-2 break-all px-2 text-xs text-muted-foreground" role="status">
+              {sessionWorkspace.loading
+                ? "正在核对 session 目录…"
+                : (sessionWorkspace.error ??
+                  (sessionWorkspace.cwd
+                    ? `Session 目录：${sessionWorkspace.cwd}`
+                    : "此 session 暂无可确认的工作目录"))}
+            </p>
+          ) : null}
           {!connected ? (
             <p className="px-2 py-3 text-xs text-muted-foreground">连接已断开，请先连接云电脑。</p>
           ) : null}
-          <SidebarMenu aria-label="云端文件">
-            {rows(
-              query
-                ? (search.data?.entries ?? [])
-                : tree.entries.filter((entry) => !entry.path.includes("/")),
-            )}
-          </SidebarMenu>
-          {(query ? search.isPending : !tree.ready && tree.isPending) ? (
-            <p className="px-2 py-3 text-xs text-muted-foreground">加载中…</p>
-          ) : null}
-          {search.error || tree.error || error ? (
-            <p
-              role="alert"
-              className="whitespace-pre-wrap break-words px-2 py-3 text-xs text-destructive"
-            >
-              {error ?? search.error ?? tree.error}
-            </p>
-          ) : null}
+          <div hidden={!rootOpen && !query}>
+            <SidebarMenu aria-label="云端文件">
+              {rows(
+                query
+                  ? (search.data?.entries ?? [])
+                  : tree.entries.filter((entry) => !entry.path.includes("/")),
+              )}
+            </SidebarMenu>
+            {(query ? search.isPending && !search.data : !tree.ready && tree.isPending) ? (
+              <WorkspaceLoadingPlaceholder compact label="正在读取文件" />
+            ) : null}
+            {rootOpen && !query && tree.ready && tree.entries.length === 0 && !tree.error ? (
+              <p className="px-2 py-3 text-xs text-muted-foreground">文件夹为空</p>
+            ) : null}
+          </div>
           {query && search.data?.entries.length === 0 ? (
             <p className="px-2 py-3 text-xs text-muted-foreground">未找到文件</p>
           ) : null}
-          <p className="mt-3 break-all px-2 text-2xs text-muted-foreground">
-            拖拽文件上传至：{folder || cwd}
-          </p>
-          <p role="status" className="px-2 py-2 text-xs text-muted-foreground">
-            {notice || "单文件最大 32 MB · 同名文件不会覆盖"}
-          </p>
         </SidebarGroup>
       </SidebarContent>
+      {(error || search.error || tree.error || downloadSource.error) && !newFolderOpen ? (
+        <SidebarErrorDialog
+          key={error || search.error || tree.error || downloadSource.error}
+          message={error || search.error || tree.error || downloadSource.error || "操作失败"}
+        />
+      ) : null}
       {dragging ? (
         <div className="pointer-events-none absolute inset-1 z-20 flex items-center justify-center rounded-lg border border-primary bg-background/90 p-4 text-center text-sm">
           松开上传到云端

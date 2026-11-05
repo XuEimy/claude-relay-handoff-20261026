@@ -38,9 +38,9 @@ export function SshConnectionBackdrop({ connected }: { connected: boolean }) {
             <stop offset="1" data-ssh-part="glow-color" stopOpacity="0" />
           </radialGradient>
           <linearGradient id={`${id}-sweep`}>
-            <stop stopColor="var(--color-white)" stopOpacity="0" />
-            <stop offset=".5" stopColor="var(--color-white)" stopOpacity=".24" />
-            <stop offset="1" stopColor="var(--color-white)" stopOpacity="0" />
+            <stop stopColor="var(--foreground)" stopOpacity="0" />
+            <stop offset=".5" stopColor="var(--foreground)" stopOpacity=".24" />
+            <stop offset="1" stopColor="var(--foreground)" stopOpacity="0" />
           </linearGradient>
           <pattern id={`${id}-grid`} width="24" height="24" patternUnits="userSpaceOnUse">
             <path d="M24 0H0V24" data-ssh-part="grid-line" strokeWidth=".5" />

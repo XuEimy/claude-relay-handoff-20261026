@@ -1,3 +1,4 @@
+import { useSystemAudioBackdrop } from "./useSystemAudioBackdrop";
 import { useThreadRouteTarget } from "../../hooks/useThreadRouteTarget";
 import { useComposerDraftStore } from "../../composerDraftStore";
 import { SshConnectionDialog } from "./SshConnectionDialog";
@@ -80,6 +81,7 @@ export const SidebarChromeHeader = memo(function SidebarChromeHeader({
       : "Disconnected";
   const stageLabel = useEnvironmentStageLabel();
   const environmentIdentificationMode = useEnvironmentIdentificationMode();
+  const { root: audioBackdropRef, ...audioBackdrop } = useSystemAudioBackdrop(isElectron);
   const backdropVariant = resolveSidebarStageBackdropVariant(
     stageLabel,
     environmentIdentificationMode,
@@ -95,6 +97,8 @@ export const SidebarChromeHeader = memo(function SidebarChromeHeader({
         "relative flex h-[var(--workspace-topbar-height)] shrink-0 flex-row items-center gap-2 pr-3",
         isElectron && "drag-region",
       )}
+      ref={audioBackdropRef}
+      data-audio-reactive={audioBackdrop.enabled || undefined}
       data-ssh-chrome=""
       data-connection={connected ? "connected" : "disconnected"}
     >

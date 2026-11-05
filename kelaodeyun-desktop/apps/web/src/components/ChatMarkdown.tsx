@@ -1214,8 +1214,7 @@ const CHAT_MARKDOWN_COMPONENTS = {
                 { operation: "open-link-in-preview", target: href },
                 result.cause,
               );
-              if (squashAtomCommandFailure(result) instanceof BrowserSettingsReadError) return;
-              void readLocalApi()?.shell.openExternal(href);
+              // Keep failed cloud previews in-app; never route them to the local browser.
             });
           }}
           onContextMenu={(event) => {

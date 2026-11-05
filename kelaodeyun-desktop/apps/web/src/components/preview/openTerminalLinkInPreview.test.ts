@@ -54,6 +54,20 @@ afterEach(() => {
 });
 
 describe("openTerminalLinkInPreview", () => {
+  it("does not open the local browser when cloud preview fails", async () => {
+    const fallbackToBrowser = vi.fn();
+    linkTargetMocks.preference.mockReturnValue("system");
+    await expect(
+      openTerminalLinkInPreview({
+        url: "http://localhost:5173/",
+        threadRef,
+        openPreview: async () => AsyncResult.failure(Cause.fail(new Error("offline"))),
+        fallbackToBrowser,
+        forceBrowser: true,
+      }),
+    ).rejects.toThrow();
+    expect(fallbackToBrowser).not.toHaveBeenCalled();
+  });
   it("does not report or fall back when opening the preview is interrupted", async () => {
     const fallbackToBrowser = vi.fn();
     const reportError = vi.spyOn(console, "error").mockImplementation(() => undefined);

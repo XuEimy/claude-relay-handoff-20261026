@@ -254,9 +254,13 @@ export default function FileBrowserPanel({
   );
 
   const loadingDirectoriesRef = useRef(loadingDirectories);
-  const dragMention = createFileTreeDragMentionController(
-    hostFolder ? { mentionPath: (path: string) => joinHostPath(cwd, path) } : {},
-  );
+  const dragMention = createFileTreeDragMentionController({
+    ...(hostFolder ? { mentionPath: (path: string) => joinHostPath(cwd, path) } : {}),
+    fileOrigin: {
+      environmentId,
+      absolutePath: (path: string) => joinHostPath(cwd, path.replace(/\/+$/, "")),
+    },
+  });
   const { model } = useFileTree({
     composition: {
       contextMenu: {

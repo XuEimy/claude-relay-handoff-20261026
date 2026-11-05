@@ -1,3 +1,4 @@
+import { WorkspaceLoadingPlaceholder } from "../WorkspaceLoadingPlaceholder";
 import { useCloudClaudeHistory } from "./useCloudClaudeHistory";
 import { mergeCloudClaudeHistory } from "./cloudClaudeHistory";
 import type { ScopedThreadRef } from "@t3tools/contracts";
@@ -65,10 +66,13 @@ export function ThreadTimeline({
           {native.error}
         </p>
       ) : null}
+      {displayedEntries.length === 0 && (detailLoading || native.loading) ? (
+        <WorkspaceLoadingPlaceholder />
+      ) : null}
       <MessagesTimeline
         {...timelineProps}
         timelineEntries={displayedEntries}
-        hideEmptyPlaceholder={timelineProps.hideEmptyPlaceholder || native.loading}
+        hideEmptyPlaceholder={timelineProps.hideEmptyPlaceholder || native.loading || detailLoading}
       />
     </>
   );

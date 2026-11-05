@@ -1,7 +1,9 @@
+import { CLOUD_FILE_DRAG_TYPE } from "./cloudFileDrag";
 interface WorkspaceFileDragEvent {
   readonly dataTransfer: {
     readonly types: ReadonlyArray<string>;
     readonly files: Iterable<File>;
+    getData?(format: string): string;
     readonly items?: Iterable<{
       readonly kind: string;
       getAsFile(): File | null;
@@ -20,10 +22,14 @@ interface WorkspaceFileDropHost {
   setDragActive(active: boolean): void;
   addFiles(files: File[]): void;
   addFolders(folders: File[]): void;
+  addCloudFile?(data: string): void;
 }
 
 function isFileDrag(event: WorkspaceFileDragEvent): boolean {
-  return event.dataTransfer.types.includes("文件");
+  return (
+    event.dataTransfer.types.includes("Files") ||
+    event.dataTransfer.types.includes(CLOUD_FILE_DRAG_TYPE)
+  );
 }
 
 function movedWithinDropTarget(event: WorkspaceFileDragEvent): boolean {
@@ -65,7 +71,9 @@ export function makeWorkspaceFileDropHandlers(host: WorkspaceFileDropHost) {
     onDragOver(event: WorkspaceFileDragEvent) {
       if (!isFileDrag(event)) return;
       event.preventDefault();
-      event.dataTransfer.dropEffect = "copy";
+      event.dataTransfer.dropEffect = event.dataTransfer.types.includes(CLOUD_FILE_DRAG_TYPE)
+        ? "move"
+        : "copy";
       host.setDragActive(true);
     },
     onDragLeave(event: WorkspaceFileDragEvent) {
@@ -78,6 +86,10 @@ export function makeWorkspaceFileDropHandlers(host: WorkspaceFileDropHost) {
       if (!isFileDrag(event)) return;
       event.preventDefault();
       host.setDragActive(false);
+      if (event.dataTransfer.types.includes(CLOUD_FILE_DRAG_TYPE)) {
+        host.addCloudFile?.(event.dataTransfer.getData?.(CLOUD_FILE_DRAG_TYPE) ?? "");
+        return;
+      }
       const { files, folders } = splitTransferredFiles(event.dataTransfer);
       if (files.length > 0) host.addFiles(files);
       if (folders.length > 0) host.addFolders(folders);

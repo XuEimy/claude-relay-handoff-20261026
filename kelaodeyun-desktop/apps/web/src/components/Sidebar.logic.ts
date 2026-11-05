@@ -762,13 +762,14 @@ export function isSidebarNestedLinkClick(target: EventTarget | null): boolean {
   return nodeClosest(parent, "a[href]") !== null;
 }
 
-/** The "New thread in" picker opens unless there is one open project or none; then the current context decides. */
+/** An active conversation already identifies the project; only ambiguous empty contexts need a picker. */
 export function shouldCreateNewThreadInCurrentProject(
   shiftKey: boolean,
   openProjectGroupCount: number,
   projectGroupCount: number,
+  hasCurrentProject = false,
 ): boolean {
-  return shiftKey || openProjectGroupCount === 1 || projectGroupCount === 0;
+  return hasCurrentProject || shiftKey || openProjectGroupCount === 1 || projectGroupCount === 0;
 }
 
 export function orderItemsByPreferredIds<TItem, TId>(input: {

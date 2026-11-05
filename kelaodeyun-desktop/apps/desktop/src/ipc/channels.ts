@@ -126,3 +126,7 @@ export const TAKE_LEGACY_LOCAL_STORAGE_CHANNEL = "desktop:take-legacy-local-stor
 export const COMPLETE_LEGACY_LOCAL_STORAGE_CHANNEL = "desktop:complete-legacy-local-storage";
 
 export const SSH_FILE_OPERATION_CHANNEL = "desktop:ssh-file-operation";
+
+export const REGISTER_CLOUD_DOWNLOAD_SOURCE_CHANNEL = "desktop:register-cloud-download-source";
+export const RELEASE_CLOUD_DOWNLOAD_SOURCE_CHANNEL = "desktop:release-cloud-download-source";
+export const CLOUD_DOWNLOAD_STATUS_CHANNEL = "desktop:cloud-download-status";

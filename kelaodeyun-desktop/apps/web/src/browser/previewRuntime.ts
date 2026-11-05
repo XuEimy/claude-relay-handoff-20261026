@@ -11,14 +11,9 @@ import {
 } from "~/state/entities";
 
 export function previewRuntimeFor(environmentId: EnvironmentId): PreviewRuntime | undefined {
-  if (!readEnvironmentSupportsServerBrowser(environmentId)) return undefined;
-  if (
-    isPreviewSupportedInRuntime() &&
-    environmentId !== appAtomRegistry.get(primaryEnvironmentIdAtom)
-  ) {
-    return undefined;
-  }
-  return "server";
+  // Remote work must use that environment's browser, never the desktop's cookies/network.
+  if (environmentId !== appAtomRegistry.get(primaryEnvironmentIdAtom)) return "server";
+  return readEnvironmentSupportsServerBrowser(environmentId) ? "server" : undefined;
 }
 
 export function alternatePreviewRuntime(

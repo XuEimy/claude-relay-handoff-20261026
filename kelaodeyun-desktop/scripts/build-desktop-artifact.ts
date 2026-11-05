@@ -2824,6 +2824,7 @@ export const createBuildConfig = Effect.fn("createBuildConfig")(function* (
           "kelaodeyun captures the active window when you use the window capture shortcut.",
         NSCameraUsageDescription:
           "kelaodeyun lets commands run by terminals and coding agents use the camera.",
+        NSAudioCaptureUsageDescription: "仅在你开启声音律动时读取系统播放音量，用于驱动背景动画，不保存或上传音频。",
         NSMicrophoneUsageDescription:
           "kelaodeyun lets commands run by terminals and coding agents use the microphone.",
         // macOS lists an app under Default web browser only when it opens web

@@ -1,5 +1,9 @@
+import { WorkspaceLoadingPlaceholder } from "../WorkspaceLoadingPlaceholder";
+import { create } from "zustand";
+import { SidebarErrorDialog } from "./SidebarErrorDialog";
+import { SidebarInteractiveRow } from "./SidebarInteractiveRow";
 import * as Schema from "effect/Schema";
-import { useRef } from "react";
+import { useRef, type ReactNode } from "react";
 import { getLocalStorageItem } from "../../hooks/useLocalStorage";
 import { useAtomCommand } from "../../state/use-atom-command";
 import { terminalEnvironment } from "../../state/terminal";
@@ -23,25 +27,38 @@ import { useOrchestrationCommand } from "../../state/use-orchestration-command";
 import { orchestrationEnvironment } from "../../state/orchestration";
 import { readThreadShell } from "../../state/entities";
 import { resolveProjectDefaultProviderModelSelection } from "../../providerInstances";
-import { Spinner } from "../ui/spinner";
+
+const useCloudResumeState = create<{ sessionId: string | null }>(() => ({ sessionId: null }));
 
 interface NativeSession {
   id: string;
   title: string;
   updatedAt: number;
 }
+const sessionListCache = new Map<string, NativeSession[]>();
+
 export function CloudClaudeSessions({
   environmentId,
   projectId,
   cwd,
   currentThreadRef,
   query,
+  session,
+  nested = false,
+  showEmpty = true,
+  emptyState,
+  rowClassName,
 }: {
   environmentId: EnvironmentId | undefined;
   projectId: ProjectId | undefined;
   cwd: string | undefined;
   currentThreadRef: ScopedThreadRef | null;
   query: string;
+  session?: NativeSession;
+  nested?: boolean;
+  showEmpty?: boolean;
+  emptyState?: ReactNode;
+  rowClassName?: string;
 }) {
   const { environments } = useEnvironments();
   const providers = useEnvironmentProviders();
@@ -49,22 +66,29 @@ export function CloudClaudeSessions({
   const profile = environment ? Option.getOrNull(environment.entry.profile) : null;
   const target = profile?._tag === "SshConnectionProfile" ? profile.target : null;
   const connected = environment?.connection.phase === "connected";
-  const [sessions, setSessions] = useState<NativeSession[]>([]);
-  const [loading, setLoading] = useState(true);
+  const listRequestKey = JSON.stringify(target);
+  const cacheKey = JSON.stringify([environmentId, listRequestKey, cwd]);
+  const [result, setResult] = useState<{ key: string; sessions: NativeSession[] } | null>(null);
+  const sessions =
+    result?.key === cacheKey ? result.sessions : (sessionListCache.get(cacheKey) ?? []);
+  const loading =
+    !session && connected && result?.key !== cacheKey && !sessionListCache.has(cacheKey);
   const [error, setError] = useState<string | null>(null);
-  const [importing, setImporting] = useState(false);
+  const importingSessionId = useCloudResumeState((state) => state.sessionId);
+  const setImportingSessionId = (sessionId: string | null) =>
+    useCloudResumeState.setState({ sessionId });
+  const importing = importingSessionId !== null;
   const dispatch = useOrchestrationCommand(orchestrationEnvironment.v2.dispatchCommand, {
     reportFailure: false,
   });
   const navigate = useNavigate();
-  const listRequestKey = JSON.stringify(target);
   // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- reads native Claude sessions over SSH and cancels stale results on workspace changes
   useEffect(() => {
     let cancelled = false;
     const target = JSON.parse(listRequestKey) as
       | import("@t3tools/contracts").DesktopSshEnvironmentTarget
       | null;
-    if (!target || !cwd || !connected || !window.desktopBridge?.sshFileOperation) return;
+    if (session || !target || !cwd || !connected || !window.desktopBridge?.sshFileOperation) return;
     let pending = false;
     const refresh = async () => {
       if (cancelled || pending || document.hidden) return;
@@ -77,14 +101,18 @@ export function CloudClaudeSessions({
           operation: "claude-list",
         });
         if (!cancelled) {
-          setSessions(JSON.parse(data) as NativeSession[]);
+          const next = JSON.parse(data) as NativeSession[];
+          sessionListCache.set(cacheKey, next);
+          setResult({ key: cacheKey, sessions: next });
           setError(null);
         }
       } catch (cause) {
-        if (!cancelled) setError(cause instanceof Error ? cause.message : "无法读取云端会话");
+        if (!cancelled) {
+          setError(cause instanceof Error ? cause.message : "无法读取云端会话");
+          setResult({ key: cacheKey, sessions: sessionListCache.get(cacheKey) ?? [] });
+        }
       } finally {
         pending = false;
-        if (!cancelled) setLoading(false);
       }
     };
     void refresh();
@@ -98,7 +126,7 @@ export function CloudClaudeSessions({
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onFocus);
     };
-  }, [listRequestKey, cwd, connected]);
+  }, [listRequestKey, cacheKey, cwd, connected, session]);
   const openTerminal = useAtomCommand(terminalEnvironment.open);
   const writeTerminal = useAtomCommand(terminalEnvironment.write);
   const knownSessions = useKnownTerminalSessions({
@@ -113,6 +141,7 @@ export function CloudClaudeSessions({
       !projectId ||
       !environment?.serverConfig ||
       importing ||
+      useCloudResumeState.getState().sessionId !== null ||
       inFlight.current
     )
       return;
@@ -137,7 +166,7 @@ export function CloudClaudeSessions({
       return;
     }
     inFlight.current = true;
-    setImporting(true);
+    setImportingSessionId(selected.id);
     setError(null);
     try {
       if (!readThreadShell({ environmentId, threadId })) {
@@ -204,37 +233,48 @@ export function CloudClaudeSessions({
       setError(cause instanceof Error ? cause.message : "无法继续此会话");
     } finally {
       inFlight.current = false;
-      setImporting(false);
+      setImportingSessionId(null);
     }
   };
   if (!target || !cwd) return null;
   return (
-    <section className="px-2 py-2" aria-label="云端 Claude CLI 会话">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-xs text-muted-foreground">Claude CLI · 当前项目</span>
-      </div>
-      {loading ? <Spinner size="sm" /> : null}
-      {!loading && sessions.length === 0 ? (
-        <p className="py-2 text-xs text-muted-foreground">此目录暂无 CLI 对话</p>
-      ) : null}
-      {sessions
+    <section className={nested ? "min-w-0" : "px-2 py-2"} aria-label="云端 Claude CLI 会话">
+      {loading ? <WorkspaceLoadingPlaceholder compact /> : null}
+      {!session && showEmpty && !loading && sessions.length === 0
+        ? (emptyState ?? (
+            <p className="px-3 py-2 text-xs text-muted-foreground">此目录暂无 CLI 对话</p>
+          ))
+        : null}
+      {(session ? [session] : sessions)
         .filter((session) => session.title.toLowerCase().includes(query.toLowerCase()))
-        .map((session) => (
-          <button
-            key={session.id}
-            type="button"
-            disabled={importing || !connected}
-            onClick={() => void resume(session)}
-            className="block w-full truncate rounded-md px-2 py-2 text-left text-sm hover:bg-sidebar-row-hover"
-          >
-            {session.title}
-          </button>
-        ))}
-      {error ? (
-        <p role="alert" className="break-words text-xs text-destructive">
-          {error}
-        </p>
-      ) : null}
+        .map((session) => {
+          const active =
+            currentThreadRef?.environmentId === environmentId &&
+            currentThreadRef?.threadId === `cloud-claude-${session.id}`;
+          const pending = importingSessionId === session.id;
+          return (
+            <SidebarInteractiveRow
+              className={rowClassName}
+              key={session.id}
+              type="button"
+              disabled={importing || !connected}
+              aria-current={active ? "page" : undefined}
+              active={active}
+              pending={pending}
+              dimmed={!connected || (importing && !pending)}
+              onClick={() => void resume(session)}
+            >
+              <span className="min-w-0 flex-1 truncate">{session.title}</span>
+              {pending ? (
+                <span role="status" className="shrink-0 text-xs text-muted-foreground">
+                  恢复中…
+                </span>
+              ) : null}
+            </SidebarInteractiveRow>
+          );
+        })}
+
+      {error ? <SidebarErrorDialog key={error} message={error} /> : null}
     </section>
   );
 }

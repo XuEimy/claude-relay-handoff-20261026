@@ -1,3 +1,4 @@
+import { claimFirstClaudeTerminal, releaseFailedClaudeTerminal } from "./firstClaudeTerminal";
 import * as Option from "effect/Option";
 import { useEnvironments } from "../../state/environments";
 import {
@@ -30,9 +31,7 @@ export interface TerminalLaunchLocation {
 export function useThreadTerminalActions(threadRef: ScopedThreadRef | null) {
   const { environments } = useEnvironments();
   const cloudEnvironment = environments.find(
-    (environment) =>
-      environment.environmentId === threadRef?.environmentId &&
-      environment.entry.target._tag === "SshConnectionTarget",
+    (environment) => environment.environmentId === threadRef?.environmentId,
   );
   const cloudProfile = cloudEnvironment ? Option.getOrNull(cloudEnvironment.entry.profile) : null;
   const isCloud = cloudProfile?._tag === "SshConnectionProfile";
@@ -104,6 +103,17 @@ export function useThreadTerminalActions(threadRef: ScopedThreadRef | null) {
     const location = input.location ?? defaultLaunchLocation();
     if (!location) return null;
     const terminalId = input.terminalId ?? allocateTerminalId();
+    const threadKey = JSON.stringify([threadRef.environmentId, threadRef.threadId]);
+    const shouldStartClaude = claimFirstClaudeTerminal({
+      threadKey,
+      cloud: isCloud,
+      existingTerminalCount:
+        (knownSessions?.length ?? 0) +
+        drawerTerminalIds.length +
+        panelSurfaces.filter((surface) => surface.kind === "terminal").length,
+      ...(input.terminalId === undefined ? {} : { explicitTerminalId: input.terminalId }),
+      ...(input.startClaude === undefined ? {} : { startClaude: input.startClaude }),
+    });
     input.place(terminalId);
     const openResult = openTerminalCommand({
       environmentId: threadRef.environmentId,
@@ -120,10 +130,12 @@ export function useThreadTerminalActions(threadRef: ScopedThreadRef | null) {
         ...input.size,
       },
     });
-    const shouldStartClaude =
-      isCloud && input.startClaude !== false && input.terminalId === undefined;
     const result = openResult.then(async (opened) => {
-      if (opened._tag === "Failure" || !shouldStartClaude) return opened;
+      if (opened._tag === "Failure") {
+        if (shouldStartClaude) releaseFailedClaudeTerminal(threadKey);
+        return opened;
+      }
+      if (!shouldStartClaude) return opened;
       if (cloudProfile?._tag === "SshConnectionProfile" && window.desktopBridge?.sshFileOperation) {
         await window.desktopBridge.sshFileOperation({
           target: cloudProfile.target,

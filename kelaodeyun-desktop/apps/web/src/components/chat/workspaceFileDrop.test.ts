@@ -51,3 +51,25 @@ describe("splitTransferredFiles", () => {
     ).toEqual({ files: [], folders: [] });
   });
 });
+
+it("claims the browser's Files type and delivers local files once", async () => {
+  const { makeWorkspaceFileDropHandlers } = await import("./workspaceFileDrop");
+  const file = new File(["hello"], "notes.txt");
+  const delivered: File[][] = [];
+  let prevented = false;
+  const handlers = makeWorkspaceFileDropHandlers({
+    setDragActive: () => {},
+    addFolders: () => {},
+    addFiles: (files) => delivered.push(files),
+  });
+  handlers.onDrop({
+    dataTransfer: { types: ["Files"], files: [file], dropEffect: "none" },
+    relatedTarget: null,
+    currentTarget: { contains: () => false },
+    preventDefault: () => {
+      prevented = true;
+    },
+  });
+  expect(prevented).toBe(true);
+  expect(delivered).toEqual([[file]]);
+});

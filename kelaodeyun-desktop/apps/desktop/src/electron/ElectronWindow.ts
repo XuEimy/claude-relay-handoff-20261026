@@ -13,6 +13,7 @@ import * as Ref from "effect/Ref";
 import * as Schema from "effect/Schema";
 
 import * as Electron from "electron";
+import { registerSystemAudioBackdrop } from "./SystemAudioBackdrop.ts";
 
 import {
   activateWindowsForeground,
@@ -249,6 +250,7 @@ export const make = Effect.gen(function* () {
     currentMainOrFirst,
     focusedMainOrFirst,
     setMain: Effect.fn("ElectronWindow.setMain")(function (window) {
+      registerSystemAudioBackdrop(window);
       return Ref.set(mainWindowRef, Option.some(window));
     }),
     clearMain: Effect.fn("ElectronWindow.clearMain")(function (window) {

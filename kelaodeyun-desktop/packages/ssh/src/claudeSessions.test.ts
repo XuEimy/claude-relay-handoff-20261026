@@ -28,6 +28,35 @@ function fixture() {
   };
 }
 describe("native Claude session reader", () => {
+  it("resolves cwd from the exact native session, ignoring child and other-session records", () => {
+    using f = fixture();
+    NodeFS.writeFileSync(
+      f.file,
+      [
+        JSON.stringify({ sessionId: id, cwd: "/old" }),
+        JSON.stringify({ sessionId: id, cwd: f.project }),
+        JSON.stringify({ sessionId: id, cwd: "/sidechain", isSidechain: true }),
+        JSON.stringify({ sessionId: "another-session", cwd: "/other" }),
+      ].join("\n"),
+    );
+    expect(JSON.parse(f.run("claude-info").stdout)).toEqual({
+      sessionId: id,
+      cwd: f.project,
+      exists: true,
+    });
+  });
+  it("does not invent a cwd for missing sessions or records without cwd", () => {
+    using f = fixture();
+    expect(JSON.parse(f.run("claude-info").stdout)).toEqual({
+      sessionId: id,
+      cwd: null,
+      exists: false,
+    });
+    NodeFS.writeFileSync(f.file, JSON.stringify({ message: { role: "user", content: "hello" } }));
+    expect(JSON.parse(f.run("claude-info").stdout).cwd).toBeNull();
+    expect(f.run("claude-info", "../../etc/passwd").status).not.toBe(0);
+  });
+
   it("trusts only the selected workspace and preserves other settings with a backup", () => {
     using f = fixture();
     const root = NodePath.dirname(f.project);

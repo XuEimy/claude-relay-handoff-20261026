@@ -1,3 +1,4 @@
+import { CLOUD_FILE_DRAG_TYPE } from "../chat/cloudFileDrag";
 import {
   COMPOSER_MENTION_DRAG_TYPE,
   composerMentionFromTreePath,
@@ -15,6 +16,7 @@ export interface FileTreeDragStartEvent {
 export interface FileTreeDragMentionHost {
   /** The path a dragged row mentions; defaults to the tree path itself. */
   mentionPath?(treePath: string): string;
+  fileOrigin?: { environmentId: string; absolutePath: (treePath: string) => string };
 }
 
 export interface FileTreeDragMentionController {
@@ -68,6 +70,15 @@ export function createFileTreeDragMentionController(
         .filter((mention): mention is string => mention !== null);
       if (mentions.length === 0) {
         return;
+      }
+      if (host.fileOrigin) {
+        event.dataTransfer.setData(
+          CLOUD_FILE_DRAG_TYPE,
+          JSON.stringify({
+            environmentId: host.fileOrigin.environmentId,
+            paths: dragged.map(host.fileOrigin.absolutePath),
+          }),
+        );
       }
       draggedPaths = dragged;
       event.dataTransfer.setData(COMPOSER_MENTION_DRAG_TYPE, mentions.join(" "));

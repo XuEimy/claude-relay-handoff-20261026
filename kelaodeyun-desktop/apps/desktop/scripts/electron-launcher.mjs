@@ -284,6 +284,7 @@ function patchMainBundleInfoPlist(appBundlePath, iconPath, executableName) {
   for (const [key, value] of Object.entries(resolveMacBundleInfoPlistStrings(executableName))) {
     setPlistString(infoPlistPath, key, value);
   }
+  setPlistString(infoPlistPath, "NSAudioCaptureUsageDescription", "仅在你开启声音律动时读取系统播放音量，不保存或上传音频。");
   // macOS 26 offers Messages/Mail codes in every text field unless opted out.
   setPlistJson(infoPlistPath, "NSAutoFillRequiresTextContentTypeForOneTimeCodeOnMac", true);
   setPlistJson(infoPlistPath, "CFBundleURLTypes", [

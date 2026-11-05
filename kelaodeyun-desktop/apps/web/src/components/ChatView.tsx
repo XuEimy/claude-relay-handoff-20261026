@@ -1,3 +1,5 @@
+import { readCloudFileDrag } from "./chat/cloudFileDrag";
+import { composerMentionFromTreePath } from "./chat/composerMentionDrag";
 import { ChildThreadApprovals } from "./chat/ChildThreadApprovals";
 import { workspaceAreaProps } from "../lib/workspaceFocus";
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
@@ -3214,6 +3216,29 @@ export default function ChatView(props: ChatViewProps) {
     pendingSidebarFileDrops,
   ]);
 
+  const addDroppedCloudFileToComposer = useStableCallback((data: string) => {
+    if (!activeThread) return;
+    try {
+      const paths = readCloudFileDrag(data, activeThread.environmentId);
+      if (
+        !composerRef.current?.insertTextAtEnd(
+          `${paths.map(composerMentionFromTreePath).join(" ")} `,
+        )
+      )
+        toastManager.add({
+          type: "error",
+          title: "无法添加文件",
+          description: "输入框正忙，请稍后重试。",
+        });
+    } catch (error) {
+      toastManager.add({
+        type: "error",
+        title: "无法添加文件",
+        description: error instanceof Error ? error.message : "文件拖拽失败",
+      });
+    }
+  });
+
   const addDroppedFilesToComposer = useStableCallback(
     (files: Parameters<ChatComposerHandle["addDroppedFiles"]>[0]) =>
       composerRef.current?.addDroppedFiles(files),
@@ -3320,6 +3345,7 @@ export default function ChatView(props: ChatViewProps) {
     setDragActive: setIsWorkspaceFileDragActive,
     addFiles: addDroppedFilesToComposer,
     addFolders: addDroppedFoldersToComposer,
+    addCloudFile: addDroppedCloudFileToComposer,
   });
 
   const content = (

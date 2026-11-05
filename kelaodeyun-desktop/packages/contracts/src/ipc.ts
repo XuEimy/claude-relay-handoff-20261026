@@ -395,7 +395,16 @@ export const DesktopSshFileOperationSchema = Schema.Struct({
   target: DesktopSshEnvironmentTargetSchema,
   cwd: Schema.String,
   relativePath: Schema.String.check(Schema.isMaxLength(4096)),
-  operation: Schema.Literals(["upload", "mkdir", "claude-list", "claude-read", "claude-trust"]),
+  operation: Schema.Literals([
+    "upload",
+    "mkdir",
+    "download",
+    "download-directory",
+    "claude-list",
+    "claude-read",
+    "claude-trust",
+    "claude-info",
+  ]),
   contentsBase64: Schema.optional(Schema.String.check(Schema.isMaxLength(44739244))),
 });
 export type DesktopSshFileOperation = typeof DesktopSshFileOperationSchema.Type;
@@ -1084,6 +1093,15 @@ export interface DesktopBridge {
     target: DesktopSshEnvironmentTarget,
     options?: { issuePairingToken?: boolean },
   ) => Promise<DesktopSshEnvironmentBootstrap>;
+  registerCloudDownloadSource?: (input: DesktopSshFileOperation) => Promise<string>;
+  releaseCloudDownloadSource?: (url: string) => Promise<void>;
+  onCloudDownloadStatus?: (
+    listener: (status: {
+      source: string;
+      path: string;
+      state: "downloading" | "completed" | "failed" | "cancelled";
+    }) => void,
+  ) => () => void;
   sshFileOperation?: (input: DesktopSshFileOperation) => Promise<string>;
   disconnectSshEnvironment: (target: DesktopSshEnvironmentTarget) => Promise<void>;
   fetchSshEnvironmentDescriptor: (httpBaseUrl: string) => Promise<ExecutionEnvironmentDescriptor>;
