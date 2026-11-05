@@ -9,7 +9,7 @@ React + Vite 前端由 Cloudflare Workers 静态资源提供，`/api/*` 由单�
 ## 配置
 
 - Google Cloud 创建 OAuth Web 客户端，授权回调 `https://kelaodeyun.com/api/auth/google/callback` 和本地 `http://localhost:5173/api/auth/google/callback`。
-- Stripe 中将产品设为 active 并设置 metadata `kelaodeyun_plan=true`；可填 `cpu`、`ram_gb`、`disk_gb`、`bandwidth_tb` 和排序字段 `order`。每个 USD 月付或年付 recurring Price 设置 `hostinger_item_id`，对应 Hostinger 月付或年付商品。
+- Stripe 中将产品设为 active 并设置 metadata `kelaodeyun_plan=true`；可填 `cpu`、`ram_gb`、`disk_gb`、`bandwidth_tb` 和排序字段 `order`。每个 USD 月付或年付 recurring Price 设置 `hostinger_item_id`，对应 Hostinger 月付或年付商品（例如 `hostingercom-vps-kvm2-usd-1m` / `hostingercom-vps-kvm2-usd-1y`；Hostinger 年付商品 ID 以 `-1y` 结尾）。
 - Stripe webhook URL 为 `https://kelaodeyun.com/api/stripe/webhook`，订阅 `checkout.session.completed`、`checkout.session.expired`、`checkout.session.async_payment_succeeded`、`checkout.session.async_payment_failed`、`customer.subscription.updated`、`customer.subscription.deleted`、`invoice.payment_failed`。Webhook 端点 API 版本应与固定的 Stripe SDK 一致，即 `2026-09-30.endive`。在 Stripe dashboard 启用 Billing Portal，仅允许到期取消订阅、更新付款方式和查看账单历史；禁用套餐切换和数量修改，因为更改价格不会调整虚拟机配置。
 - Hostinger 创建 API token，配置 VPS 模板 ID；如有需要配置安装后脚本 ID。Hostinger 购买使用账户默认付款方式。购买结果不确定时禁止盲目重试，应先在 hPanel 确认是否已经购买。
 - `wrangler.jsonc` 的 vars：`PUBLIC_ORIGIN`、逗号分隔的 `ADMIN_EMAILS`、`HOSTINGER_TEMPLATE_ID`、可选 `HOSTINGER_POST_INSTALL_SCRIPT_ID`、`SUPPORT_EMAIL`、`PUBLIC_OPERATOR`。

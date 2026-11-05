@@ -14,7 +14,7 @@
   "vars": {
     "PUBLIC_ORIGIN": "https://kelaodeyun.com",
     "ADMIN_EMAILS": "821819569@qq.com",
-    "HOSTINGER_TEMPLATE_ID": "",
+    "HOSTINGER_TEMPLATE_ID": "1077",
     "HOSTINGER_POST_INSTALL_SCRIPT_ID": "",
     "SUPPORT_EMAIL": "",
     "PUBLIC_OPERATOR": ""
