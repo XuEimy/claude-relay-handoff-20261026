@@ -19,13 +19,10 @@
   background: transparent;
   border: 0;
   padding: 8px 0;
-  font-size: 13px;
+  font-size: 16px;
 }
 .relay-home .header-right {
   gap: 26px;
-}
-.relay-home .header-right .pill:last-of-type {
-  color: #af644b;
 }
 .relay-home .site-header .icon-button {
   display: none;
@@ -73,7 +70,7 @@
 .gateway-intro h1 {
   margin: 0;
   font:
-    400 clamp(54px, 5.6vw, 88px)/1.18 "Claude Serif",
+    400 clamp(54px, 5.6vw, 88px)/1.18 "Source Han Serif CN", "Claude Serif",
     "Songti SC",
     serif;
   letter-spacing: -0.045em;
@@ -187,7 +184,7 @@
 .feature-models button[aria-pressed="true"] {
   color: #8c4f38;
   background: #faf9f5;
-  border-color: #ded6c8;
+  border-color: #ded7c8;
   box-shadow: 0 2px 4px #40301e0b;
 }
 .gateway-feature > a {
@@ -252,7 +249,7 @@
 .gateway-price strong {
   display: block;
   color: #35342c;
-  font-family: "Claude Serif", Georgia, serif;
+  font-family: "Source Han Serif CN", "Claude Serif", Georgia, serif;
   font-size: 38px;
   line-height: 1.1;
   font-weight: 400;
@@ -265,7 +262,7 @@
   right: 28px;
   top: 24px;
   color: #777367;
-  background: #faf9f5a8;
+  background: #f5f6f7a8;
 }
 .gateway-feature :focus-visible,
 .gateway-hero > button:focus-visible {
@@ -291,6 +288,10 @@
   .relay-home .header-right {
     gap: 16px;
   }
+  .relay-home .header-left a,
+  .relay-home .header-right .pill {
+    font-size: 14px;
+  }
   .gateway-feature {
     padding: 23px 15px 0;
   }
@@ -306,8 +307,7 @@
     height: 68px;
     width: calc(100% - 36px);
   }
-  .relay-home .header-left,
-  .relay-home .header-right .pill:last-of-type {
+  .relay-home .header-left {
     display: none;
   }
   .relay-home .site-header .icon-button {
@@ -642,7 +642,7 @@
 }
 .user-feedback h2 {
   font:
-    400 30px/1.25 "Claude Serif",
+    400 30px/1.25 "Source Han Serif CN", "Claude Serif",
     "Songti SC",
     serif;
   letter-spacing: -0.035em;
@@ -763,7 +763,7 @@
 .wish-preview {
   height: 160px;
   border-radius: 11px;
-  background: #f2f0e9;
+  background: #f2f1e9;
   padding: 20px;
   margin-bottom: 24px;
   display: flex;
@@ -845,7 +845,7 @@
   width: 6px;
   height: 6px;
   background: #b68b6e;
-  border: 2px solid #f7f4ed;
+  border: 2px solid #f7f5ed;
   outline: 1px solid #c5b6a3;
   border-radius: 50%;
   margin: 0 4px;
@@ -863,7 +863,7 @@
 }
 .wish-budget strong {
   font:
-    400 23px "Claude Serif",
+    400 23px "Source Han Serif CN", "Claude Serif",
     Georgia,
     serif;
   color: #544e43;
@@ -922,7 +922,7 @@
   background: transparent;
   color: #8a8274;
   font:
-    500 12px "Claude Sans",
+    500 12px "Source Han Serif CN", "Claude Sans",
     sans-serif;
   cursor: pointer;
   transition:
@@ -969,7 +969,7 @@
 .feedback-form input,
 .feedback-form textarea {
   font:
-    13px/1.6 "Claude Sans",
+    13px/1.6 "Source Han Serif CN", "Claude Sans",
     sans-serif;
   background: white;
   border: 1px solid #ded6c7;
@@ -1120,7 +1120,7 @@
 }
 .relay-home .relay-assurance-card h3 {
   font:
-    400 30px/1.2 "Claude Serif",
+    400 30px/1.2 "Source Han Serif CN", "Claude Serif",
     "Songti SC",
     serif;
   margin: 0 0 18px;
@@ -1173,7 +1173,7 @@
 .relay-faq h2 {
   text-align: left;
   font:
-    400 40px/1.25 "Claude Serif",
+    400 40px/1.25 "Source Han Serif CN", "Claude Serif",
     "Songti SC",
     serif;
   margin: 0 0 36px;
@@ -1218,11 +1218,11 @@
 }
 .relay-bottom-cta {
   text-align: center;
-  padding: 94px 0 46px;
+  padding: clamp(140px, 10vw, 200px) 0;
 }
 .relay-bottom-cta h2 {
   font:
-    400 clamp(38px, 4.2vw, 62px)/1.25 "Claude Serif",
+    400 clamp(38px, 4.2vw, 62px)/1.25 "Source Han Serif CN", "Claude Serif",
     "Songti SC",
     serif;
   margin: 0;
@@ -1302,7 +1302,7 @@
     min-height: 65px;
   }
   .relay-bottom-cta {
-    padding: 65px 0 30px;
+    padding: 96px 0;
   }
   .relay-bottom-cta > p {
     font-size: 14px;
@@ -1335,7 +1335,7 @@
 }
 .model-carousel {
   padding: 32px 0 45px;
-  max-width: 1320px;
+  max-width: 1760px;
 }
 .model-carousel > header {
   display: flex;
@@ -1347,7 +1347,7 @@
 .model-carousel h2 {
   margin: 0 0 15px;
   font:
-    400 32px/1.25 "Claude Serif",
+    400 32px/1.25 "Source Han Serif CN", "Claude Serif",
     "Songti SC",
     serif;
   letter-spacing: -0.035em;
@@ -1421,13 +1421,13 @@
   gap: 70px;
   align-items: center;
   padding: 50px 0 55px;
-  border-top: 1px solid #e1d9c8;
-  border-bottom: 1px solid #e1d9c8;
+  border-top: 1px solid #ded9ce;
+  border-bottom: 1px solid #ded9ce;
   max-width: 1320px;
 }
 .architecture-intro h2 {
   font:
-    400 36px/1.35 "Claude Serif",
+    400 36px/1.35 "Source Han Serif CN", "Claude Serif",
     "Songti SC",
     serif;
   letter-spacing: -0.04em;
@@ -1498,9 +1498,6 @@
 }
 .active .architecture-connector > i {
   width: 55%;
-}
-.home-questions {
-  max-width: 1320px;
 }
 .home-questions .relay-faq {
   padding-top: 55px;
@@ -1599,6 +1596,156 @@
   border-radius: 4px;
   font-size: 9px;
 }
+
+/* Keep navigation and feature cards usable at intermediate widths. */
+@media (max-width: 800px) {
+  .relay-home .site-header .icon-button {
+    display: inline-flex;
+    background: transparent;
+  }
+  .gateway-features {
+    grid-template-columns: 1fr;
+    max-width: 540px;
+    padding: 0;
+  }
+  .gateway-feature {
+    min-height: 184px;
+  }
+  .gateway-hero {
+    min-height: auto;
+  }
+}
+@media (max-width: 380px) {
+  .gateway-actions {
+    width: 100%;
+  }
+  .gateway-actions .button {
+    min-width: 0;
+    flex: 1;
+  }
+  .gateway-facts {
+    flex-wrap: wrap;
+  }
+  .relay-home .relay-assurance-card {
+    grid-template-columns: 1fr;
+  }
+  .relay-home .relay-assurance-card > .relay-card-art {
+    width: 100%;
+  }
+}
+
+/* Center the introduction and cards as one group on larger screens. */
+@media (min-width: 801px) {
+  .gateway-hero {
+    justify-content: center;
+    gap: clamp(40px, 6vh, 80px);
+    padding: 40px 0;
+  }
+  .gateway-intro {
+    flex: 0 0 auto;
+    min-height: 0;
+    padding: 0 24px;
+  }
+  .gateway-features {
+    width: calc(100% - 160px);
+    max-width: 1760px;
+    padding: 0;
+  }
+}
+@media (min-width: 801px) and (max-width: 1100px) {
+  .gateway-features {
+    width: calc(100% - 96px);
+  }
+}
+
+/* Feature cards: a clear title, content area and consistent action. */
+.gateway-feature {
+  min-width: 0;
+  min-height: 250px;
+  padding: 25px 26px 0;
+  align-items: stretch;
+  text-align: left;
+  background: #f0f3f8;
+  border-color: #cad0dd;
+  box-shadow: 0 8px 24px #2830400a;
+}
+.gateway-feature h2 {
+  font-size: 17px;
+  line-height: 1.4;
+  margin-bottom: 24px;
+  gap: 10px;
+}
+.gateway-feature h2 > svg {
+  width: 20px;
+  height: 20px;
+}
+.gateway-account {
+  align-self: flex-start;
+  font-size: 14px;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+}
+.gateway-route {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  font-size: 13px;
+  gap: 9px;
+  white-space: normal;
+}
+.gateway-feature .feature-models {
+  width: fit-content;
+  max-width: 100%;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+.feature-models button {
+  flex: 0 1 auto;
+  font-size: 13px;
+  padding: 7px 12px;
+}
+.gateway-model-name {
+  font-size: 14px;
+}
+.gateway-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.gateway-empty strong {
+  font-size: 18px;
+  font-weight: 500;
+  color: #2f3239;
+}
+.gateway-empty span {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #777266;
+}
+.gateway-price {
+  justify-content: flex-start;
+  gap: clamp(24px, 4vw, 60px);
+}
+.gateway-price span {
+  font-size: 12px;
+}
+.gateway-feature > a {
+  min-height: 54px;
+  font-size: 14px;
+  color: #4d535f;
+  transition: color 180ms ease;
+}
+.gateway-feature > a:hover {
+  color: #3e61a7;
+}
+.gateway-feature > a svg {
+  transition: transform 180ms ease;
+}
+@media (max-width: 800px) {
+  .gateway-feature {
+    min-height: 220px;
+    padding: 22px 22px 0;
+  }
+}
 .architecture-subtle {
   padding: 45px 0;
   gap: 80px;
@@ -1681,7 +1828,7 @@
 }
 .trust-title {
   font:
-    400 32px/1.25 "Claude Serif",
+    400 32px/1.25 "Source Han Serif CN", "Claude Serif",
     "Songti SC",
     serif;
   letter-spacing: -0.035em;
@@ -1707,11 +1854,11 @@
   align-items: center;
   gap: 48px;
   padding: 36px 0;
-  border-top: 1px solid #e1d9c8;
+  border-top: 1px solid #ded9ce;
 }
 .code-swap-section > h2 {
   margin: 0;
-  font: 400 32px/1.4 "Claude Serif", "Songti SC", serif;
+  font: 400 32px/1.4 "Source Han Serif CN", "Claude Serif", "Songti SC", serif;
   letter-spacing: -.04em;
 }
 .code-swap-preview { min-width: 0; height: 365px; }
@@ -1727,24 +1874,24 @@
 .code-demo-head {
   display: flex; align-items: center; gap: 9px;
   height: 47px; padding: 0 22px;
-  border-bottom: 1px solid #e6dfd1;
+  border-bottom: 1px solid #e0e1e3;
   font-size: 13px; font-weight: 500;
 }
-.code-demo-head > svg { color: #b67150; }
+.code-demo-head > svg { color: #af644b; }
 .code-demo-head code { margin-left: auto; color: #968b79; font-size: 11px; font-weight: 400; }
 .code-demo-conversation { padding: 20px 22px; }
 .code-demo-user { margin: 0 0 22px auto; padding: 10px 14px; width: fit-content; background: #ede9df; border-radius: 10px; font-size: 13px; }
-.code-demo-answer { display: flex; align-items: flex-start; gap: 10px; font: 14px/1.75 "Claude Serif", "Songti SC", serif; }
+.code-demo-answer { display: flex; align-items: flex-start; gap: 10px; font: 14px/1.75 "Source Han Serif CN", "Claude Serif", "Songti SC", serif; }
 .code-demo-answer img { width: 21px; height: 21px; margin-top: 2px; }
 .code-demo-answer p { margin: 0; }
 .code-demo-composer { display: flex; align-items: center; justify-content: space-between; border: 1px solid #e1dacd; border-radius: 11px; padding: 11px 13px; margin-top: 23px; color: #a59a88; font-size: 12px; }
-.code-demo-composer svg { color: #b67150; }
+.code-demo-composer svg { color: #af644b; }
 .code-demo-tools { padding: 19px 24px 11px; }
 .code-demo-tools > div { display: flex; align-items: center; gap: 10px; padding: 10px 0; font-size: 13px; }
 .code-demo-tools svg { color: #828b64; }
 .code-demo-tools code { margin-left: auto; color: #a09480; font-size: 11px; }
-.code-demo-result { margin: 9px 24px; padding-top: 16px; border-top: 1px solid #e6dfd1; display: flex; align-items: center; gap: 10px; font-size: 13px; color: #746b5d; }
-.code-demo-result svg { color: #b67150; }
+.code-demo-result { margin: 9px 24px; padding-top: 16px; border-top: 1px solid #e0e1e3; display: flex; align-items: center; gap: 10px; font-size: 13px; color: #746b5d; }
+.code-demo-result svg { color: #af644b; }
 .code-demo-diff { margin: 24px 22px; font: 11px/2.5 ui-monospace, SFMono-Regular, monospace; }
 .code-demo-diff > div { padding: 0 9px; white-space: nowrap; }
 .code-demo-diff > div:nth-child(odd) { background: #b9705910; color: #a16d58; }
@@ -1752,7 +1899,7 @@
 .code-demo-diff span { display: inline-block; width: 22px; }
 .code-demo-actions { display: flex; justify-content: flex-end; gap: 9px; margin: 22px; font-size: 12px; }
 .code-demo-actions > span { border: 1px solid #ded7c8; border-radius: 7px; padding: 8px 15px; display: flex; gap: 8px; align-items: center; }
-.code-demo-actions > span:last-child { background: #b77556; border-color: #b77556; color: #fffaf3; }
+.code-demo-actions > span:last-child { background: #af644b; border-color: #af644b; color: #fffaf3; }
 @media (max-width: 760px) {
   .code-swap-section { grid-template-columns: 1fr; gap: 5px; padding: 32px 0 16px; }
   .code-swap-section > h2 { font-size: 29px; }
@@ -1768,29 +1915,29 @@
   align-items: center;
   min-height: min(760px, 88svh);
   padding: 70px 0;
-  border-top: 1px solid #e1d9c8;
+  border-top: 1px solid #ded9ce;
 }
-.creative-work-intro h2 { margin: 0 0 54px; font: 400 clamp(38px, 4vw, 59px)/1.22 "Claude Serif", "Songti SC", serif; letter-spacing: -.05em; }
+.creative-work-intro h2 { margin: 0 0 54px; font: 400 clamp(38px, 4vw, 59px)/1.22 "Source Han Serif CN", "Claude Serif", "Songti SC", serif; letter-spacing: -.05em; }
 .creative-work-modes { display: flex; flex-direction: column; max-width: 245px; }
-.creative-work-modes button { border: 0; border-bottom: 1px solid #e1d9c8; border-radius: 0; display: flex; align-items: center; justify-content: space-between; padding: 17px 0; background: transparent; color: #a79b88; font: inherit; font-size: 16px; cursor: pointer; transition: color .25s; text-align: left; }
-.creative-work-modes button[aria-pressed="true"] { color: #ad6b4b; }
+.creative-work-modes button { border: 0; border-bottom: 1px solid #ded9ce; border-radius: 0; display: flex; align-items: center; justify-content: space-between; padding: 17px 0; background: transparent; color: #a79b88; font: inherit; font-size: 16px; cursor: pointer; transition: color .25s; text-align: left; }
+.creative-work-modes button[aria-pressed="true"] { color: #af644b; }
 .creative-work-modes button svg { opacity: 0; transform: translate(-6px,6px); transition: opacity .25s, transform .25s; }
 .creative-work-modes button[aria-pressed="true"] svg { opacity: 1; transform: none; }
-.creative-work-modes button:focus-visible { outline: 2px solid #ad6b4b; outline-offset: 5px; }
+.creative-work-modes button:focus-visible { outline: 2px solid #af644b; outline-offset: 5px; }
 .creative-work-output { min-width: 0; min-height: 410px; animation: creative-page-in .65s cubic-bezier(.2,.7,.2,1) both; }
-.creative-work-output h3 { margin: 0 0 28px; font: 400 35px/1.35 "Claude Serif", "Songti SC", serif; letter-spacing: -.025em; }
+.creative-work-output h3 { margin: 0 0 28px; font: 400 35px/1.35 "Source Han Serif CN", "Claude Serif", "Songti SC", serif; letter-spacing: -.025em; }
 .creative-letter { padding: 0 24px; }
-.creative-handmark { display: block; margin-bottom: 30px; color: #b77556; font: italic 47px/1 "Claude Serif", Georgia, serif; transform: rotate(-6deg); transform-origin: left; }
-.creative-letter p { font: 16px/2 "Claude Serif", "Songti SC", serif; color: #8b8070; margin: 0 0 19px; }
-.creative-signature { margin-top: 35px; padding-top: 22px; border-top: 1px solid #ded6c6; display: flex; justify-content: space-between; align-items: center; color: #a88b6d; font-size: 14px; }
-.creative-signature span { color: #b77556; font-size: 35px; }
+.creative-handmark { display: block; margin-bottom: 30px; color: #af644b; font: italic 47px/1 "Source Han Serif CN", "Claude Serif", Georgia, serif; transform: rotate(-6deg); transform-origin: left; }
+.creative-letter p { font: 16px/2 "Source Han Serif CN", "Claude Serif", "Songti SC", serif; color: #8b8070; margin: 0 0 19px; }
+.creative-signature { margin-top: 35px; padding-top: 22px; border-top: 1px solid #ded9ce; display: flex; justify-content: space-between; align-items: center; color: #a88b6d; font-size: 14px; }
+.creative-signature span { color: #af644b; font-size: 35px; }
 .creative-code { padding: 12px 24px; }
 .creative-code pre { background: transparent; padding: 20px 0; margin: 0; overflow: auto; color: #7c7766; font: 15px/1.9 ui-monospace, SFMono-Regular, monospace; }
-.creative-code code > span { color: #b77556; }
-.creative-code-line { display: flex; align-items: center; gap: 10px; border-top: 1px solid #ded6c6; padding-top: 20px; color: #93927c; font-size: 13px; }
+.creative-code code > span { color: #af644b; }
+.creative-code-line { display: flex; align-items: center; gap: 10px; border-top: 1px solid #ded9ce; padding-top: 20px; color: #93927c; font-size: 13px; }
 .creative-document { padding: 10px 24px; }
-.creative-document-heading { color: #aa7957; font-size: 13px; padding: 5px 0 18px; border-bottom: 1px solid #ded6c6; }
-.creative-document-line { display: flex; gap: 25px; padding: 20px 0; border-bottom: 1px solid #e6dfd1; }
+.creative-document-heading { color: #aa7957; font-size: 13px; padding: 5px 0 18px; border-bottom: 1px solid #ded9ce; }
+.creative-document-line { display: flex; gap: 25px; padding: 20px 0; border-bottom: 1px solid #e0e1e3; }
 .creative-document-line > span { color: #b6a68b; font: 12px/1.8 ui-monospace, monospace; }
 .creative-document-line h4 { font-size: 16px; font-weight: 500; margin: 0 0 6px; }
 .creative-document-line p { margin: 0; color: #938875; font-size: 13px; line-height: 1.7; }
@@ -1810,17 +1957,17 @@
 .code-swap-section { width: calc(100% - 160px); border: 0; padding: 0; gap: 48px; }
 .code-swap-preview { height: 360px; }
 .code-swap-section > h2 { font-size: clamp(32px, 3.3vw, 47px); }
-.code-sequence { padding: 48px 0; border-top: 1px solid #e1d9c8; overflow: clip; }
+.code-sequence { padding: 48px 0; border-top: 1px solid #ded9ce; overflow: clip; }
 .code-demo-tree { padding: 20px 24px 8px; }
 .code-demo-tree > div { display: flex; align-items: center; gap: 10px; padding: 11px 0; font-size: 12px; }
-.code-demo-tree svg { color: #b77556; }
-.code-demo-tree code { color: #655e50; }
+.code-demo-tree svg { color: #af644b; }
+.code-demo-tree code { color: #655f50; }
 .code-demo-tree span { margin-left: auto; color: #a69b87; }
 .code-demo-finished { height: 233px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 19px; }
-.code-demo-finished-mark { color: #b77556; font-size: 28px; line-height: 1; }
-.code-demo-finished h3 { font: 400 29px/1.3 "Claude Serif", "Songti SC", serif; margin: 0; }
+.code-demo-finished-mark { color: #af644b; font-size: 28px; line-height: 1; }
+.code-demo-finished h3 { font: 400 29px/1.3 "Source Han Serif CN", "Claude Serif", "Songti SC", serif; margin: 0; }
 .code-demo-finished-link { display: flex; align-items: center; gap: 13px; color: #a77454; font-size: 12px; border-bottom: 1px solid #d9cbb7; padding-bottom: 5px; }
-.creative-sequence { padding: 64px 0; border-top: 1px solid #e1d9c8; }
+.creative-sequence { padding: 64px 0; border-top: 1px solid #ded9ce; }
 .creative-work { width: calc(100% - 160px); grid-template-columns: .85fr 1.15fr; gap: 48px; align-items: start; min-height: 0; padding: 0; border: 0; }
 .creative-work-intro h2 { font-size: clamp(36px, 3.7vw, 50px); margin: 0 0 30px; line-height: 1.3; }
 .creative-work-modes { max-width: 250px; }
@@ -1843,7 +1990,7 @@
 .trust-story { display: grid; grid-template-columns: 40% minmax(0,1fr); gap: 24px; padding-top: 24px; border-top: 1px solid #d7cfbf; }
 .trust-art { width: 100%; height: 250px; object-fit: cover; border-radius: 3px; }
 .trust-copy { display: flex; flex-direction: column; align-items: flex-start; }
-.trust-copy h3 { margin: 0 0 24px; font: 400 36px/1.1 "Claude Serif", "Songti SC", serif; letter-spacing: -.04em; }
+.trust-copy h3 { margin: 0 0 24px; font: 400 36px/1.1 "Source Han Serif CN", "Claude Serif", "Songti SC", serif; letter-spacing: -.04em; }
 .trust-facts { margin-bottom: 25px; }
 .trust-facts p { margin: 0 0 8px; font-size: 13px; line-height: 1.8; color: #827866; }
 .trust-copy > a { display: inline-flex; align-items: center; gap: 28px; margin-top: auto; padding: 8px 0; border-bottom: 1px solid #cdbfa8; font-size: 13px; }

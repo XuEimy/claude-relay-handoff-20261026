@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "test:sites": "node --test tests/sites-worker.test.mjs",
     "start": "NODE_ENV=production node --env-file-if-exists=.env server.mjs",
-    "test": "node --test tests/api.test.mjs tests/code-service.test.mjs",
+    "test": "node --test tests/api.test.mjs tests/code-service.test.mjs tests/portal-pages.test.mjs",
     "build:claude-ui": "node integrations/open-claude-ui/build.mjs"
   },
   "dependencies": {

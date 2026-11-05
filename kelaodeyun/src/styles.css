@@ -922,7 +922,7 @@ select {
   max-width: 680px;
 }
 .composer {
-  border: 1px solid #deddd6;
+  border: 1px solid #deded6;
   box-shadow: 0 3px 20px #00000006;
   border-radius: 15px;
   background: white;
@@ -1041,7 +1041,7 @@ select {
 }
 .message-label {
   font-size: 11px;
-  color: #89887f;
+  color: #89897f;
   display: block;
   margin-bottom: 9px;
 }
@@ -1168,7 +1168,7 @@ select {
 .balance-card {
   padding: 32px;
   background: #eaece1;
-  border: 1px solid #e0e3d4;
+  border: 1px solid #e3dfd4;
   border-radius: 9px;
   display: flex;
   flex-direction: column;
@@ -1204,7 +1204,7 @@ select {
   padding: 28px 32px;
   border: 1px solid var(--line);
   border-radius: 9px;
-  background: #fdfcf9;
+  background: #fffdf7;
 }
 .recharge-card h2,
 .dashboard h2 {
@@ -1225,7 +1225,7 @@ select {
   font-size: 15px;
 }
 .amounts .selected {
-  background: #ebeddf;
+  background: #ede9df;
   border-color: #8a9272;
 }
 .payment-options {
@@ -1521,7 +1521,7 @@ td:last-child {
 }
 .voucher-result {
   padding: 22px;
-  background: #e8ecdc;
+  background: #ece7dc;
   border-radius: 7px;
   display: flex;
   flex-wrap: wrap;
@@ -2704,6 +2704,13 @@ body:has(.chat-app) {
   flex-direction: row;
 }
 /* Screenshot-matched dark footer. */
+html:has(.relay-home),
+body:has(.relay-home) {
+  background: #161615;
+}
+.relay-home {
+  background: var(--paper);
+}
 .anthropic-footer {
   width: 100%;
   min-height: 640px;
@@ -2742,7 +2749,7 @@ body:has(.chat-app) {
   white-space: nowrap;
 }
 .anthropic-footer-meta {
-  font-size: 11px;
+  font-size: 13px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -2750,7 +2757,7 @@ body:has(.chat-app) {
   padding-bottom: 0;
 }
 .anthropic-footer-meta p {
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.45;
 }
 .anthropic-footer-shortcuts {
@@ -2787,7 +2794,7 @@ body:has(.chat-app) {
   gap: 15px;
   min-height: 52px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 400;
   line-height: 20px;
   padding: 14px 0;
@@ -2816,12 +2823,12 @@ body:has(.chat-app) {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: 15px;
   color: #c5c5bc;
 }
 .anthropic-footer-about h2 {
   font:
-    400 14px/20px Claude Sans,
+    400 16px/24px Claude Sans,
     -apple-system,
     "PingFang SC",
     sans-serif;
@@ -2829,8 +2836,8 @@ body:has(.chat-app) {
   margin: 0 0 2px;
 }
 .anthropic-footer-about p {
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 16px;
+  line-height: 24px;
   color: #909088;
   margin: 0;
 }
@@ -2841,8 +2848,8 @@ body:has(.chat-app) {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 16px;
+  line-height: 24px;
   margin-top: 6px;
   color: #b0b0a6;
 }
@@ -3010,8 +3017,8 @@ body:has(.chat-app) {
     margin-top: 8px;
   }
   .anthropic-footer-about p {
-    font-size: 13px;
-    line-height: 20px;
+    font-size: 15px;
+    line-height: 23px;
   }
   .anthropic-footer-navigation summary {
     min-height: 50px;
