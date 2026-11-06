@@ -1,5 +1,5 @@
 import { env } from "cloudflare:workers";
-import { runInDurableObject, reset, introspectWorkflowInstance } from "cloudflare:test";
+import { abortAllDurableObjects, runInDurableObject, reset, introspectWorkflowInstance } from "cloudflare:test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import worker from "../worker/index.js";
 import { ProvisionServer, TeardownServer } from "../worker/workflows.js";
@@ -49,11 +49,11 @@ const workflowStep = () => ({
   do: async (_name, ...args) => args.at(-1)(),
   sleep: vi.fn(async () => {}),
 });
-function mockCommerce({ product = "existing" } = {}) {
-  let checkoutBody, productBody, retrieves = 0;
+function mockCommerce({ product = "existing", coupon = "existing", catalogData = catalog } = {}) {
+  let checkoutBody, productBody, couponBody, retrieves = 0, couponRetrieves = 0;
   const fetcher = vi.fn(async (url, options = {}) => {
     const address = String(url);
-    if (address.endsWith("/api/billing/v1/catalog?category=VPS")) return hostResponse(catalog);
+    if (address.endsWith("/api/billing/v1/catalog?category=VPS")) return hostResponse(catalogData);
     if (address.endsWith("/v1/products/kld_hostingercom_vps_kvm2")) {
       retrieves++;
       if ((product === "missing" || product === "conflict") && retrieves === 1) return hostResponse({ error: { type: "invalid_request_error", code: "resource_missing", message: "No such product" } }, 404);
@@ -64,6 +64,18 @@ function mockCommerce({ product = "existing" } = {}) {
       if (product === "conflict") return hostResponse({ error: { type: "invalid_request_error", code: "resource_already_exists", message: "Product exists" } }, 400);
       return hostResponse({ id: "kld_hostingercom_vps_kvm2" });
     }
+    const couponMatch = address.match(/\/v1\/coupons\/([^/?]+)$/);
+    if (couponMatch) {
+      couponRetrieves++;
+      if (coupon === "error") return hostResponse({ error: { type: "api_error", message: "Stripe unavailable" } }, 500);
+      if ((coupon === "missing" || coupon === "conflict") && couponRetrieves === 1) return hostResponse({ error: { type: "invalid_request_error", code: "resource_missing", message: "No such coupon" } }, 404);
+      return hostResponse({ id: decodeURIComponent(couponMatch[1]) });
+    }
+    if (address.endsWith("/v1/coupons") && options.method === "POST") {
+      couponBody = String(options.body);
+      if (coupon === "conflict") return hostResponse({ error: { type: "invalid_request_error", code: "resource_already_exists", message: "Coupon exists" } }, 400);
+      return hostResponse({ id: new URLSearchParams(couponBody).get("id") });
+    }
     if (address.includes("/api/vps/v1/data-centers")) return hostResponse([{ id: 1, city: "London", location: "gb", continent: "Europe" }]);
     if (address.endsWith("/v1/customers")) return hostResponse({ id: "cus_1" });
     if (address.endsWith("/v1/checkout/sessions")) { checkoutBody = String(options.body); return hostResponse({ id: "cs_1", url: "https://checkout.stripe.test" }); }
@@ -71,7 +83,7 @@ function mockCommerce({ product = "existing" } = {}) {
     throw Error("unexpected outbound request: " + address);
   });
   vi.stubGlobal("fetch", fetcher);
-  return { fetcher, checkoutBody: () => checkoutBody, productBody: () => productBody, retrieves: () => retrieves };
+  return { fetcher, checkoutBody: () => checkoutBody, productBody: () => productBody, retrieves: () => retrieves, couponBody: () => couponBody, couponRetrieves: () => couponRetrieves };
 }
 async function createdServer() {
   const response = await login();
@@ -147,9 +159,9 @@ describe("API", () => {
       expect(plans[0]).toEqual({
         id: "hostingercom-vps-kvm2", name: "KVM 2", specs: { cpu: 2, ramGb: 8, diskGb: 100, bandwidthTb: 8 },
         prices: [
-          { priceId: monthPrice, interval: "month", intervalCount: 1, amount: 3674, currency: "usd" },
-          { priceId: yearPrice, interval: "year", intervalCount: 1, amount: 30582, currency: "usd" },
-          { priceId: "hostingercom-vps-kvm2-usd-2y", interval: "year", intervalCount: 2, amount: 53964, currency: "usd" },
+          { priceId: monthPrice, interval: "month", intervalCount: 1, firstAmount: 2099, amount: 3674, currency: "usd" },
+          { priceId: yearPrice, interval: "year", intervalCount: 1, firstAmount: 14999, amount: 30582, currency: "usd" },
+          { priceId: "hostingercom-vps-kvm2-usd-2y", interval: "year", intervalCount: 2, firstAmount: 53964, amount: 53964, currency: "usd" },
         ],
       });
       await request("/api/plans");
@@ -175,10 +187,10 @@ describe("API", () => {
       expect((await request("/api/checkout", post({ priceId: yearPrice, dataCenterId: 1, publicKey: key }, session))).status).toBe(400);
     }
     expect((await request("/api/checkout", post({ priceId: "unknown", dataCenterId: 1, publicKey: sshKey("ssh-ed25519") }, session))).status).toBe(400);
-    const checkout = await request("/api/checkout", post({ priceId: yearPrice, dataCenterId: 1, publicKey: sshKey("ssh-ed25519"), amount: 1 }, session));
+    const checkout = await request("/api/checkout", post({ priceId: yearPrice, dataCenterId: 1, publicKey: sshKey("ssh-ed25519"), amount: 1, firstAmount: 1 }, session));
     expect(await checkout.json()).toEqual({ url: "https://checkout.stripe.test" });
     const rows = await runInDurableObject(stub(), instance => instance.all("SELECT * FROM servers"));
-    expect(rows[0]).toMatchObject({ status: "pending_payment", stripe_price_id: "dynamic", interval: "year", interval_count: 1, amount: 30582, hostinger_item_id: yearPrice });
+    expect(rows[0]).toMatchObject({ status: "pending_payment", stripe_price_id: "dynamic", interval: "year", interval_count: 1, amount: 30582, first_amount: 14999, hostinger_item_id: yearPrice });
     const checkoutParams = new URLSearchParams(mocks.checkoutBody());
     expect(checkoutParams.get("client_reference_id")).toBe(rows[0].id);
     expect(checkoutParams.get("line_items[0][price_data][unit_amount]")).toBe("30582");
@@ -197,18 +209,90 @@ describe("API", () => {
     expect(response.status, await response.clone().text()).toBe(200);
     expect(mocks.retrieves()).toBe(2);
   });
+  it("creates a one-time coupon for the first period while recurring at the regular price", async () => {
+    const session = getSession(await login()), mocks = mockCommerce({ coupon: "missing" });
+    const response = await request("/api/checkout", post({ priceId: monthPrice, dataCenterId: 1, publicKey: sshKey("ssh-ed25519"), amount: 1, firstAmount: 1 }, session));
+    expect(response.status, await response.clone().text()).toBe(200);
+    const couponId = "kld_first_hostingercom_vps_kvm2_usd_1m_2099_3674";
+    const checkoutParams = new URLSearchParams(mocks.checkoutBody());
+    expect(checkoutParams.get("line_items[0][price_data][unit_amount]")).toBe("3674");
+    expect(checkoutParams.get("discounts[0][coupon]")).toBe(couponId);
+    const couponParams = new URLSearchParams(mocks.couponBody());
+    expect(Object.fromEntries(couponParams)).toMatchObject({ id: couponId, amount_off: "1575", currency: "usd", duration: "once", name: "首期优惠" });
+    const row = await runInDurableObject(stub(), instance => instance.get("SELECT * FROM servers"));
+    expect(row).toMatchObject({ amount: 3674, first_amount: 2099, hostinger_item_id: monthPrice });
+  });
+  it("reuses an existing coupon without creating a new one", async () => {
+    const session = getSession(await login()), mocks = mockCommerce();
+    const response = await request("/api/checkout", post({ priceId: monthPrice, dataCenterId: 1, publicKey: sshKey("ssh-ed25519") }, session));
+    expect(response.status, await response.clone().text()).toBe(200);
+    expect(mocks.couponRetrieves()).toBe(1);
+    expect(mocks.couponBody()).toBeUndefined();
+    expect(new URLSearchParams(mocks.checkoutBody()).get("discounts[0][coupon]")).toBe("kld_first_hostingercom_vps_kvm2_usd_1m_2099_3674");
+  });
+  it("recovers from concurrent coupon creation", async () => {
+    const session = getSession(await login()), mocks = mockCommerce({ coupon: "conflict" });
+    const response = await request("/api/checkout", post({ priceId: monthPrice, dataCenterId: 1, publicKey: sshKey("ssh-ed25519") }, session));
+    expect(response.status, await response.clone().text()).toBe(200);
+    expect(mocks.couponRetrieves()).toBe(2);
+    expect(new URLSearchParams(mocks.checkoutBody()).get("discounts[0][coupon]")).toBe("kld_first_hostingercom_vps_kvm2_usd_1m_2099_3674");
+  });
+  it("does not create a coupon when retrieval fails for another reason", async () => {
+    const session = getSession(await login()), mocks = mockCommerce({ coupon: "error" });
+    const response = await request("/api/checkout", post({ priceId: monthPrice, dataCenterId: 1, publicKey: sshKey("ssh-ed25519") }, session));
+    expect(response.status).toBe(500);
+    expect(mocks.couponBody()).toBeUndefined();
+    expect(mocks.checkoutBody()).toBeUndefined();
+  });
+  it.each([
+    ["missing", undefined], ["zero", 0], ["negative", -1], ["fractional", 1399.5],
+    ["string", "1399"], ["equal", 2449], ["higher", 3000],
+  ])("uses the regular price and no coupon when the first-period price is %s", async (_name, first) => {
+    const session = getSession(await login());
+    const catalogData = [{ ...catalog[0], prices: [{ ...catalog[0].prices[0], first_period_price: first }] }];
+    const mocks = mockCommerce({ catalogData });
+    const plans = await (await request("/api/plans")).json();
+    expect(plans[0].prices[0]).toMatchObject({ firstAmount: 3674, amount: 3674 });
+    const response = await request("/api/checkout", post({ priceId: monthPrice, dataCenterId: 1, publicKey: sshKey("ssh-ed25519") }, session));
+    expect(response.status, await response.clone().text()).toBe(200);
+    expect(new URLSearchParams(mocks.checkoutBody()).has("discounts[0][coupon]")).toBe(false);
+    expect(mocks.couponRetrieves()).toBe(0);
+    const row = await runInDurableObject(stub(), instance => instance.get("SELECT * FROM servers"));
+    expect(row).toMatchObject({ amount: 3674, first_amount: 3674 });
+  });
+  it("migrates existing server rows without first_amount", async () => {
+    const { server } = await createdServer(), object = stub();
+    await runInDurableObject(object, instance => instance.run("ALTER TABLE servers DROP COLUMN first_amount"));
+    await abortAllDurableObjects();
+    const row = await stub().getServer(server.id);
+    expect(row).toMatchObject({ id: server.id, amount: 3674, first_amount: null });
+  });
   it("stores a two-year cycle and sends its exact recurring interval to Stripe", async () => {
     const session = getSession(await login()), mocks = mockCommerce();
     const priceId = "hostingercom-vps-kvm2-usd-2y";
     const response = await request("/api/checkout", post({ priceId, dataCenterId: 1, publicKey: sshKey("ssh-ed25519") }, session));
     expect(response.status, await response.clone().text()).toBe(200);
     const row = await runInDurableObject(stub(), instance => instance.get("SELECT * FROM servers"));
-    expect(row).toMatchObject({ interval: "year", interval_count: 2, amount: 53964, hostinger_item_id: priceId });
+    expect(row).toMatchObject({ interval: "year", interval_count: 2, amount: 53964, first_amount: 53964, hostinger_item_id: priceId });
     const params = new URLSearchParams(mocks.checkoutBody());
     expect(params.get("line_items[0][price_data][recurring][interval]")).toBe("year");
     expect(params.get("line_items[0][price_data][recurring][interval_count]")).toBe("2");
     const account = (await (await request("/api/servers", { headers: { Cookie: session } })).json())[0];
     expect(account).toMatchObject({ interval: "year", interval_count: 2, amount: 53964 });
+  });
+  it("applies the two-year first-period promotion while retaining the regular recurring amount", async () => {
+    const session = getSession(await login());
+    const catalogData = [{ ...catalog[0], prices: catalog[0].prices.map(price => price.id.endsWith("-2y") ? { ...price, first_period_price: 21096 } : price) }];
+    const mocks = mockCommerce({ catalogData, coupon: "missing" });
+    const response = await request("/api/checkout", post({ priceId: "hostingercom-vps-kvm2-usd-2y", dataCenterId: 1, publicKey: sshKey("ssh-ed25519") }, session));
+    expect(response.status, await response.clone().text()).toBe(200);
+    const checkout = new URLSearchParams(mocks.checkoutBody());
+    expect(checkout.get("line_items[0][price_data][unit_amount]")).toBe("53964");
+    expect(checkout.get("line_items[0][price_data][recurring][interval_count]")).toBe("2");
+    expect(checkout.get("discounts[0][coupon]")).toBe("kld_first_hostingercom_vps_kvm2_usd_2y_31644_53964");
+    expect(new URLSearchParams(mocks.couponBody()).get("amount_off")).toBe("22320");
+    const row = await runInDurableObject(stub(), instance => instance.get("SELECT * FROM servers"));
+    expect(row).toMatchObject({ amount: 53964, first_amount: 31644, interval: "year", interval_count: 2 });
   });
   it("supports feedback creation and voting", async () => {
     const session = getSession(await login());

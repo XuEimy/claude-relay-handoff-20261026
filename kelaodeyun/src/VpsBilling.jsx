@@ -38,10 +38,10 @@ function KeyHelp() {
 }
 
 function Summary({ selected, cycle, center, ready, missing, busy, mobile }) {
-  const price = priceForCycle(selected, cycle), amount = price ? money(price.amount) : "—";
+  const price = priceForCycle(selected, cycle), amount = price ? money(price.amount) : "—", firstAmount = price ? money(price.firstAmount ?? price.amount) : "—";
   return <aside className={mobile ? "vps-mobile-summary" : "vps-order"} aria-label="订单摘要">
     {!mobile && <><h2>订单摘要</h2><dl><div><dt>套餐</dt><dd>{price ? `${selected.name} · ${cycleLabel(price.interval, price.intervalCount)}` : "未选择"}</dd></div><div><dt>地区</dt><dd>{regionName(center)}</dd></div></dl></>}
-    <div className="vps-summary-total"><span>今日支付</span><strong>{amount}</strong></div>
+    <div className="vps-summary-total"><span>今日支付</span><strong>{firstAmount}</strong></div>
     {!mobile && <><p>{price ? `之后每${cycleUnit(price.interval, price.intervalCount)}自动续费 ${amount}，可随时在账户中关闭` : "选择套餐后查看续费金额。"}</p><p className="vps-summary-warning">订阅结束后服务器及数据会立即清除</p></>}
     <button type="submit" form="vps-checkout" className="portal-button primary" disabled={!ready || busy} aria-live="polite"><Lock size={16} />{busy ? "正在跳转…" : "前往安全支付"}</button>
     <small>{!ready ? missing : mobile ? "付款由 Stripe 安全处理" : "付款由 Stripe 安全处理"}</small>
@@ -102,8 +102,9 @@ export function Billing({ config }) {
                 return <label className={`vps-plan ${chosen ? "selected" : ""} ${!price ? "unavailable" : ""}`} key={plan.id}>
                   <input className="vps-visually-hidden" type="radio" name="price" checked={!!chosen} disabled={!price} onChange={() => setPriceId(price.priceId)} />
                   {chosen && <span className="vps-plan-check"><Check size={14} /></span>}
-                  <h3>{plan.name}</h3><div className="vps-plan-price">{price ? <><strong>{money(price.amount)}</strong><span>/{cycleUnit(price.interval, price.intervalCount)}</span></> : <span>此周期暂不提供</span>}</div>
-                  {price && cycleMonths(price) > 1 && <p className="vps-plan-month">约 {money(price.amount / cycleMonths(price))}/月</p>}
+                  <h3>{plan.name}</h3><div className="vps-plan-price">{price ? <><strong>{money(price.firstAmount ?? price.amount)}</strong><span>/{cycleUnit(price.interval, price.intervalCount)}</span></> : <span>此周期暂不提供</span>}</div>
+                  {price && price.firstAmount < price.amount && <p className="vps-plan-month">之后 {money(price.amount)}/{cycleUnit(price.interval, price.intervalCount)} 续费</p>}
+                  {price && cycleMonths(price) > 1 && <p className="vps-plan-month">约 {money((price.firstAmount ?? price.amount) / cycleMonths(price))}/月</p>}
                   <ul>{specs.filter(([, value]) => value !== "" && value != null).map(([Icon, value, label]) => <li key={label}><Icon size={16} />{value} {label}</li>)}</ul>
                 </label>;
               })}

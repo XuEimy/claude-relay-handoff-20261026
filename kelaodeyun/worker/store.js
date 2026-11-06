@@ -10,7 +10,7 @@ export class Store extends DurableObject {
     this.sql.exec(`CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY,google_sub TEXT UNIQUE NOT NULL,email TEXT NOT NULL,name TEXT,avatar TEXT,role TEXT NOT NULL,disabled INTEGER NOT NULL DEFAULT 0,stripe_customer_id TEXT UNIQUE,created TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS sessions(hash TEXT PRIMARY KEY,user_id TEXT NOT NULL,expires INTEGER NOT NULL);
       CREATE TABLE IF NOT EXISTS oauth_states(state TEXT PRIMARY KEY,verifier TEXT NOT NULL,return_path TEXT NOT NULL,expires INTEGER NOT NULL);
-      CREATE TABLE IF NOT EXISTS servers(id TEXT PRIMARY KEY,user_id TEXT NOT NULL,stripe_price_id TEXT NOT NULL,interval TEXT NOT NULL,interval_count INTEGER NOT NULL DEFAULT 1,amount INTEGER,product_name TEXT NOT NULL,hostinger_item_id TEXT NOT NULL,data_center_id INTEGER NOT NULL,public_key TEXT NOT NULL,status TEXT NOT NULL,stripe_subscription_id TEXT UNIQUE,current_period_end INTEGER,cancel_at_period_end INTEGER NOT NULL DEFAULT 0,hostinger_vm_id INTEGER,hostinger_subscription_id TEXT,ipv4 TEXT,hostname TEXT,error TEXT,created TEXT NOT NULL,updated TEXT NOT NULL,purchase_inflight INTEGER NOT NULL DEFAULT 0,termination_requested INTEGER NOT NULL DEFAULT 0,failure_phase TEXT,payment_past_due INTEGER NOT NULL DEFAULT 0);
+      CREATE TABLE IF NOT EXISTS servers(id TEXT PRIMARY KEY,user_id TEXT NOT NULL,stripe_price_id TEXT NOT NULL,interval TEXT NOT NULL,interval_count INTEGER NOT NULL DEFAULT 1,amount INTEGER,first_amount INTEGER,product_name TEXT NOT NULL,hostinger_item_id TEXT NOT NULL,data_center_id INTEGER NOT NULL,public_key TEXT NOT NULL,status TEXT NOT NULL,stripe_subscription_id TEXT UNIQUE,current_period_end INTEGER,cancel_at_period_end INTEGER NOT NULL DEFAULT 0,hostinger_vm_id INTEGER,hostinger_subscription_id TEXT,ipv4 TEXT,hostname TEXT,error TEXT,created TEXT NOT NULL,updated TEXT NOT NULL,purchase_inflight INTEGER NOT NULL DEFAULT 0,termination_requested INTEGER NOT NULL DEFAULT 0,failure_phase TEXT,payment_past_due INTEGER NOT NULL DEFAULT 0);
       CREATE TABLE IF NOT EXISTS stripe_events(id TEXT PRIMARY KEY,created TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS hostinger_requests(at INTEGER NOT NULL);
       CREATE TABLE IF NOT EXISTS feedback(id TEXT PRIMARY KEY,user_id TEXT,title TEXT NOT NULL,description TEXT NOT NULL,kind TEXT NOT NULL,created TEXT NOT NULL);
@@ -18,6 +18,7 @@ export class Store extends DurableObject {
     if (!this.all("PRAGMA table_info(servers)").some(column => column.name === "payment_past_due")) this.run("ALTER TABLE servers ADD COLUMN payment_past_due INTEGER NOT NULL DEFAULT 0");
     if (!this.all("PRAGMA table_info(servers)").some(column => column.name === "interval_count")) this.run("ALTER TABLE servers ADD COLUMN interval_count INTEGER NOT NULL DEFAULT 1");
     if (!this.all("PRAGMA table_info(servers)").some(column => column.name === "amount")) this.run("ALTER TABLE servers ADD COLUMN amount INTEGER");
+    if (!this.all("PRAGMA table_info(servers)").some(column => column.name === "first_amount")) this.run("ALTER TABLE servers ADD COLUMN first_amount INTEGER");
   }
   all(query, ...params) { return this.sql.exec(query, ...params).toArray(); }
   get(query, ...params) { return this.all(query, ...params)[0] || null; }
@@ -46,7 +47,11 @@ export class Store extends DurableObject {
         ["month", "year"].includes(price.period_unit) && Number.isSafeInteger(price.period) &&
         price.period > 0 && price.period <= (price.period_unit === "year" ? 3 : 36) &&
         Number.isSafeInteger(price.price) && price.price > 0 && Number.isSafeInteger(Math.ceil(price.price * multiplier))
-      ).map(price => ({ priceId: price.id, interval: price.period_unit, intervalCount: price.period, amount: Math.ceil(price.price * multiplier), currency: "usd" }));
+      ).map(price => {
+        const amount = Math.ceil(price.price * multiplier);
+        const firstAmount = Number.isSafeInteger(price.first_period_price) && price.first_period_price > 0 && price.first_period_price < price.price ? Math.ceil(price.first_period_price * multiplier) : amount;
+        return { priceId: price.id, interval: price.period_unit, intervalCount: price.period, firstAmount, amount, currency: "usd" };
+      });
       return { id: item.id, name: item.name, specs: { cpu: Number(metadata.cpus), ramGb: Number(metadata.memory) / 1024, diskGb: Number(metadata.disk_space) / 1024, bandwidthTb: Number(metadata.bandwidth) / 1024000 }, prices };
     }).filter(plan => plan.prices.length);
     plans.sort((a, b) => a.specs.cpu - b.specs.cpu || Math.min(...a.prices.map(p => p.amount)) - Math.min(...b.prices.map(p => p.amount)));
@@ -141,6 +146,19 @@ export class Store extends DurableObject {
         await stripe.products.retrieve(productId);
       }
     }
+    let couponId;
+    if (selection.price.firstAmount < selection.price.amount) {
+      couponId = `kld_first_${selection.price.priceId.replace(/[^A-Za-z0-9_]/g, "_")}_${selection.price.firstAmount}_${selection.price.amount}`;
+      try { await stripe.coupons.retrieve(couponId); }
+      catch (error) {
+        if (error.code !== "resource_missing") throw error;
+        try { await stripe.coupons.create({ id: couponId, amount_off: selection.price.amount - selection.price.firstAmount, currency: "usd", duration: "once", name: "首期优惠" }); }
+        catch (createError) {
+          if (createError.code !== "resource_already_exists" && createError.statusCode !== 409) throw createError;
+          await stripe.coupons.retrieve(couponId);
+        }
+      }
+    }
     let customer = user.stripe_customer_id;
     if (!customer) {
       const created = await stripe.customers.create({ email: user.email, name: user.name, metadata: { user_id: user.id } }, { idempotencyKey: "customer-" + user.id });
@@ -148,8 +166,8 @@ export class Store extends DurableObject {
       this.run("UPDATE users SET stripe_customer_id=? WHERE id=?", customer, user.id);
     }
     const id = crypto.randomUUID(), time = now();
-    this.run("INSERT INTO servers(id,user_id,stripe_price_id,interval,interval_count,amount,product_name,hostinger_item_id,data_center_id,public_key,status,created,updated) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", id, user.id, "dynamic", selection.price.interval, selection.price.intervalCount, selection.price.amount, selection.plan.name, selection.price.priceId, Number(input.dataCenterId), input.publicKey.trim(), "pending_payment", time, time);
-    const session = await stripe.checkout.sessions.create({ mode: "subscription", line_items: [{ price_data: { currency: "usd", unit_amount: selection.price.amount, product: productId, recurring: { interval: selection.price.interval, interval_count: selection.price.intervalCount } }, quantity: 1 }], customer, client_reference_id: id, subscription_data: { metadata: { server_id: id, user_id: user.id } }, metadata: { server_id: id }, success_url: this.env.PUBLIC_ORIGIN + "/account?checkout=success", cancel_url: this.env.PUBLIC_ORIGIN + "/billing" });
+    this.run("INSERT INTO servers(id,user_id,stripe_price_id,interval,interval_count,amount,first_amount,product_name,hostinger_item_id,data_center_id,public_key,status,created,updated) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)", id, user.id, "dynamic", selection.price.interval, selection.price.intervalCount, selection.price.amount, selection.price.firstAmount, selection.plan.name, selection.price.priceId, Number(input.dataCenterId), input.publicKey.trim(), "pending_payment", time, time);
+    const session = await stripe.checkout.sessions.create({ mode: "subscription", line_items: [{ price_data: { currency: "usd", unit_amount: selection.price.amount, product: productId, recurring: { interval: selection.price.interval, interval_count: selection.price.intervalCount } }, quantity: 1 }], ...(couponId ? { discounts: [{ coupon: couponId }] } : {}), customer, client_reference_id: id, subscription_data: { metadata: { server_id: id, user_id: user.id } }, metadata: { server_id: id }, success_url: this.env.PUBLIC_ORIGIN + "/account?checkout=success", cancel_url: this.env.PUBLIC_ORIGIN + "/billing" });
     return { url: session.url };
   }
   async webhook(request) {
