@@ -884,6 +884,16 @@
       "license": "Standard No Charge GSAP License",
       "sourceUrl": "https://gsap.com/standard-license/",
       "noticeFile": "assets/kelaodeyun/GSAP-NOTICE.txt"
+    },
+    {
+      "name": "eastasianwidth",
+      "version": "0.2.0",
+      "license": "MIT",
+      "sourceUrl": "https://github.com/komagata/eastasianwidth/blob/1d41951a59d63fb2d77cda021050fc070cae424a/MIT-LICENSE.txt",
+      "generatedNotice": {
+        "licenseId": "MIT",
+        "copyrights": ["Copyright komagata"]
+      }
     }
   ]
 }
