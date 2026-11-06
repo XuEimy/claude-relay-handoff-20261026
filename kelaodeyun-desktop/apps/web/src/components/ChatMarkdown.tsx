@@ -1,3 +1,5 @@
+import { InteractiveAnswerBlock } from "./chat/InteractiveAnswerBlock";
+import { isInteractiveAnswerLanguage } from "./chat/interactiveAnswer";
 import { buildFileLinkParentSuffixByPath, fileLinkLabel } from "@t3tools/shared/fileLinks";
 import {
   isWindowsDrivePathHref,
@@ -223,6 +225,7 @@ import { reportMarkdownActionFailure } from "./chat/markdownActionFailure";
 const isAssetNotFoundError = Schema.is(AssetWorkspaceAssetNotFoundError);
 
 interface ChatMarkdownProps {
+  allowInteractiveAnswers?: boolean;
   /** Compact markdown transforms remove blocks before rendering inside a label. */
   inline?: boolean;
   text: string;
@@ -487,6 +490,7 @@ function resolveFileLinkSources(
 }
 
 function useChatMarkdownState({
+  allowInteractiveAnswers = false,
   text,
   inline = false,
   cwd,
@@ -676,6 +680,9 @@ function useChatMarkdownState({
   const openDeferredMarkdownLink = useOpenLink(threadRef);
   // Subscribe so hydrated settings apply before the anchor synchronously decides whether to intercept _blank.
   const linkTargetPreference = useClientSettings((settings) => settings.browserLinkTarget);
+  const interactiveAnswersEnabled = useClientSettings(
+    (settings) => settings.interactiveAnswersEnabled,
+  );
   const mathEnabled = useClientSettings((settings) => settings.mathRenderingEnabled);
   // Keyed by the file links found, not the text, so streamed text that adds none keeps the
   // renderer context, and every block reading it, unchanged.
@@ -893,6 +900,7 @@ function useChatMarkdownState({
   };
 
   const componentState = {
+    interactiveAnswersEnabled: allowInteractiveAnswers && interactiveAnswersEnabled,
     canOperateHost,
     canOperatePreview,
     cwd,
@@ -1571,6 +1579,7 @@ const CHAT_MARKDOWN_COMPONENTS = {
       onRunShellCommand,
       inline,
       mathEnabled,
+      interactiveAnswersEnabled,
     } = use(ChatMarkdownRendererContext);
     const text = use(ChatMarkdownTextContext);
     const codeBlock = extractCodeBlock(children);
@@ -1610,6 +1619,19 @@ const CHAT_MARKDOWN_COMPONENTS = {
         </Suspense>
       </RenderErrorBoundary>
     );
+    if (interactiveAnswersEnabled && !inline && isInteractiveAnswerLanguage(language)) {
+      return (
+        <InteractiveAnswerBlock
+          code={codeBlock.code}
+          title={fenceTitle ?? "交互预览"}
+          theme={resolvedTheme}
+          complete={isClosedCodeFence(node, text, codeBlock.code)}
+          streaming={isStreaming}
+        >
+          {highlightedCode}
+        </InteractiveAnswerBlock>
+      );
+    }
     if (language === "mermaid") {
       return (
         <MarkdownMermaidCodeBlock

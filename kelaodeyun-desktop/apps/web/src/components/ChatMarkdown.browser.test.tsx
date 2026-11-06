@@ -90,7 +90,10 @@ vi.mock(import("../hooks/useTheme"), async (original) => {
   };
 });
 
-const settingsOverrides = vi.hoisted(() => ({ mathRenderingEnabled: false }));
+const settingsOverrides = vi.hoisted(() => ({
+  mathRenderingEnabled: false,
+  interactiveAnswersEnabled: false,
+}));
 vi.mock(import("../hooks/useSettings"), async (original) => {
   const actual = await original();
   type Settings = ReturnType<typeof actual.getClientSettings>;
@@ -130,6 +133,7 @@ function setup() {
   appearance.value = "light";
   parsedSources.length = 0;
   settingsOverrides.mathRenderingEnabled = false;
+  settingsOverrides.interactiveAnswersEnabled = false;
   renderDiagram.mockReset();
   workspaceSearch.mockReset().mockResolvedValue(AsyncResult.success({ entries: [] }));
   filesystemMetadata.mockReset().mockResolvedValue(AsyncResult.success({ entries: [null] }));
@@ -457,4 +461,34 @@ describe("ChatMarkdown Windows file links", () => {
       expect(fileHrefs(container)).toEqual([]);
     }
   });
+});
+
+vi.mock(import("./chat/InteractiveAnswerPreview"), () => ({
+  default: () => <div data-testid="interactive-runtime">Preview runtime</div>,
+}));
+
+it("runs only enabled assistant previews after the special code fence closes", async () => {
+  setup();
+  const partial = '```ui4a/tsx title="长度"\nexport default () => <div>15 cm</div>;';
+  const complete = partial + "\n```";
+  const message = (text: string, allowInteractiveAnswers = true, isStreaming = false) => (
+    <ChatMarkdown
+      cwd="/tmp/project"
+      text={text}
+      allowInteractiveAnswers={allowInteractiveAnswers}
+      isStreaming={isStreaming}
+    />
+  );
+  await using screen = await render(message(complete));
+  await expect.element(screen.getByTestId("interactive-runtime")).not.toBeInTheDocument();
+  settingsOverrides.interactiveAnswersEnabled = true;
+  await screen.rerender(message(complete, false));
+  await expect.element(screen.getByTestId("interactive-runtime")).not.toBeInTheDocument();
+  await screen.rerender(message(partial, true, true));
+  await expect.element(screen.getByText("正在生成交互内容…")).toBeVisible();
+  await expect.element(screen.getByTestId("interactive-runtime")).not.toBeInTheDocument();
+  await screen.rerender(message(complete));
+  await expect.element(screen.getByTestId("interactive-runtime")).toBeVisible();
+  await screen.rerender(message(complete.replace("ui4a/tsx", "tsx")));
+  await expect.element(screen.getByTestId("interactive-runtime")).not.toBeInTheDocument();
 });

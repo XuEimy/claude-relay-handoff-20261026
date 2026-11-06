@@ -30,6 +30,20 @@ at the end, leave the block. **Backspace** at the start of a code block turns it
 back into plain lines. Choose the language in a code block's corner to change
 it. Very large code blocks are shown without syntax highlighting.
 
+## Interactive answers
+
+On web and desktop, enable **交互式回答 (Interactive answers)** in Settings →
+Appearance to run interactive illustrations inside assistant replies. Claude can
+include these when a slider, diagram, or calculation helps explain an answer.
+Ordinary code blocks remain code. Mobile displays the component source.
+
+Previews run locally after the component finishes generating. The runtime is
+bundled with the app; previewing does not send component source to an online
+service. Components support React, inline styles and SVG; external packages
+and network requests are unavailable. Turning this setting off shows source instead; it does not stop Claude
+from generating an illustration. Preview controls can pause or restart a
+component. Changes made inside a preview are temporary and reset when it reloads.
+
 ## Attach files
 
 Attach up to 100 files per message. Each image can be up to 10 MiB, with at most

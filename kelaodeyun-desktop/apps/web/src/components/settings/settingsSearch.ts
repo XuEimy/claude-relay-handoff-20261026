@@ -353,6 +353,12 @@ export const SETTINGS_SEARCH_ITEMS = [
     searchTerms: ["reasoning effort thinking bars graph word label level composer"],
   },
   {
+    id: "interactive-answers",
+    title: "交互式回答",
+    to: "/settings/appearance",
+    searchTerms: ["intelligent ui artifacts sandpack react preview 交互 预览 尺子"],
+  },
+  {
     id: "math-rendering",
     title: "渲染数学公式",
     to: "/settings/appearance",
@@ -1406,6 +1412,7 @@ const SETTINGS_ENGLISH_TITLES: Readonly<Record<string, string>> = {
   "chat-width": "Chat width",
   "thread-details-items": "Thread details",
   "effort-display": "Effort display",
+  "interactive-answers": "Interactive answers",
   "math-rendering": "Render math",
   "panel-animations": "Panel animations",
   "environment-identification": "Environment identification",

@@ -1,3 +1,4 @@
+import { INTERACTIVE_ANSWER_INSTRUCTIONS } from "./interactiveAnswerInstructions.ts";
 import * as DocumentText from "../../provider/DocumentText.ts";
 import { makeProviderTextDeltaCoalescer } from "./ProviderTextDeltaCoalescer.ts";
 import { claudeTaskOutputRoot, tailClaudeTaskOutput } from "./ClaudeTaskOutputTail.ts";
@@ -1659,6 +1660,7 @@ export function makeClaudeQueryOptions(input: {
               (deviceInstructions
                 ? `\n${T3_CODE_DEVICE_TOOL_INSTRUCTIONS_WITH_TOOL_SEARCH}\n`
                 : "")),
+        INTERACTIVE_ANSWER_INSTRUCTIONS,
         ...launchAppendSystemPrompt,
       ].join("\n\n"),
     },

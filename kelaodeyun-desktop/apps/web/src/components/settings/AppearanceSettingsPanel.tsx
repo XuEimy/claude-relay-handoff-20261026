@@ -324,6 +324,19 @@ export function AppearanceSettingsPanel() {
           }
         />
         <SettingsRow
+          {...searchableSetting("interactive-answers")}
+          description="在助手回答中预览可操作的图示与组件。组件在本地隔离环境运行，无需下载在线预览依赖；关闭后显示源码。"
+          control={
+            <Switch
+              checked={settings.interactiveAnswersEnabled}
+              onCheckedChange={(checked) =>
+                updateSettings({ interactiveAnswersEnabled: Boolean(checked) })
+              }
+              aria-label="交互式回答"
+            />
+          }
+        />
+        <SettingsRow
           {...searchableSetting("math-rendering")}
           description="在消息和 Markdown 预览中排版 LaTeX 公式，例如 $x^2$ 或 \\[x^2\\]。输入框仍保留可编辑的 TeX 源码。"
           resetAction={
