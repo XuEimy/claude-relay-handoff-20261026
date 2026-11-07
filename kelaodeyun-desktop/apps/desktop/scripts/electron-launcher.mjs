@@ -171,12 +171,23 @@ export function writeDevelopmentLauncherScript(targetBinaryPath, electronBinaryP
     NodeFS.existsSync(targetBinaryPath) &&
     NodeFS.readFileSync(targetBinaryPath, "utf8") === script
   ) {
-    NodeFS.chmodSync(targetBinaryPath, 0o755);
+    chmodLauncherExecutable(targetBinaryPath);
     return false;
   }
   NodeFS.writeFileSync(targetBinaryPath, script);
-  NodeFS.chmodSync(targetBinaryPath, 0o755);
+  chmodLauncherExecutable(targetBinaryPath);
   return true;
+}
+
+function chmodLauncherExecutable(targetBinaryPath) {
+  try {
+    NodeFS.chmodSync(targetBinaryPath, 0o755);
+  } catch (error) {
+    // Right after the app quits, macOS can still report the mapped launcher as
+    // locked (EPERM). If it is already executable the chmod is a no-op anyway.
+    if ((NodeFS.statSync(targetBinaryPath).mode & 0o111) !== 0) return;
+    throw error;
+  }
 }
 
 function registerMacLauncherBundle(appBundlePath) {
