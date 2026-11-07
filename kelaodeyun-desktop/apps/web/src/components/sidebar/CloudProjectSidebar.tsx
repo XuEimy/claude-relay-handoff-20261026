@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import type {
   EnvironmentId,
@@ -22,6 +22,7 @@ import {
   SquarePenIcon,
 } from "lucide-react";
 import { useProjects, useThreadShells } from "../../state/entities";
+import { useEnvironment } from "../../state/environments";
 import { SidebarInteractiveRow } from "./SidebarInteractiveRow";
 import { SidebarHeaderIconButton } from "./SidebarThreadHeader";
 import {
@@ -42,8 +43,10 @@ import {
   PROJECT_SESSION_PAGE,
 } from "./projectSessionPage";
 import { defaultCloudSidebarState, useCloudSidebarState } from "./cloudSidebarState";
-import { defaultComputerScope, projectInComputerScope } from "./computerPicker";
+import { defaultComputerScope, pathInside, projectInComputerScope } from "./computerPicker";
 import { useComputerScopeStore } from "./computerScopeStore";
+import { ComputerPickerDialog } from "./ComputerPickerDialog";
+import { useComputerStatus } from "./useComputerStatus";
 
 function AppThreadRow({
   thread,
@@ -202,6 +205,7 @@ export function CloudProjectSidebar({
   query,
   onAddProject,
   onNewThread,
+  onNewStandaloneThread,
   onTogglePin,
   onRenameThread,
   onArchiveThread,
@@ -214,6 +218,7 @@ export function CloudProjectSidebar({
   query: string;
   onAddProject: () => void;
   onNewThread: (project: ScopedProjectRef) => Promise<unknown>;
+  onNewStandaloneThread?: (() => Promise<unknown>) | undefined;
   onTogglePin: (thread: ScopedThreadRef, pinned: boolean) => void;
   onRenameThread: (thread: ScopedThreadRef, title: string, originalTitle: string) => void;
   onArchiveThread: (thread: ScopedThreadRef, title: string) => Promise<void>;
@@ -226,19 +231,55 @@ export function CloudProjectSidebar({
   const computerScope = useComputerScopeStore(
     (state) => state.byEnvironmentId[environmentId] ?? defaultComputerScope,
   );
-  const projects = useProjects().filter(
+  const requestAddProject = useComputerScopeStore((state) => state.requestAddProject);
+  const [computerPickerOpen, setComputerPickerOpen] = useState(false);
+  const environment = useEnvironment(environmentId);
+  const sshConnected =
+    environment?.connection.phase === "connected" &&
+    environment.entry.target._tag === "SshConnectionTarget";
+  const pickerAutoOpened = useRef(false);
+  // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- opens the computer picker once when a never-onboarded server first connects
+  useEffect(() => {
+    if (
+      pickerAutoOpened.current ||
+      !sshConnected ||
+      computerScope.selected ||
+      computerScope.onboarded
+    )
+      return;
+    pickerAutoOpened.current = true;
+    setComputerPickerOpen(true);
+  }, [sshConnected, computerScope.selected, computerScope.onboarded]);
+  const computerStatus = useComputerStatus(environmentId, computerScope.selected);
+  const allProjects = useProjects();
+  const projects = allProjects.filter(
     (project) =>
       project.environmentId === environmentId &&
+      !project.isScratch &&
       !project.archivedAt &&
       projectInComputerScope(project.workspaceRoot, computerScope) &&
       (!projectIds.length || projectIds.includes(project.id)),
   );
-  const threads = useThreadShells().filter(
-    (thread) =>
-      thread.environmentId === environmentId &&
-      !thread.archivedAt &&
-      projects.some((project) => project.id === thread.projectId),
+  const environmentThreads = useThreadShells().filter(
+    (thread) => thread.environmentId === environmentId && !thread.archivedAt,
   );
+  const threads = environmentThreads.filter((thread) =>
+    projects.some((project) => project.id === thread.projectId),
+  );
+  const looseThreads = environmentThreads.filter((thread) => {
+    if (threads.includes(thread)) return false;
+    const project = allProjects.find(
+      (item) => item.environmentId === environmentId && item.id === thread.projectId,
+    );
+    // Scratch threads run on the server, not on the selected computer.
+    if (project?.isScratch) return true;
+    const cwd = thread.worktreePath ?? project?.workspaceRoot;
+    if (!cwd) return true;
+    return (
+      projectInComputerScope(cwd, computerScope) &&
+      !projects.some((project) => pathInside(cwd, project.workspaceRoot))
+    );
+  });
   const { pinnedOpen, projectsOpen, recentOpen, expanded, visibleCounts } = useCloudSidebarState(
     (state) => state.byEnvironmentId[environmentId] ?? defaultCloudSidebarState,
   );
@@ -246,11 +287,11 @@ export function CloudProjectSidebar({
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const search = query.trim().toLowerCase();
-  const recent = threads
+  const recent = looseThreads
     .filter((thread) => !thread.pinnedAt && thread.title.toLowerCase().includes(search))
     .toSorted((a, b) => b.updatedAt.localeCompare(a.updatedAt))
     .slice(0, 30);
-  const pinned = threads.filter(
+  const pinned = [...threads, ...looseThreads].filter(
     (thread) => thread.pinnedAt && thread.title.toLowerCase().includes(search),
   );
   const newThread = async (projectId: ProjectId) => {
@@ -261,6 +302,23 @@ export function CloudProjectSidebar({
       setError(cause instanceof Error ? cause.message : "打开项目失败");
     }
   };
+  const newStandaloneThread = async () => {
+    if (!onNewStandaloneThread) return;
+    setError(null);
+    try {
+      await onNewStandaloneThread();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "新建会话失败");
+    }
+  };
+  const draftIsScratch =
+    draftProjectId !== undefined &&
+    allProjects.some(
+      (project) =>
+        project.environmentId === environmentId &&
+        project.id === draftProjectId &&
+        project.isScratch,
+    );
   const row = (thread: EnvironmentThreadShell) => {
     const project = projects.find((item) => item.id === thread.projectId);
     const actions = (
@@ -338,12 +396,25 @@ export function CloudProjectSidebar({
         </h3>
         <div hidden={!pinnedOpen}>{pinned.map(row)}</div>
       </section>
-      <section aria-label="云端项目">
+      <section aria-label={computerScope.selected ? `电脑 ${computerScope.selected.label}` : "云端项目"}>
         <div className="group/section mb-1 flex h-7 items-center justify-between pl-3 pr-1">
-          <h3>
+          <h3 className="flex min-w-0 items-center gap-1.5">
+            {computerScope.selected ? (
+              /* oxlint-disable-next-line t3code/no-native-title-tooltip -- Computer identity is required in the title. */
+              <button title={`电脑：${computerScope.selected.label}（${computerScope.selected.username}@${computerScope.selected.host}）`}
+                type="button"
+                className="flex min-w-0 items-center gap-2 text-xs font-black text-sidebar-foreground/80"
+                onClick={() => setComputerPickerOpen(true)}
+              >
+                <span className={`size-2 shrink-0 rounded-full ring-4 ${computerStatus === "connected" ? "bg-success ring-success/20" : computerStatus === "checking" ? "bg-warning ring-warning/20" : "bg-destructive ring-destructive/20"}`} />
+                <span className="truncate">{computerScope.selected.label}</span>
+                <span className="shrink-0 font-normal text-muted-foreground">{computerStatus === "connected" ? "已连接" : computerStatus === "checking" ? "检查中" : "无法连接"}</span>
+              </button>
+            ) : null}
             <button
               type="button"
               aria-expanded={projectsOpen}
+              aria-label={computerScope.selected ? "展开或收起电脑项目" : undefined}
               onClick={() =>
                 updateSidebar(environmentId, (state) => ({
                   ...state,
@@ -352,7 +423,7 @@ export function CloudProjectSidebar({
               }
               className="flex cursor-pointer items-center gap-1.5 rounded-sm py-1 text-xs font-black text-sidebar-foreground/80 transition-colors hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring"
             >
-              项目
+              {computerScope.selected ? null : "项目"}
               <ChevronRightIcon
                 aria-hidden="true"
                 className={`size-3 transition-transform motion-reduce:transition-none ${projectsOpen ? "rotate-90" : ""}`}
@@ -360,7 +431,7 @@ export function CloudProjectSidebar({
             </button>
           </h3>
           <span className="pointer-events-none opacity-0 transition-opacity group-hover/section:pointer-events-auto group-hover/section:opacity-100 group-has-[:focus-visible]/section:pointer-events-auto group-has-[:focus-visible]/section:opacity-100">
-            <SidebarHeaderIconButton label="添加云端项目" onClick={onAddProject}>
+            <SidebarHeaderIconButton label={computerScope.selected ? "添加项目" : "添加云端项目"} onClick={() => computerScope.selected ? requestAddProject(environmentId) : onAddProject()}>
               <PlusIcon />
             </SidebarHeaderIconButton>
           </span>
@@ -376,6 +447,7 @@ export function CloudProjectSidebar({
                 <div className="group/project relative flex items-center rounded-md">
                   <SidebarInteractiveRow
                     className="pr-9"
+                    title={computerScope.selected && computerScope.projectPaths?.[project.workspaceRoot] ? `${computerScope.selected.host}:${computerScope.projectPaths[project.workspaceRoot]}` : undefined}
                     aria-expanded={open}
                     onClick={() =>
                       updateSidebar(environmentId, (state) => ({
@@ -456,19 +528,22 @@ export function CloudProjectSidebar({
           </h3>
           <span className="pointer-events-none opacity-0 transition-opacity group-hover/section:pointer-events-auto group-hover/section:opacity-100 group-has-[:focus-visible]/section:pointer-events-auto group-has-[:focus-visible]/section:opacity-100">
             <SidebarHeaderIconButton
-              label="新建对话"
-              disabled={!currentProjectId}
-              onClick={() => {
-                if (currentProjectId) void newThread(currentProjectId);
-              }}
+              label="新建单独会话"
+              disabled={!onNewStandaloneThread}
+              onClick={() => void newStandaloneThread()}
             >
               <PlusIcon />
             </SidebarHeaderIconButton>
           </span>
         </div>
         <div hidden={!recentOpen}>
+          {draftIsScratch ? (
+            <SidebarInteractiveRow active aria-current="page">
+              <span className="truncate">新会话</span>
+            </SidebarInteractiveRow>
+          ) : null}
           {recent.map(row)}
-          {!recent.length ? (
+          {!recent.length && !draftIsScratch ? (
             <p className="px-3 py-2 text-xs text-muted-foreground">
               {search ? "未找到对话" : "暂无最近对话"}
             </p>
@@ -484,6 +559,7 @@ export function CloudProjectSidebar({
         已归档会话
       </button>
       {error ? <SidebarErrorDialog key={error} message={error} /> : null}
+      {computerPickerOpen ? <ComputerPickerDialog open onOpenChange={setComputerPickerOpen} /> : null}
     </div>
   );
 }

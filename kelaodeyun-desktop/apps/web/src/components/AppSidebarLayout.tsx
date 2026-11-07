@@ -1,4 +1,5 @@
 import { CloudConnectionGate } from "./sidebar/CloudConnectionGate";
+import { AccountGate } from "./sidebar/AccountGate";
 import { useAtomValue } from "@effect/atom-react";
 import * as Schema from "effect/Schema";
 import {
@@ -444,42 +445,44 @@ export function AppSidebarLayout({ children }: { children: ReactNode }) {
   } as CSSProperties;
 
   return (
-    <CloudConnectionGate>
-      <PanelAnimationSuppressionProvider value={panelAnimationsSuppressed}>
-        <SidebarProvider
-          className="h-dvh! min-h-0!"
-          data-panel-animations={routePanelAnimationsActive ? "true" : "false"}
-          defaultOpen
-          style={sidebarProviderStyle}
-        >
-          <SidebarBrandWidthProbe isElectron={isElectron} onWidthChange={setBrandWidth} />
-          <Sidebar
-            side="left"
-            collapsible="offcanvas"
-            data-app-sidebar=""
-            {...sidebarArea}
-            role="navigation"
-            aria-label="会话"
-            resizable={{
-              maxWidth: sidebarMaximumWidth,
-              minWidth: sidebarMinimumWidth,
-              shouldAcceptWidth: ({ currentWidth, nextWidth, wrapper }) =>
-                nextWidth <= currentWidth ||
-                wrapper.clientWidth - nextWidth >= THREAD_MAIN_CONTENT_MIN_WIDTH,
-              storageKey: THREAD_SIDEBAR_WIDTH_STORAGE_KEY,
-              onResize: setSidebarWidth,
-            }}
-            style={windowControlsInsetStyle}
+    <AccountGate>
+      <CloudConnectionGate>
+        <PanelAnimationSuppressionProvider value={panelAnimationsSuppressed}>
+          <SidebarProvider
+            className="h-dvh! min-h-0!"
+            data-panel-animations={routePanelAnimationsActive ? "true" : "false"}
+            defaultOpen
+            style={sidebarProviderStyle}
           >
-            <ThreadSidebar routeReveal={sidebarRouteReveal} />
-            <SidebarRail onDoubleClick={resetSidebarWidth} />
-          </Sidebar>
-          {children}
-          <BackgroundThreadAnnouncer />
-          <SidebarControl />
-          {isElectron ? <HistorySwipeNavigation /> : null}
-        </SidebarProvider>
-      </PanelAnimationSuppressionProvider>
-    </CloudConnectionGate>
+            <SidebarBrandWidthProbe isElectron={isElectron} onWidthChange={setBrandWidth} />
+            <Sidebar
+              side="left"
+              collapsible="offcanvas"
+              data-app-sidebar=""
+              {...sidebarArea}
+              role="navigation"
+              aria-label="会话"
+              resizable={{
+                maxWidth: sidebarMaximumWidth,
+                minWidth: sidebarMinimumWidth,
+                shouldAcceptWidth: ({ currentWidth, nextWidth, wrapper }) =>
+                  nextWidth <= currentWidth ||
+                  wrapper.clientWidth - nextWidth >= THREAD_MAIN_CONTENT_MIN_WIDTH,
+                storageKey: THREAD_SIDEBAR_WIDTH_STORAGE_KEY,
+                onResize: setSidebarWidth,
+              }}
+              style={windowControlsInsetStyle}
+            >
+              <ThreadSidebar routeReveal={sidebarRouteReveal} />
+              <SidebarRail onDoubleClick={resetSidebarWidth} />
+            </Sidebar>
+            {children}
+            <BackgroundThreadAnnouncer />
+            <SidebarControl />
+            {isElectron ? <HistorySwipeNavigation /> : null}
+          </SidebarProvider>
+        </PanelAnimationSuppressionProvider>
+      </CloudConnectionGate>
+    </AccountGate>
   );
 }

@@ -44,7 +44,7 @@ describe("ElectronProtocol", () => {
         clerkFrontendApiHostname: undefined,
       });
       const request = (pathname: string, init?: RequestInit) =>
-        Effect.promise(() => handler!(new Request(`kelaodeyun://app${pathname}`, init)));
+        Effect.promise(() => handler!(new Request(`agentcloudos://app${pathname}`, init)));
 
       const page = yield* request("/settings/connections");
       assert.equal(yield* Effect.promise(() => page.text()), "<html>app</html>");
@@ -78,7 +78,7 @@ describe("ElectronProtocol", () => {
         Effect.gen(function* () {
           const protocol = yield* ElectronProtocol.ElectronProtocol;
           yield* protocol.registerDesktopProtocol({
-            scheme: "kelaodeyun-dev",
+            scheme: "agentcloudos-dev",
             targetOrigin: new URL("http://127.0.0.1:3773/"),
             clerkFrontendApiHostname: "clerk.t3.codes",
           });
@@ -86,11 +86,11 @@ describe("ElectronProtocol", () => {
 
           const response = yield* Effect.promise(() =>
             handler!(
-              new Request("kelaodeyun-dev://app/api/health?verbose=1", {
+              new Request("agentcloudos-dev://app/api/health?verbose=1", {
                 headers: {
                   accept: "application/json",
-                  origin: "kelaodeyun-dev://app",
-                  referer: "kelaodeyun-dev://app/",
+                  origin: "agentcloudos-dev://app",
+                  referer: "agentcloudos-dev://app/",
                   "sec-fetch-site": "same-origin",
                 },
               }),
@@ -107,18 +107,18 @@ describe("ElectronProtocol", () => {
           );
           assert.include(
             response.headers.get("content-security-policy") ?? "",
-            "img-src 'self' kelaodeyun-dev: blob: data: http: https:",
+            "img-src 'self' agentcloudos-dev: blob: data: http: https:",
           );
           assert.include(
             response.headers.get("content-security-policy") ?? "",
-            "font-src 'self' kelaodeyun-dev: data:",
+            "font-src 'self' agentcloudos-dev: data:",
           );
         }),
       );
 
       assert.deepEqual(
         handleMock.mock.calls.map((call) => call[0]),
-        ["kelaodeyun-dev"],
+        ["agentcloudos-dev"],
       );
       assert.equal(netFetchMock.mock.calls[0]?.[0], "http://127.0.0.1:3773/api/health?verbose=1");
       const forwardedHeaders = new Headers(netFetchMock.mock.calls[0]?.[1]?.headers);
@@ -126,7 +126,7 @@ describe("ElectronProtocol", () => {
       assert.isNull(forwardedHeaders.get("origin"));
       assert.isNull(forwardedHeaders.get("referer"));
       assert.isNull(forwardedHeaders.get("sec-fetch-site"));
-      assert.deepEqual(unhandleMock.mock.calls, [["kelaodeyun-dev"]]);
+      assert.deepEqual(unhandleMock.mock.calls, [["agentcloudos-dev"]]);
     }).pipe(Effect.provide(layerProtocol)),
   );
 
@@ -142,14 +142,16 @@ describe("ElectronProtocol", () => {
         Effect.gen(function* () {
           const protocol = yield* ElectronProtocol.ElectronProtocol;
           yield* protocol.registerDesktopProtocol({
-            scheme: "kelaodeyun-dev",
+            scheme: "agentcloudos-dev",
             targetOrigin: new URL("http://127.0.0.1:5733/"),
             clerkFrontendApiHostname: undefined,
           });
           yield* Effect.promise(() =>
-            handler!(new Request("kelaodeyun-dev://app//example.com/src/main.tsx?t=1")),
+            handler!(new Request("agentcloudos-dev://app//example.com/src/main.tsx?t=1")),
           );
-          yield* Effect.promise(() => handler!(new Request("kelaodeyun-dev://app/\\example.com/")));
+          yield* Effect.promise(() =>
+            handler!(new Request("agentcloudos-dev://app/\\example.com/")),
+          );
         }),
       );
 
@@ -178,7 +180,7 @@ describe("ElectronProtocol", () => {
             targetOrigin: new URL("http://127.0.0.1:3773/"),
             clerkFrontendApiHostname: undefined,
           });
-          return yield* Effect.promise(() => handler!(new Request("kelaodeyun://other/")));
+          return yield* Effect.promise(() => handler!(new Request("agentcloudos://other/")));
         }),
       );
 

@@ -133,7 +133,7 @@ function useFetchedTurnItem(
         item !== wireItem
           ? null
           : detail.data?.item === null
-            ? "Output is no longer available."
+            ? "输出已不可用。"
             : detail.error,
       empty: fetches && item !== wireItem,
     },

@@ -46,17 +46,17 @@ import { searchableSetting } from "./settingsSearch";
 const MODE_OPTIONS: Record<SourceControlWritingStyleMode, { label: string; description: string }> =
   {
     repo_conventions: {
-      label: "Repository conventions",
-      description: "In each project, matches recent change descriptions and change request titles.",
+      label: "仓库约定",
+      description: "在各项目中遵循最近的变更描述和变更请求标题风格。",
     },
     conventional_commits: {
       label: "Conventional Commits",
-      description: "Use Conventional Commit prefixes and keep change request text concise.",
+      description: "使用 Conventional Commit 前缀，保持变更请求文案简洁。",
     },
     custom: {
-      label: "Custom instructions",
+      label: "自定义要求",
       description:
-        "Use your instructions for change descriptions and change requests in every project.",
+        "在所有项目中按照你的要求编写变更描述和变更请求。",
     },
   };
 
@@ -172,7 +172,7 @@ export function SourceControlWritingSettingsSection() {
   );
 
   return (
-    <SettingsSection id="source-control-text-generation" title="Writing & review">
+    <SettingsSection id="source-control-text-generation" title="编写与审查">
       <SettingsRow
         serverScoped
         settingKeys={["sourceControlWritingStyle"]}
@@ -182,7 +182,7 @@ export function SourceControlWritingSettingsSection() {
         resetAction={
           isSourceControlWritingStyleDirty ? (
             <SettingResetButton
-              label="source control writing style"
+              label="源代码管理文案风格"
               onClick={() =>
                 updateSettings({
                   sourceControlWritingStyle: {
@@ -210,7 +210,7 @@ export function SourceControlWritingSettingsSection() {
             <SelectTrigger size="sm" className="w-full sm:w-56" aria-label="源代码管理文案风格">
               <SelectValue>
                 {(value: SourceControlWritingStyleMode | null) =>
-                  value === null ? "Mixed" : MODE_OPTIONS[value].label
+                  value === null ? "不一致" : MODE_OPTIONS[value].label
                 }
               </SelectValue>
             </SelectTrigger>
@@ -232,8 +232,8 @@ export function SourceControlWritingSettingsSection() {
                   value={allInstructions ?? ""}
                   onChange={(event) => setAllInstructions(event.target.value)}
                   rows={4}
-                  aria-label="Custom source control instructions for all selected environments"
-                  placeholder="Write the instructions each selected environment should use."
+                  aria-label="所有选中环境的自定义源代码管理要求"
+                  placeholder="输入所有选中环境应使用的要求。"
                 />
                 <Button
                   size="sm"
@@ -250,7 +250,7 @@ export function SourceControlWritingSettingsSection() {
                     setEditingAllInstructions(false);
                   }}
                 >
-                  Apply instructions to all
+                  将要求应用到全部环境
                 </Button>
               </>
             ) : (
@@ -262,7 +262,7 @@ export function SourceControlWritingSettingsSection() {
                   setEditingAllInstructions(true);
                 }}
               >
-                Write custom instructions for all
+                为全部环境编写自定义要求
               </Button>
             )}
           </div>
@@ -279,8 +279,8 @@ export function SourceControlWritingSettingsSection() {
                 }
               }}
               rows={4}
-              placeholder="Keep titles concise. Use short bullet points in descriptions."
-              aria-label="Custom source control writing instructions"
+              placeholder="保持标题简洁，在描述中使用简短的项目符号。"
+              aria-label="自定义源代码管理文案要求"
             />
           </div>
         ) : null}
@@ -291,13 +291,13 @@ export function SourceControlWritingSettingsSection() {
         settingKeys={["reviewGuidesEnabled"]}
         mixed={mixedReviewGuidesEnabled}
         {...searchableSetting("review-guides")}
-        description="Add a Guide tab to pull requests. An agent explains the changes and points out decisions that need review."
+        description="在拉取请求中添加指南标签，由智能体解释更改并指出需要审查的决定。"
         control={
           <Switch
             mixed={mixedReviewGuidesEnabled}
             checked={mixedReviewGuidesEnabled ? false : settings.reviewGuidesEnabled}
             onCheckedChange={(checked) => updateSettings({ reviewGuidesEnabled: Boolean(checked) })}
-            aria-label="Review guides"
+            aria-label="审查指南"
           />
         }
       />
@@ -308,11 +308,11 @@ export function SourceControlWritingSettingsSection() {
             serverScoped
             settingKeys={["reviewGuideModelSelection"]}
             {...searchableSetting("review-guide-model")}
-            description="Model that reads a pull request to write its review guide. It reads the change itself over many steps, so a stronger model helps. Off uses the source control writer model."
+            description="读取拉取请求并编写审查指南的模型。此过程需要多步阅读更改，建议使用更强的模型。关闭时使用源代码管理文案模型。"
             control={
               !hasServerTargets ? (
                 <span className="text-sm text-muted-foreground">
-                  Connect an environment to choose its review guide model.
+                  连接环境后可选择其审查指南模型。
                 </span>
               ) : (
                 <div className="flex flex-wrap items-center justify-end gap-2">
@@ -326,14 +326,14 @@ export function SourceControlWritingSettingsSection() {
                       modelOptionsByInstance={reviewGuideModelOptionsByInstance}
                       triggerClassName={SETTINGS_PICKER_TRIGGER_CLASSNAME}
                       triggerAriaLabel="审查指南模型"
-                      {...(mixedReviewGuideModel ? { triggerLabel: "Mixed" } : {})}
+                      {...(mixedReviewGuideModel ? { triggerLabel: "不一致" } : {})}
                       getModelDisabledReason={writerModelDisabledReason}
                       onInstanceModelChange={(instanceId, model) => {
                         const reason = writerModelDisabledReason(instanceId, model);
                         if (reason) {
                           toastManager.add({
                             type: "error",
-                            title: "Review guide model not saved",
+                            title: "审查指南模型未保存",
                             description: reason,
                           });
                           return;
@@ -385,7 +385,7 @@ export function SourceControlWritingSettingsSection() {
                       if (reason) {
                         toastManager.add({
                           type: "error",
-                          title: "Review guide model not saved",
+                          title: "审查指南模型未保存",
                           description: reason,
                         });
                         return;
@@ -398,7 +398,7 @@ export function SourceControlWritingSettingsSection() {
                         ),
                       });
                     }}
-                    aria-label="Use a separate review guide model"
+                    aria-label="使用单独的审查指南模型"
                   />
                 </div>
               )
@@ -409,11 +409,11 @@ export function SourceControlWritingSettingsSection() {
             serverScoped
             settingKeys={["reviewGuideInstructions"]}
             {...searchableSetting("review-guide-instructions")}
-            description="Your preferences for review guides: what to show first, dwell on, or skip. The guide's format and coverage stay the same."
+            description="设置审查指南的侧重点，例如优先显示、详细说明或跳过的内容。指南的格式和覆盖范围不变。"
             resetAction={
               mixedReviewGuideInstructions || settings.reviewGuideInstructions !== "" ? (
                 <SettingResetButton
-                  label="review guide instructions"
+                  label="审查指南要求"
                   onClick={() => updateSettings({ reviewGuideInstructions: "" })}
                 />
               ) : null
@@ -430,8 +430,8 @@ export function SourceControlWritingSettingsSection() {
                 defaultValue={mixedReviewGuideInstructions ? "" : settings.reviewGuideInstructions}
                 placeholder={
                   mixedReviewGuideInstructions
-                    ? "Mixed. Enter instructions to apply to all selected targets."
-                    : "Show service interfaces before implementations. Skip test files unless they change behavior. Keep summaries to two sentences."
+                    ? "设置不一致。输入要求以应用到所有选中目标。"
+                    : "先展示服务接口，再展示实现。除非改变行为，否则跳过测试文件。摘要不超过两句话。"
                 }
                 onBlur={(event) => {
                   const value = event.target.value.trim();
@@ -458,12 +458,12 @@ export function SourceControlWritingSettingsSection() {
           settingKeys={["sourceControlWritingStyle"]}
           mixed={templatesMixed}
           {...searchableSetting("follow-change-request-templates")}
-          description="Use the repository's template for change request descriptions when available."
+          description="有仓库模板时，使用它编写变更请求描述。"
           resetAction={
             templatesMixed ||
             style.followChangeRequestTemplates !== defaults.followChangeRequestTemplates ? (
               <SettingResetButton
-                label="change request templates"
+                label="变更请求模板"
                 onClick={() =>
                   updateSettings({
                     sourceControlWritingStyle: {
@@ -494,11 +494,11 @@ export function SourceControlWritingSettingsSection() {
           serverScoped
           settingKeys={["sourceControlWriterModelSelection"]}
           {...searchableSetting("source-control-writer-model")}
-          description="Model for source control text and branch or bookmark names. When disabled, use the text generation model configured for this environment."
+          description="用于生成源代码管理文案以及分支或书签名称的模型。关闭时使用此环境配置的文本生成模型。"
           control={
             !hasServerTargets ? (
               <span className="text-sm text-muted-foreground">
-                Connect an environment to choose its source control writer model.
+                连接环境后可选择其源代码管理文案模型。
               </span>
             ) : (
               <div className="flex flex-wrap items-center justify-end gap-2">
@@ -515,7 +515,7 @@ export function SourceControlWritingSettingsSection() {
                     modelOptionsByInstance={modelOptionsByInstance}
                     triggerClassName={SETTINGS_PICKER_TRIGGER_CLASSNAME}
                     triggerAriaLabel="源代码管理文案模型"
-                    {...(mixedWriterModel ? { triggerLabel: "Mixed" } : {})}
+                    {...(mixedWriterModel ? { triggerLabel: "不一致" } : {})}
                     {...(environmentId
                       ? {
                           onOpenProviderSetup: (instanceId: ProviderInstanceId) => {
@@ -532,7 +532,7 @@ export function SourceControlWritingSettingsSection() {
                       if (reason) {
                         toastManager.add({
                           type: "error",
-                          title: "Source control writer model not saved",
+                          title: "源代码管理文案模型未保存",
                           description: reason,
                         });
                         return;
@@ -582,7 +582,7 @@ export function SourceControlWritingSettingsSection() {
                         : null,
                     })
                   }
-                  aria-label="Use a separate source control writer model"
+                  aria-label="使用单独的源代码管理文案模型"
                 />
               </div>
             )

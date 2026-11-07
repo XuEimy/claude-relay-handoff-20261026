@@ -35,6 +35,7 @@ import {
   TerminalIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { APP_BASE_NAME } from "../../branding";
 
 import { TYPOGRAPHY_ADVANCED_STORAGE_KEY } from "../../appearanceFonts";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
@@ -239,12 +240,12 @@ export function WelcomeWizard({
         initialFocus={() => document.getElementById("onboarding-pairing-url") ?? true}
       >
         <WizardHeader
-          title="设置 kelaodeyun"
+          title={`设置 ${APP_BASE_NAME}`}
           identity={
-            <div className="flex items-baseline gap-1.5" role="img" aria-label="kelaodeyun">
+            <div className="flex items-baseline gap-1.5" role="img" aria-label={APP_BASE_NAME}>
               <BrandMark className="h-4 w-auto shrink-0" aria-hidden />
               <span className="text-2xl font-medium tracking-tight text-muted-foreground">
-                kelaodeyun
+                {APP_BASE_NAME}
               </span>
             </div>
           }
@@ -442,7 +443,7 @@ function ConnectionStep({
       ) : null}
       <div className="mt-6 flex flex-col-reverse gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
         <p className="min-w-0 text-xs leading-relaxed text-muted-foreground">
-          {telemetryOff ?? "kelaodeyun collects anonymous usage data to help us improve it."}{" "}
+          {telemetryOff ?? `${APP_BASE_NAME} 收集匿名使用数据，帮助我们改进产品。`}{" "}
           了解数据的使用方式
           {telemetryOff === undefined ? " and how to opt out" : ""}，请参阅{" "}
           <a
@@ -505,14 +506,14 @@ function ConnectAccountOption({
           }
         >
           <CloudIcon className="size-4 text-muted-foreground" />
-          <span className="flex-1 text-left">T3 Connect</span>
+          <span className="flex-1 text-left">云中继</span>
           <span className="text-xs text-muted-foreground">
             {!isLoaded
-              ? "Loading sign-in…"
+              ? "正在加载登录状态…"
               : !isSignedIn
                 ? "登录"
                 : !discoveryReady
-                  ? "Loading computers…"
+                  ? "正在加载电脑…"
                   : null}
           </span>
           <ChevronRightIcon
@@ -537,7 +538,7 @@ function ConnectAccountOption({
             <p className="text-sm text-muted-foreground">在每台需要连接的设备上运行此命令。</p>
             <CommandBlock command="npx t3 connect" className="mt-3" />
             <p className="mt-3 text-xs text-muted-foreground">
-              保持 kelaodeyun 运行，并在上方选择需要配置的设备。
+              保持 {APP_BASE_NAME} 运行，并在上方选择需要配置的设备。
             </p>
           </div>
         </CollapsiblePanel>
@@ -643,7 +644,7 @@ function PairingForm({
           </div>
           <CollapsiblePanel>
             <p className="pt-3 text-sm text-muted-foreground">
-              在存放代码的设备上启动 kelaodeyun，或运行{" "}
+              在存放代码的设备上启动 {APP_BASE_NAME}，或运行{" "}
               <code className="font-mono">npx t3 serve</code>，然后运行：
             </p>
             <CommandBlock command="npx t3 pair" className="mt-2" />

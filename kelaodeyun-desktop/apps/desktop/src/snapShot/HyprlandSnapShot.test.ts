@@ -105,7 +105,7 @@ it("does not overwrite a linked executable", async () => {
   const executable = hyprlandCaptureExecutable(paths);
   await NodeFSP.mkdir(NodePath.dirname(executable), { recursive: true });
   await NodeFSP.symlink(paths.bundle, executable);
-  await expect(setup.perform("install-hyprland-helper")).rejects.toThrow("not a link");
+  await expect(setup.perform("install-hyprland-helper")).rejects.toThrow("不能是链接");
   expect(await NodeFSP.readFile(paths.bundle, "utf8")).toBe("bundled executable");
 });
 it.each([true, false])("uses the active config syntax and user bindings (Lua: %s)", async (lua) => {

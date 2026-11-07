@@ -251,9 +251,9 @@ async function mountImport(remote = false) {
       </RegistryContext.Provider>,
     ),
   );
-  await click("Continue");
-  await click("Continue");
-  expect(pageText()).toContain("Import your projects");
+  await click("继续");
+  await click("继续");
+  expect(pageText()).toContain("导入项目");
   stack.move();
   return screen;
 }
@@ -295,24 +295,24 @@ function setup() {
 it("keeps the project selection after going back a stage", async () => {
   using _now = setup();
   await using _screen = await mountImport();
-  await click("Select none");
+  await click("取消全选");
   expect(pageText()).toContain("0 of 2 selected");
 
-  await clickStage("Agents, step 2");
-  await click("Continue");
-  expect(pageText()).toContain("Import your projects");
+  await clickStage("智能体, step 2");
+  await click("继续");
+  expect(pageText()).toContain("导入项目");
   expect(pageText()).toContain("0 of 2 selected");
 });
 
 it("ticks the recent projects of a computer added after the selection changed", async () => {
   using _now = setup();
   await using _screen = await mountImport();
-  await click("Select none");
+  await click("取消全选");
 
   state.addedEnvironments = ["remote"];
-  await clickStage("Connect, step 1");
-  await click("Continue");
-  await click("Continue");
+  await clickStage("连接, step 1");
+  await click("继续");
+  await click("继续");
   expect(pageText()).toContain("2 of 4 selected");
 
   await click("Import 2 projects");

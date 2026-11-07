@@ -224,11 +224,11 @@ describe("PreviewView", () => {
       await input.fill(address);
       await userEvent.keyboard("{Enter}");
 
-      await expect.element(page.getByText("Could not open this address")).toBeVisible();
-      await expect.element(page.getByText("Enter an http or https URL.")).toBeVisible();
+      await expect.element(page.getByText("无法打开此地址")).toBeVisible();
+      await expect.element(page.getByText("请输入 http 或 https URL。")).toBeVisible();
       expect(mocks.navigate).not.toHaveBeenCalled();
       expect(mocks.recordVisitForThread).not.toHaveBeenCalled();
-      await userEvent.click(page.getByRole("button", { name: "Dismiss notification" }));
+      await userEvent.click(page.getByRole("button", { name: "关闭通知" }));
     },
   );
 

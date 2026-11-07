@@ -98,8 +98,8 @@ export const ThreadErrorBanner = memo(function ThreadErrorBanner({
               <p className="font-medium">已达到 ChatGPT 用量限制</p>
               <p>
                 {workspaceLimit
-                  ? "You've reached your workspace's limit for using your ChatGPT plan in other apps. Copy a request to ask your workspace admin for increased usage limits."
-                  : "Review your usage settings in ChatGPT."}
+                  ? "你的工作区已达到在其他应用中使用 ChatGPT 套餐的用量上限。请复制请求并发送给工作区管理员，以提高用量上限。"
+                  : "请在 ChatGPT 中查看用量设置。"}
               </p>
             </div>
           ) : (

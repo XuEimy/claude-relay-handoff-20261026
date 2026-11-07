@@ -172,7 +172,7 @@ describe("DesktopRemoteUpdates", () => {
 
           assert.deepEqual(
             terminalReports(reports).map((report) => [report.outcome, report.reason]),
-            [["failed", "The desktop app found no build of 1.2.4-nightly.20261027.1."]],
+            [["failed", "桌面应用未找到 1.2.4-nightly.20261027.1 的构建版本。"]],
           );
           // The saved track is the user's intent; a retry picks it up from here.
           assert.equal((yield* updates.getState).channel, "nightly");
@@ -265,7 +265,7 @@ describe("DesktopRemoteUpdates", () => {
           terminalReports(reports).map((report) => report.outcome),
           ["failed"],
         );
-        assert.include(terminalReports(reports)[0]?.reason ?? "", "Switch it on that machine");
+        assert.include(terminalReports(reports)[0]?.reason ?? "", "请在该设备上切换");
         assert.equal((yield* updates.getState).channel, "latest");
       }),
     );
@@ -290,7 +290,7 @@ describe("DesktopRemoteUpdates", () => {
 
         assert.deepEqual(
           terminalReports(reports).map((report) => [report.outcome, report.reason]),
-          [["failed", "The desktop app found no build of 1.2.5."]],
+          [["failed", "桌面应用未找到 1.2.5 的构建版本。"]],
         );
       }),
     );
@@ -318,7 +318,7 @@ describe("DesktopRemoteUpdates", () => {
         // Still on Nightly, though the target is numbered below this build.
         assert.deepEqual(
           terminalReports(reports).map((report) => [report.outcome, report.reason]),
-          [["failed", "The desktop app found no build of 1.2.3."]],
+          [["failed", "桌面应用未找到 1.2.3 的构建版本。"]],
         );
       }),
     );

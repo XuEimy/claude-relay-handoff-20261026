@@ -1,4 +1,5 @@
 // @effect-diagnostics nodeBuiltinImport:off -- GNOME's per-user installation is a native adapter boundary.
+import { APP_BASE_NAME } from "../app/DesktopBranding.ts";
 // @effect-diagnostics globalTimers:off -- Bound calls into the user's desktop session.
 import * as NodeFSP from "node:fs/promises";
 import * as NodePath from "node:path";
@@ -47,14 +48,16 @@ export async function installGnomeCaptureBundle({ bundle, dataHome }: SetupPaths
   });
   if (existing && (!existing.isDirectory() || existing.isSymbolicLink()))
     throw new Error(
-      "The extension installation is not a regular directory. Manage it in GNOME Extensions instead.",
+      "扩展安装位置不是普通目录，请改在 GNOME Extensions 中管理。",
     );
   if (existing) {
     const installed = decodeMetadata(
       await NodeFSP.readFile(NodePath.join(target, "metadata.json"), "utf8"),
     );
     if (installed.version > metadata.version)
-      throw new Error("A newer extension is installed. Update kelaodeyun instead of replacing it.");
+      throw new Error(
+        `A newer extension is installed. Update ${APP_BASE_NAME} instead of replacing it.`,
+      );
   }
   const staged = await NodeFSP.mkdtemp(NodePath.join(parent, ".t3-capture-install-"));
   let backup: string | undefined;
@@ -169,53 +172,50 @@ export class GnomeCaptureSetup {
       if (!bundled["shell-version"].includes(major))
         return {
           status: "unsupported",
-          message: `The bundled extension supports GNOME ${bundled["shell-version"].join(", ")}. This session runs GNOME ${major}.`,
+          message: `内置扩展支持 GNOME ${bundled["shell-version"].join(", ")}，当前会话运行的是 GNOME ${major}。`,
         };
       if (!info.state && !installed)
         return {
           status: "not-installed",
           message:
-            "Install the bundled extension to capture the active window without a picker. No download or administrator password is needed.",
+            "安装内置扩展后可无需选择器截取当前窗口，无需下载或管理员密码。",
         };
       if (installed && (!info.state || (info.version && installed.version > info.version.value)))
         return {
           status: "restart-required",
-          message:
-            "Installed. Save your work, sign out of GNOME and sign back in, then return here to enable the extension. Restarting kelaodeyun alone is not enough.",
+          message: `已安装。请保存工作，注销并重新登录 GNOME，然后返回此处启用扩展。仅重启 ${APP_BASE_NAME} 不足以完成设置。`,
         };
       if ((installed?.version ?? info.version?.value ?? 0) < bundled.version)
         return {
           status: "update-required",
           message:
-            "A newer extension is bundled with this app. Install it, then sign out and back in to load the update.",
+            "此应用内置了较新的扩展，请安装后注销并重新登录以加载更新。",
         };
       if (!properties.UserExtensionsEnabled.value)
         return {
           status: "extensions-disabled",
-          message:
-            "GNOME has disabled user extensions. Turn on Extensions in the GNOME Extensions app, then check again. kelaodeyun will not enable your other extensions for you.",
+          message: `GNOME 已禁用用户扩展，请在 GNOME Extensions 应用中启用扩展后重新检查。${APP_BASE_NAME} 不会替你启用其他扩展。`,
         };
       if (info.state?.value === 1)
         return {
           status: "enabled",
-          message: "The kelaodeyun extension is running. Active-window snapshots are available.",
+          message: `${APP_BASE_NAME} 扩展正在运行，可以截取当前窗口。`,
         };
       if (info.state?.value === 3 || info.state?.value === 4)
         return {
           status: "error",
           message:
             info.error?.value ||
-            "GNOME could not load the extension. Check GNOME Extensions for details, or sign out and back in.",
+            "GNOME 无法加载扩展，请在 GNOME Extensions 中查看详情，或注销并重新登录。",
         };
       return {
         status: "disabled",
-        message:
-          "Enable the kelaodeyun extension to allow active-window snapshots. You can disable it here at any time.",
+        message: `启用 ${APP_BASE_NAME} 扩展以允许截取当前窗口，你可以随时在此禁用它。`,
       };
     } catch (error) {
       return {
         status: "error",
-        message: error instanceof Error ? error.message : "Could not check GNOME extension setup.",
+        message: error instanceof Error ? error.message : "无法检查 GNOME 扩展设置。",
       };
     }
   }

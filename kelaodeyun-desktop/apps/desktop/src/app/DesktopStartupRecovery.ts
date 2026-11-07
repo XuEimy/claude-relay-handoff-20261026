@@ -81,30 +81,30 @@ const actionLink = (action: StartupRecoveryAction, label: string, primary = fals
 function describeOffer(offer: StartupRecoveryOffer): { text: string; action: string } {
   switch (offer._tag) {
     case "Checking":
-      return { text: "Checking for a newer version…", action: "" };
+      return { text: "正在检查新版本…", action: "" };
     case "Update":
       return {
-        text: `Version ${offer.version} is available. It can contain a fix.`,
-        action: actionLink("update", `Update to ${offer.version}`, true),
+        text: `版本 ${offer.version} 已可用，可能包含修复。`,
+        action: actionLink("update", `更新至 ${offer.version}`, true),
       };
     case "Downloading":
       return {
-        text: `Downloading ${offer.version}${offer.percent === null ? "" : ` (${Math.floor(offer.percent / 10) * 10}%)`}. kelaodeyun restarts when the download is done.`,
+        text: `正在下载 ${offer.version}${offer.percent === null ? "" : ` (${Math.floor(offer.percent / 10) * 10}%)`}。下载完成后 ${DesktopEnvironment.APP_BASE_NAME} 将重启。`,
         action: "",
       };
     case "Reinstall":
       return {
-        text: `Version ${offer.version} started correctly on this computer. Download it and install it to go back.`,
-        action: actionLink("reinstall", `Download ${offer.version}`, true),
+        text: `版本 ${offer.version} 曾在此设备上正常启动。下载并安装该版本以回退。`,
+        action: actionLink("reinstall", `下载 ${offer.version}`, true),
       };
     case "Releases":
       return {
-        text: "Get a different version from the releases page.",
-        action: actionLink("releases", "Open releases", true),
+        text: "从发布页面获取其他版本。",
+        action: actionLink("releases", "打开发布页面", true),
       };
     case "ManagedPolicy":
       return {
-        text: "Your organization's managed policy stopped kelaodeyun from starting. Send the details below to your IT administrator.",
+        text: `组织的管理策略阻止了 ${DesktopEnvironment.APP_BASE_NAME} 启动。请将以下详情发送给 IT 管理员。`,
         action: "",
       };
   }
@@ -118,7 +118,7 @@ function buildStartupRecoveryHtml(input: {
 }): string {
   const offer = describeOffer(input.offer);
   const output = input.failure.output.trim();
-  return `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'"><title>kelaodeyun could not start</title><style>
+  return `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'"><title>${DesktopEnvironment.APP_BASE_NAME} 无法启动</title><style>
 :root{color-scheme:light dark;--bg:#fff;--fg:#111;--muted:#666;--line:#ddd;--code:#f4f4f4}
 @media (prefers-color-scheme:dark){:root{--bg:#000;--fg:#fff;--muted:#999;--line:#333;--code:#111}}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--fg)}
@@ -129,12 +129,12 @@ h1{font-size:18px;margin:0}p{margin:0}.muted{color:var(--muted)}
 .button.primary{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 pre{flex:1;min-height:60px;margin:0;overflow:auto;background:var(--code);border:1px solid var(--line);border-radius:6px;padding:10px;font:11px/1.4 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word}
 </style></head><body>
-<h1>kelaodeyun could not start</h1>
+<h1>${DesktopEnvironment.APP_BASE_NAME} 无法启动</h1>
 <p>${escapeHtml(input.failure.reason)}</p>
 <p>${escapeHtml(offer.text)}</p>
-<div class="actions">${offer.action}${actionLink("copy", "Copy details")}${actionLink("quit", "Quit")}</div>
-<pre>${escapeHtml(output.length > 0 ? output : "The server wrote no output.")}</pre>
-<p class="muted">Version ${escapeHtml(input.appVersion)}. kelaodeyun tries again in the background. Logs: ${escapeHtml(input.logDir)}</p>
+<div class="actions">${offer.action}${actionLink("copy", "复制详情")}${actionLink("quit", "退出")}</div>
+<pre>${escapeHtml(output.length > 0 ? output : "服务器没有输出。")}</pre>
+<p class="muted">版本 ${escapeHtml(input.appVersion)}。${DesktopEnvironment.APP_BASE_NAME} 将在后台重试。日志：${escapeHtml(input.logDir)}</p>
 </body></html>`;
 }
 
@@ -233,7 +233,7 @@ export const listen: Effect.Effect<
         const failure = yield* Ref.get(failureRef);
         if (Option.isNone(failure)) return;
         yield* electronShell.copyText(
-          `kelaodeyun ${environment.appVersion} (${environment.platform} ${environment.processArch}) could not start.\n${failure.value.reason}\n\n${failure.value.output}`,
+          `${DesktopEnvironment.APP_BASE_NAME} ${environment.appVersion}（${environment.platform} ${environment.processArch}）无法启动。\n${failure.value.reason}\n\n${failure.value.output}`,
         );
         return;
       }
@@ -268,7 +268,7 @@ export const listen: Effect.Effect<
           minWidth: 420,
           minHeight: 320,
           show: false,
-          title: "kelaodeyun could not start",
+          title: `${DesktopEnvironment.APP_BASE_NAME} 无法启动`,
           autoHideMenuBar: true,
           backgroundColor: shouldUseDarkColors ? "#000000" : "#ffffff",
           webPreferences: {

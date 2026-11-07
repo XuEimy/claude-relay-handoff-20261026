@@ -1,4 +1,5 @@
 import { settlePromise } from "@t3tools/client-runtime/state/runtime";
+import { APP_BASE_NAME } from "~/branding";
 import { useState } from "react";
 
 import {
@@ -23,7 +24,7 @@ export function NotificationSettings() {
       {...searchableSetting("thread-notifications")}
       description={
         permissionMessage ??
-        "会话完成、失败或需要输入、批准时发送系统通知。仅在 kelaodeyun 运行时作用于当前设备。"
+        `会话完成、失败或需要输入、批准时发送系统通知。仅在 ${APP_BASE_NAME} 运行时作用于当前设备。`
       }
       control={
         <Select
@@ -42,7 +43,7 @@ export function NotificationSettings() {
             if (hasDesktopNotifications(value)) {
               if (typeof Notification === "undefined" || !window.isSecureContext) {
                 setPermissionMessage(
-                  "Notifications need a supported browser over HTTPS, or the desktop app. Sound only is still available.",
+                  "通知需要使用支持 HTTPS 的浏览器或桌面应用，仍可仅使用提示音。",
                 );
                 return;
               }
@@ -51,13 +52,13 @@ export function NotificationSettings() {
               setRequesting(false);
               if (permission._tag === "Failure") {
                 setPermissionMessage(
-                  "Notifications are unavailable in this browser. Sound only is still available.",
+                  "此浏览器不支持通知，仍可仅使用提示音。",
                 );
                 return;
               }
               if (permission.value !== "granted") {
                 setPermissionMessage(
-                  "Allow notifications in your browser or system settings, then choose this option again. Sound only is still available.",
+                  "请在浏览器或系统设置中允许通知，然后重新选择此选项。仍可仅使用提示音。",
                 );
                 return;
               }

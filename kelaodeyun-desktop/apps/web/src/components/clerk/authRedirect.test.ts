@@ -6,12 +6,12 @@ describe("resolveClerkSignInProps", () => {
   it("removes a Clerk virtual pathname and callback params while preserving the desktop route", () => {
     expect(
       resolveClerkSignInProps(
-        "kelaodeyun://app/CLERK-ROUTER/VIRTUAL/sign-up?__clerk_status=complete#/settings/connections",
+        "agentcloudos://app/CLERK-ROUTER/VIRTUAL/sign-up?__clerk_status=complete#/settings/connections",
         true,
       ),
     ).toEqual({
-      forceRedirectUrl: "kelaodeyun://app/#/settings/connections",
-      signUpForceRedirectUrl: "kelaodeyun://app/#/settings/connections",
+      forceRedirectUrl: "agentcloudos://app/#/settings/connections",
+      signUpForceRedirectUrl: "agentcloudos://app/#/settings/connections",
     });
   });
 });

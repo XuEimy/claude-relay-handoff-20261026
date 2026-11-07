@@ -1949,8 +1949,12 @@ const makeSshEnvironmentManager = Effect.fn("ssh/tunnel.SshEnvironmentManager.ma
             operation: input.operation,
             contentsBase64: input.contentsBase64,
             computer: input.computer,
+            path: input.path,
           }),
           sensitiveStdin: input.computer?.password !== undefined,
+          ...(input.operation.startsWith("computer-") && input.computer?.password === undefined
+            ? { multiplex: true }
+            : {}),
           timeoutMs: 300_000,
         }),
     });

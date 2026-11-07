@@ -142,7 +142,7 @@ async function fetchGuestHistoryPage(
   shareId: string,
   cursor: string,
 ): Promise<OrchestrationV2ThreadHistoryPage | string> {
-  const failed = "Could not load earlier turns. Try again.";
+  const failed = "无法加载较早的对话，请重试。";
   try {
     const response = await fetch(
       `${GUEST_HISTORY_ROUTE}?${GUEST_SHARE_PARAM}=${encodeURIComponent(shareId)}&cursor=${encodeURIComponent(cursor)}`,
@@ -156,7 +156,7 @@ async function fetchGuestHistoryPage(
     }
     return Option.getOrElse(decodeHistoryPage(json), () => failed);
   } catch {
-    return "Could not reach the server.";
+    return "无法连接服务器。";
   }
 }
 
@@ -179,11 +179,11 @@ async function postGuest(
     if (response.ok) return null;
     const json: unknown = await response.json().catch(() => null);
     return Option.match(decodeErrorBody(json), {
-      onNone: () => "Something went wrong. Try again.",
+      onNone: () => "发生错误，请重试。",
       onSome: ({ message }) => message,
     });
   } catch {
-    return "Could not reach the server.";
+    return "无法连接服务器。";
   }
 }
 
@@ -250,8 +250,8 @@ export function GuestPage() {
         <GuestSession shareId={shareId} />
       ) : (
         <Notice
-          title="This link has ended or is not valid"
-          detail="Ask the owner for a new link. Each link works in one browser."
+          title="此链接已结束或无效"
+          detail="请向所有者申请新链接。每个链接只能在一个浏览器中使用。"
         />
       )}
     </div>
@@ -318,7 +318,7 @@ function GuestSession({ shareId }: { readonly shareId: string }) {
   }, [shareId]);
 
   if (stream.ended || (rejected && stream.view !== null)) {
-    return <Notice title="This link has ended" detail="The owner stopped sharing this thread." />;
+    return <Notice title="此链接已结束" detail="所有者已停止共享此会话。" />;
   }
   if (stream.view !== null) {
     if (stream.projection === null) return <Notice title="正在连接…" />;
@@ -334,8 +334,8 @@ function GuestSession({ shareId }: { readonly shareId: string }) {
   if (!rejected) return <Notice title="正在连接…" />;
   return (
     <Notice
-      title="This link has ended or is not valid"
-      detail="Ask the owner for a new link. Each link works in one browser."
+      title="此链接已结束或无效"
+      detail="请向所有者申请新链接。每个链接只能在一个浏览器中使用。"
     />
   );
 }
@@ -371,9 +371,9 @@ function NameForm({
   };
   return (
     <form className="m-auto flex w-full max-w-xs flex-col gap-3 p-6" onSubmit={submit}>
-      <h1 className="text-base font-medium">Join a shared thread</h1>
+      <h1 className="text-base font-medium">加入共享会话</h1>
       <label className="flex flex-col gap-1.5 text-sm" htmlFor="guest-name">
-        Your name
+        你的名字
         <Input
           id="guest-name"
           autoFocus
@@ -389,10 +389,10 @@ function NameForm({
         </p>
       ) : null}
       <Button type="submit" disabled={submitting || name.trim() === ""}>
-        Join
+        加入
       </Button>
       <p className="text-xs text-muted-foreground">
-        The owner sees your name and approves each message before the agent gets it.
+        所有者会看到你的名字，并在智能体收到消息前逐条审核。
       </p>
     </form>
   );
@@ -626,7 +626,7 @@ function GuestModelLabel({ model }: { readonly model: GuestThreadModel }) {
   return (
     <ComposerControl
       render={<span />}
-      aria-label={`Model: ${fullLabel}`}
+      aria-label={`模型：${fullLabel}`}
       className="pointer-events-none min-w-0 shrink"
     >
       {model.driver === null ? null : (
@@ -735,7 +735,7 @@ function GuestComposer({
         void send();
       }}
       onDragOver={(event) => {
-        if (event.dataTransfer.types.includes("文件")) event.preventDefault();
+        if (event.dataTransfer.types.includes("Files")) event.preventDefault();
       }}
       onDrop={(event) => {
         if (event.dataTransfer.files.length === 0) return;
@@ -744,7 +744,7 @@ function GuestComposer({
       }}
     >
       {files.length > 0 ? (
-        <ul className="flex flex-wrap gap-2" aria-label="Attached files">
+        <ul className="flex flex-wrap gap-2" aria-label="已附加文件">
           {files.map((staged) => (
             <li
               key={staged.key}
@@ -766,7 +766,7 @@ function GuestComposer({
               <Button
                 size="icon-xs"
                 variant="ghost-muted"
-                aria-label={`Remove ${staged.file.name}`}
+                aria-label={`移除 ${staged.file.name}`}
                 onClick={() => {
                   setError(null);
                   setFiles((current) => current.filter((candidate) => candidate !== staged));
@@ -795,7 +795,7 @@ function GuestComposer({
           type="file"
           multiple
           hidden
-          aria-label="Files to attach"
+          aria-label="要附加的文件"
           onChange={(event) => {
             addFiles(Array.from(event.target.files ?? []));
             // The same file can be picked again after it is removed.
@@ -812,7 +812,7 @@ function GuestComposer({
           </p>
         ) : (
           <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-            The owner approves each message
+            所有者会审核每条消息
           </p>
         )}
         <button

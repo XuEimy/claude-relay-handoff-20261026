@@ -168,7 +168,7 @@ it("rechecks task access after confirming deletion", async () => {
     grants.scopes.delete("orchestration:operate");
     return true;
   });
-  await screen.click("Delete");
+  await screen.click("删除");
   expect(commands.delete).not.toHaveBeenCalled();
 });
 
@@ -206,11 +206,11 @@ it.each(["Save", "Disable"])("keeps other provider edits through a %s refetch", 
       value: action === "Save" ? { configured: true } : { disabled: true },
     })),
   );
-  await screen.click(action);
-  expect(screen.button("Refresh").disabled).toBe(true);
+  await screen.click(action === "Save" ? "保存" : "禁用");
+  expect(screen.button("刷新").disabled).toBe(true);
   await act(async () => resolveMutation());
   for (const button of screen.container.querySelectorAll<HTMLButtonElement>("button")) {
-    if (button.textContent === "Save" || button.textContent === "Disable") {
+    if (button.textContent === "保存" || button.textContent === "禁用") {
       expect(button.disabled).toBe(true);
     }
   }
@@ -220,7 +220,7 @@ it.each(["Save", "Disable"])("keeps other provider edits through a %s refetch", 
   expect(input("other base URL").value).toBe("https://newer.example.test/v1");
   expect(input("other write-only headers JSON").value).toBe('{"X-Test":"unsaved"}');
   expect(input("google write-only headers JSON").value).toBe("");
-  await screen.click("Refresh");
+  await screen.click("刷新");
   expect(input("other base URL").value).toBe("https://api.example.test/v1");
   expect(input("other write-only headers JSON").value).toBe("");
 });

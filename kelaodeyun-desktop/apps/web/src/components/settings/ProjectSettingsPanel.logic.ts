@@ -2,7 +2,7 @@ import type { ProjectIconOverride } from "@t3tools/contracts";
 
 import type { Project } from "../../types";
 
-export const SCRATCH_PROJECT_TITLE = "无项目";
+export const SCRATCH_PROJECT_TITLE = "No project";
 const SCRATCH_PROJECT_ICON = {
   kind: "lucide",
   name: "message-square-dashed",

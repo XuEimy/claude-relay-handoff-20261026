@@ -74,7 +74,7 @@ const checkForUpdatesFromMenu = Effect.gen(function* () {
     yield* electronDialog.showMessageBox({
       type: "info",
       title: "已是最新版本",
-      message: `kelaodeyun ${updateState.currentVersion} 已是最新版本。`,
+      message: `${DesktopEnvironment.APP_BASE_NAME} ${updateState.currentVersion} 已是最新版本。`,
       buttons: ["确定"],
     });
   } else if (updateState.status === "error") {

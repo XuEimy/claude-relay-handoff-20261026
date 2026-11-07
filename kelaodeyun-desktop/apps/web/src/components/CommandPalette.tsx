@@ -1,4 +1,5 @@
 import { threadPullRequestLinkMode } from "@t3tools/client-runtime/thread-pull-request-compatibility";
+import { APP_BASE_NAME } from "~/branding";
 import { visibleThreadPullRequests } from "@t3tools/shared/threadPullRequests";
 
 import {
@@ -724,7 +725,7 @@ function OpenCommandPaletteDialog(props: {
   const isBrowsePending = hasBrowseTarget && (browseAccess.isPending || browseQuery.isPending);
   const browseAccessError =
     hasBrowseTarget && !browseAccess.isPending && !browseAccess.canReadFiles
-      ? (browseAccess.error ?? "This connection cannot browse host folders.")
+      ? (browseAccess.error ?? "此连接无法浏览主机文件夹。")
       : null;
   const browseEntries = browseResult?.entries ?? EMPTY_BROWSE_ENTRIES;
   const { visibleEntries: visibleBrowseEntries, exactEntry: exactBrowseEntry } =
@@ -1033,11 +1034,11 @@ function OpenCommandPaletteDialog(props: {
 
     for (const source of orderedSources) {
       const label = addProjectRemoteSourceLabel(source);
-      const title = source === "url" ? "Git URL" : `${label} repository`;
+      const title = source === "url" ? "Git URL" : `${label} 仓库`;
       const description =
         source === "url"
-          ? "Clone from a remote URL"
-          : `Clone ${label} ${addProjectRemoteSourcePathHint(source)}`;
+          ? "从远程 URL 克隆"
+          : `克隆 ${label} ${addProjectRemoteSourcePathHint(source)}`;
       const readiness = readinessBySource(source);
       const disabledHint = readiness.hint;
 
@@ -1058,7 +1059,7 @@ function OpenCommandPaletteDialog(props: {
               }
             />
             <TooltipPopup align="end" side="left">
-              {disabledHint ?? "Open Settings -> Source control to configure this provider."}
+              {disabledHint ?? "打开设置中的源代码管理，配置此服务。"}
             </TooltipPopup>
           </Tooltip>
         </span>
@@ -1104,7 +1105,7 @@ function OpenCommandPaletteDialog(props: {
         stackedThreadToast({
           type: "error",
           title: "环境不可用",
-          description: `${environment?.label ?? "The selected environment"} is not connected.`,
+          description: `${environment?.label ?? "所选环境"}未连接。`,
         }),
       );
       return;
@@ -1133,7 +1134,7 @@ function OpenCommandPaletteDialog(props: {
     title: option.label,
     description: option.isConnected
       ? option.isPrimary
-        ? "This device"
+        ? "此设备"
         : option.environmentId
       : option.status,
     disabled: !option.isConnected,
@@ -1293,7 +1294,7 @@ function OpenCommandPaletteDialog(props: {
       value: "action:triage",
       searchTerms: ["triage", "bug", "issue", "report", "broken", "debug", "help", "support"],
       title: "排查问题",
-      description: "让智能体排查 kelaodeyun 问题并协助提交反馈",
+      description: `让智能体排查 ${APP_BASE_NAME} 问题并协助提交反馈`,
       icon: <BugIcon className={ITEM_ICON_CLASS} />,
       run: () => startTriage(triageEnvironmentId),
     });
@@ -1412,8 +1413,8 @@ function OpenCommandPaletteDialog(props: {
     actionItems.push({
       kind: "action",
       value: "action:open-server-desktop",
-      searchTerms: ["desktop", "remote", "vnc", "chrome", "login", "桌面"],
-      title: "打开服务器桌面",
+      searchTerms: ["desktop", "remote", "vnc", "chrome", "login", "桌面", "云电脑"],
+      title: "打开云电脑",
       icon: <MonitorIcon className={ITEM_ICON_CLASS} />,
       run: async () => {
         useRightPanelStore.getState().open(threadRef, "server-desktop");
@@ -1645,7 +1646,7 @@ function OpenCommandPaletteDialog(props: {
       kind: "action",
       value: "action:project-pin",
       searchTerms: ["pin", "unpin", "project", "favorite"],
-      title: currentProjectGroup.pinned ? "Unpin project" : "置顶项目",
+      title: currentProjectGroup.pinned ? "取消置顶项目" : "置顶项目",
       description: currentProjectGroup.displayName,
       icon: currentProjectGroup.pinned ? (
         <PinOffIcon className={ITEM_ICON_CLASS} />
@@ -1695,7 +1696,7 @@ function OpenCommandPaletteDialog(props: {
     value: `setting:${item.id}`,
     searchTerms: [item.title, SETTINGS_SECTION_LABELS[item.to], ...(item.searchTerms ?? [])],
     title: item.title,
-    description: `Settings · ${SETTINGS_SECTION_LABELS[item.to]}`,
+    description: `设置 · ${SETTINGS_SECTION_LABELS[item.to]}`,
     ...(item.secondary ? { secondary: true } : {}),
     icon: <SettingsIcon className={ITEM_ICON_CLASS} />,
     run: async () => {
@@ -1789,7 +1790,7 @@ function OpenCommandPaletteDialog(props: {
         stackedThreadToast({
           type: "error",
           title: "环境不可用",
-          description: `${environment?.label ?? "The selected environment"} is not connected.`,
+          description: `${environment?.label ?? "所选环境"}未连接。`,
         }),
       );
       return;
@@ -1831,7 +1832,7 @@ function OpenCommandPaletteDialog(props: {
         void updateProject({
           environmentId: existing.environmentId,
           input: { projectId: existing.id, archived: false },
-        }).then((result) => reportProjectFailure("Failed to unarchive project", result));
+        }).then((result) => reportProjectFailure("恢复项目失败", result));
       }
       const latestThread = getLatestThreadForProject(
         threads.filter((thread) => thread.environmentId === existing.environmentId),
@@ -1855,7 +1856,7 @@ function OpenCommandPaletteDialog(props: {
             stackedThreadToast({
               type: "error",
               title: "打开项目失败",
-              description: error instanceof Error ? error.message : "An error occurred.",
+              description: error instanceof Error ? error.message : "发生错误。",
             }),
           );
           return;
@@ -1893,7 +1894,7 @@ function OpenCommandPaletteDialog(props: {
           stackedThreadToast({
             type: "error",
             title: "添加项目失败",
-            description: error instanceof Error ? error.message : "An error occurred.",
+            description: error instanceof Error ? error.message : "发生错误。",
           }),
         );
       }
@@ -1909,7 +1910,7 @@ function OpenCommandPaletteDialog(props: {
         stackedThreadToast({
           type: "error",
           title: "添加项目失败",
-          description: error instanceof Error ? error.message : "An error occurred.",
+          description: error instanceof Error ? error.message : "发生错误。",
         }),
       );
       return;
@@ -1972,7 +1973,7 @@ function OpenCommandPaletteDialog(props: {
         stackedThreadToast({
           type: "error",
           title: "环境不可用",
-          description: `${browseEnvironment?.label ?? "The selected environment"} is not connected.`,
+          description: `${browseEnvironment?.label ?? "所选环境"}未连接。`,
         }),
       );
       return;
@@ -2147,7 +2148,7 @@ function OpenCommandPaletteDialog(props: {
         stackedThreadToast({
           type: "error",
           title: "打开项目失败",
-          description: error instanceof Error ? error.message : "An error occurred.",
+          description: error instanceof Error ? error.message : "发生错误。",
         }),
       );
     }
@@ -2303,13 +2304,13 @@ function OpenCommandPaletteDialog(props: {
                 searchTerms: [],
                 title:
                   newProjectPublishTargets.length > 1
-                    ? "Create private repository"
-                    : `Create private repository on ${newProjectPublishTarget.definition.label}`,
+                    ? "创建私有仓库"
+                    : `在 ${newProjectPublishTarget.definition.label} 上创建私有仓库`,
                 description:
                   newProjectName.length > 0
                     ? getNewProjectRepository(newProjectPublishTarget, newProjectPathPreview)
                     : (newProjectPublishTarget.owner ??
-                      `Your ${newProjectPublishTarget.definition.label} account`),
+                      `你的 ${newProjectPublishTarget.definition.label} 账户`),
                 icon: sourceControlHostIcon(newProjectPublishTarget.definition, ITEM_ICON_CLASS),
                 titleTrailingContent: (
                   <span className="ms-auto flex items-center gap-2">
@@ -2388,10 +2389,10 @@ function OpenCommandPaletteDialog(props: {
   const submitModifierLabel = useMetaForMod ? "\u2318" : "Ctrl";
   const submitActionLabel = isCloneDestinationStep
     ? willCreateProjectPath
-      ? "Create & Clone"
+      ? "创建并克隆"
       : "克隆"
     : willCreateProjectPath
-      ? "Create & Add"
+      ? "创建并添加"
       : "添加";
   const addShortcutLabel = hasHighlightedBrowseItem ? `${submitModifierLabel} Enter` : "Enter";
   const hasHighlightedNewProjectItem = newProjectFlow !== null && highlightedItemValue !== null;
@@ -2401,7 +2402,7 @@ function OpenCommandPaletteDialog(props: {
   const remoteProjectButtonLabel = addProjectCloneFlow
     ? addProjectCloneFlow.source === "url"
       ? "继续"
-      : "Lookup"
+      : "查找"
     : null;
   const isRemoteProjectPending = isRemoteProjectLookingUp || isRemoteProjectCloning;
   const canSubmitRemoteProjectFlow =
@@ -2628,7 +2629,7 @@ function OpenCommandPaletteDialog(props: {
         stackedThreadToast({
           type: "error",
           title: "无法执行命令",
-          description: error instanceof Error ? error.message : "An unexpected error occurred.",
+          description: error instanceof Error ? error.message : "发生意外错误。",
         }),
       );
     });
@@ -2730,10 +2731,10 @@ function OpenCommandPaletteDialog(props: {
   const inputAccessory =
     newProjectFlow !== null ? (
       <CommandPaletteSubmitButton
-        label={isCreatingNewProject ? "Creating" : "创建"}
+        label={isCreatingNewProject ? "正在创建" : "创建"}
         shortcutLabel={createShortcutLabel}
-        ariaLabel={`Create (${createShortcutLabel})`}
-        tooltip={`Create (${createShortcutLabel})`}
+        ariaLabel={`创建 (${createShortcutLabel})`}
+        tooltip={`创建 (${createShortcutLabel})`}
         disabled={!canSubmitNewProject}
         onSubmit={() => {
           void submitNewProject();
@@ -2786,12 +2787,12 @@ function OpenCommandPaletteDialog(props: {
       ? highlightedItemValue === null
         ? "创建"
         : highlightedItemValue === newProjectPublishToggleValue
-          ? "Toggle"
-          : "Select"
+          ? "切换"
+          : "选择"
       : addProjectCloneFlow?.step === "repository"
         ? (remoteProjectButtonLabel ?? "继续")
         : !canSubmitBrowsePath || hasHighlightedBrowseItem
-          ? "Select"
+          ? "选择"
           : undefined;
 
   const footerTrailing = canOpenProjectFromFileManager ? (
@@ -2801,7 +2802,7 @@ function OpenCommandPaletteDialog(props: {
         void handleOpenProjectFromFileManager();
       }}
     >
-      {`Open in ${fileManagerName}`}
+      {`在 ${fileManagerName} 中打开`}
     </CommandFooterAction>
   ) : isThreadSearchPending && !isLinkedThreadSearch && !isBrowsing ? (
     // In the footer, so the list keeps its height while message results may
@@ -2900,16 +2901,16 @@ function OpenCommandPaletteDialog(props: {
           ? {
               emptyStateMessage:
                 addProjectCloneFlow.source === "url"
-                  ? "Enter a Git clone URL and press Enter to continue."
-                  : "Enter a repository path and press Enter to look it up.",
+                  ? "输入 Git 克隆 URL，按 Enter 继续。"
+                  : "输入仓库路径，按 Enter 查找。",
             }
           : addProjectCloneFlow?.step === "confirm"
-            ? { emptyStateMessage: "Choose a destination path and press Enter to clone." }
+            ? { emptyStateMessage: "选择目标路径，按 Enter 克隆。" }
             : relativePathNeedsActiveProject
               ? { emptyStateMessage: "使用相对路径前，请先打开项目。" }
               : willCreateProjectPath
                 ? {
-                    emptyStateMessage: "Press Enter to create this folder and add it as a project.",
+                    emptyStateMessage: "按 Enter 创建此文件夹并将其添加为项目。",
                   }
                 : isThreadSearchPending
                   ? { emptyStateMessage: "正在搜索会话消息…" }

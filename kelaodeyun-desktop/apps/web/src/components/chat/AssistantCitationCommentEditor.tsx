@@ -48,7 +48,7 @@ export function AssistantCitationCommentEditor({
       <textarea
         ref={inputRef}
         aria-label="评论选中文字"
-        aria-description="Enter to save the citation comment; Command/Ctrl+Enter to save and send; Shift+Enter for a new line."
+        aria-description="Enter 保存引用评论；Command/Ctrl+Enter 保存并发送；Shift+Enter 换行。"
         aria-invalid={commentTooLong || undefined}
         placeholder="添加评论（可选）…"
         rows={2}

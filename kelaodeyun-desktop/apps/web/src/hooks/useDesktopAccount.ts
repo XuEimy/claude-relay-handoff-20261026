@@ -1,8 +1,14 @@
 import type { DesktopAccountHost, DesktopAccountState } from "@t3tools/contracts";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+const SIGNED_OUT: DesktopAccountState = { status: "signed-out" };
+
 export function useDesktopAccount() {
-  const [state, setState] = useState<DesktopAccountState>({ status: "signed-out" });
+  return useDesktopAccountStatus() ?? SIGNED_OUT;
+}
+
+export function useDesktopAccountStatus() {
+  const [state, setState] = useState<DesktopAccountState | null>(null);
   const bridge = window.desktopBridge;
   // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- listens to account changes from the desktop main process
   useEffect(() => {
@@ -18,7 +24,9 @@ export function useDesktopAccount() {
       .then((next) => {
         if (alive && !changed) setState(next);
       })
-      .catch(() => {});
+      .catch(() => {
+        if (alive && !changed) setState({ status: "signed-out" });
+      });
     return () => {
       alive = false;
       unsubscribe();

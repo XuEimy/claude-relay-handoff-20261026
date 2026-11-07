@@ -31,8 +31,8 @@ export function loadBalancingSendWarning(input: {
   return {
     title: "选择设备后继续",
     description: noMachineReadsEveryThread
-      ? "No machine can read every attached thread. Choose a machine in the composer or remove the threads."
-      : "No eligible machine has available resources. Choose a machine in the composer to override.",
+      ? "没有设备能读取所有附加的会话，请在输入框中选择设备或移除这些会话。"
+      : "没有符合条件的设备拥有可用资源，请在输入框中选择设备以覆盖自动选择。",
   };
 }
 
@@ -68,14 +68,14 @@ export function approvalRedirectNotice(input: {
 }): string | null {
   if (input.draftChanged) {
     return input.declined
-      ? "Approval declined. Your message changed, so it wasn't sent."
-      : "Your message changed, so it wasn't sent.";
+      ? "已拒绝审批。消息已更改，因此未发送。"
+      : "消息已更改，因此未发送。";
   }
   if (input.approvalResponding) {
-    return "An approval is already being answered, so your message wasn't sent.";
+    return "已有审批正在处理，因此消息未发送。";
   }
   if (input.declined && input.approvalArrived) {
-    return "Another approval arrived, so your message wasn't sent.";
+    return "收到了新的审批，因此消息未发送。";
   }
   return null;
 }

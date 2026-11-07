@@ -16,6 +16,7 @@ import * as Layer from "effect/Layer";
 
 import * as DesktopManagedPolicy from "../app/DesktopManagedPolicy.ts";
 import * as DesktopObservability from "../app/DesktopObservability.ts";
+import { APP_BASE_NAME } from "../app/DesktopBranding.ts";
 
 export interface UpdatePolicy {
   readonly mode: ManagedUpdatesMode;
@@ -76,7 +77,7 @@ const make = Effect.gen(function* () {
             mode: "off",
             feedUrl: undefined,
             allowNightly: false,
-            message: `Updates are off because kelaodeyun cannot use the managed policy at ${error.path}. Contact your administrator.`,
+            message: `由于 ${APP_BASE_NAME} 无法使用 ${error.path} 中的托管策略，更新已关闭。请联系管理员。`,
           }),
         ),
     }),

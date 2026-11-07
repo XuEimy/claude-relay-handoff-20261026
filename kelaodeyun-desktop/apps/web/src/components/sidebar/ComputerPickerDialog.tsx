@@ -1,9 +1,12 @@
-import type { DesktopSshFileOperation, DesktopSshEnvironmentTarget } from "@t3tools/contracts";
+import { scopeProjectRef } from "@t3tools/client-runtime/environment";
 import * as Option from "effect/Option";
 import { CheckIcon, MonitorIcon, RefreshCwIcon, ServerIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { useStableCallback } from "../../hooks/useStableCallback";
+import { useNewThreadHandler } from "../../hooks/useHandleNewThread";
+import { readProjects } from "../../state/entities";
+import { useUiStateStore } from "../../uiStateStore";
 import { Button } from "../ui/button";
 import {
   Dialog,
@@ -17,6 +20,10 @@ import { Input } from "../ui/input";
 import { Spinner } from "../ui/spinner";
 import { defaultComputerScope, type ComputerSelection } from "./computerPicker";
 import { useComputerScopeStore } from "./computerScopeStore";
+import {
+  runComputerOperation as runOperation,
+  type ComputerResult,
+} from "./computerOperations";
 import { useActiveSshEnvironment } from "./useActiveSshEnvironment";
 import { useEnterEnvironmentWorkspace } from "./useEnterEnvironmentWorkspace";
 
@@ -31,26 +38,7 @@ interface Peer {
 }
 interface SavedComputer extends ComputerSelection {
   os: string;
-}
-type Failure = { ok: false; error: string; message: string; state?: string | null };
-type Result<T> = ({ ok: true } & T) | Failure;
-type ComputerInput = NonNullable<DesktopSshFileOperation["computer"]>;
-
-async function runOperation<T>(
-  target: DesktopSshEnvironmentTarget,
-  operation: DesktopSshFileOperation["operation"],
-  computer?: ComputerInput,
-): Promise<Result<T>> {
-  const operationBridge = window.desktopBridge?.sshFileOperation;
-  if (!operationBridge) throw new Error("SSH 操作不可用");
-  const output = await operationBridge({
-    target,
-    cwd: "~",
-    relativePath: "",
-    operation,
-    ...(computer ? { computer } : {}),
-  });
-  return JSON.parse(output) as Result<T>;
+  projects?: { dir: string; remotePath: string }[];
 }
 
 const normalizeHost = (value: string) => value.trim().toLowerCase().replace(/\.$/u, "");
@@ -82,7 +70,9 @@ export function ComputerPickerDialog({
       : defaultComputerScope,
   );
   const updateScope = useComputerScopeStore((state) => state.update);
+  const requestAddProject = useComputerScopeStore((state) => state.requestAddProject);
   const enterWorkspace = useEnterEnvironmentWorkspace();
+  const openThread = useNewThreadHandler();
   const [peers, setPeers] = useState<Peer[]>([]);
   const [computers, setComputers] = useState<SavedComputer[]>([]);
   const [loading, setLoading] = useState(false);
@@ -90,6 +80,13 @@ export function ComputerPickerDialog({
   const [error, setError] = useState<string | null>(null);
   const [errorRow, setErrorRow] = useState<string | null>(null);
   const [tailError, setTailError] = useState<string | null>(null);
+  const [tailscaleIssue, setTailscaleIssue] = useState<"missing" | "stopped" | null>(null);
+  const [tailscaleLogin, setTailscaleLogin] = useState<
+    | { phase: "idle" }
+    | { phase: "busy" }
+    | { phase: "waiting"; url: string }
+    | { phase: "error"; message: string }
+  >({ phase: "idle" });
   const [form, setForm] = useState<{ peer: Peer } | null>(null);
   const [username, setUsername] = useState("root");
   const [password, setPassword] = useState("");
@@ -107,6 +104,7 @@ export function ComputerPickerDialog({
     setComputers([]);
     setErrorRow(null);
     setTailError(null);
+    setTailscaleIssue(null);
     setError(null);
     const [list, tail] = await Promise.allSettled([
       runOperation<{ root: string; computers: SavedComputer[] }>(target, "computer-list"),
@@ -115,7 +113,12 @@ export function ComputerPickerDialog({
     if (current !== refreshGeneration.current) return;
     if (list.status === "fulfilled" && list.value.ok) {
       setComputers(list.value.computers);
-      updateScope(active.environmentId, { computersRoot: list.value.root });
+      updateScope(active.environmentId, {
+        computersRoot: list.value.root,
+        projectPaths: Object.fromEntries(list.value.computers.flatMap((computer) =>
+          (computer.projects ?? []).map((project) => [project.dir, project.remotePath]),
+        )),
+      });
     } else {
       setComputers([]);
       setError(
@@ -126,28 +129,16 @@ export function ComputerPickerDialog({
     }
     if (tail.status === "fulfilled" && tail.value.ok) {
       setPeers(tail.value.peers);
+      setTailscaleIssue(null);
     } else {
       setPeers([]);
-      if (
-        tail.status === "fulfilled" &&
-        !tail.value.ok &&
-        tail.value.error === "tailscale-missing"
-      ) {
-        setTailError(
-          "服务器上未检测到 Tailscale。请在服务器上执行 `curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up` 后刷新。",
-        );
-      } else if (
-        tail.status === "fulfilled" &&
-        !tail.value.ok &&
-        tail.value.error === "tailscale-stopped"
-      ) {
-        setTailError(`服务器上的 Tailscale 未连接（状态：${tail.value.state ?? "未知"}）`);
+      const failure = tail.status === "fulfilled" && !tail.value.ok ? tail.value : null;
+      if (failure?.error === "tailscale-missing" || failure?.error === "tailscale-stopped") {
+        setTailscaleIssue(failure.error === "tailscale-missing" ? "missing" : "stopped");
+        setTailError(null);
       } else {
-        setTailError(
-          tail.status === "fulfilled" && !tail.value.ok
-            ? tail.value.message
-            : "无法读取服务器上的 Tailscale 状态",
-        );
+        setTailscaleIssue(null);
+        setTailError(failure ? failure.message : "无法读取服务器上的 Tailscale 状态");
       }
     }
     setLoading(false);
@@ -161,6 +152,67 @@ export function ComputerPickerDialog({
     };
   }, [open, connected, targetKey, active?.environmentId, refresh]);
 
+  const watchTailnet = useStableCallback((current: number) => {
+    function poll() {
+      window.setTimeout(() => {
+        void (async () => {
+          if (current !== generation.current || !target) return;
+          try {
+            const result = await runOperation<{ peers: Peer[] }>(target, "computer-peers");
+            if (current !== generation.current) return;
+            if (result.ok) {
+              void refresh();
+              return;
+            }
+          } catch {
+            // keep polling while the dialog stays open
+          }
+          if (current === generation.current) poll();
+        })();
+      }, 3000);
+    }
+    poll();
+  });
+  const startTailscaleLogin = useStableCallback(() => {
+    if (!target || pending) return;
+    const current = ++generation.current;
+    setTailscaleLogin({ phase: "busy" });
+    const attempt = async (): Promise<void> => {
+      if (current !== generation.current) return;
+      let result: ComputerResult<{ state?: string; url?: string }>;
+      try {
+        result = await runOperation<{ state?: string; url?: string }>(
+          target,
+          "computer-tailscale-login",
+        );
+      } catch {
+        if (current === generation.current)
+          setTailscaleLogin({ phase: "error", message: "无法在服务器上启动 Tailscale 登录" });
+        return;
+      }
+      if (current !== generation.current) return;
+      if (!result.ok) {
+        setTailscaleLogin({ phase: "error", message: result.message });
+        return;
+      }
+      const url =
+        typeof result.url === "string" && /^https:\/\/login\.tailscale\.com\//.test(result.url)
+          ? result.url
+          : null;
+      if (result.state === "needs-login" && url) {
+        setTailscaleLogin({ phase: "waiting", url });
+        void window.desktopBridge?.openExternal(url);
+        watchTailnet(current);
+        return;
+      }
+      if (result.state === "running") {
+        void refresh();
+        return;
+      }
+      window.setTimeout(() => void attempt(), 3000);
+    };
+    void attempt();
+  });
   const close = (next: boolean) => {
     if (!next) {
       generation.current++;
@@ -170,6 +222,9 @@ export function ComputerPickerDialog({
       setPassword("");
       setError(null);
       setErrorRow(null);
+      setTailscaleIssue(null);
+      setTailscaleLogin({ phase: "idle" });
+      if (active) updateScope(active.environmentId, { onboarded: true });
     }
     onOpenChange(next);
   };
@@ -189,10 +244,25 @@ export function ComputerPickerDialog({
       defaultComputerScope;
     updateScope(active.environmentId, {
       computersRoot: result.root,
-      selected: { slug: result.slug, dir: result.dir, label, host, username: user },
+      selected: { slug: result.slug, dir: result.dir, label, host, username: user, os: peer.os === "windows" ? "windows" : os },
     });
     try {
-      await enterWorkspace(active, { workspaceRoot: result.dir });
+      const root = result.dir.replace(/\/+$/u, "");
+      const project = readProjects()
+        .filter((entry) =>
+          entry.environmentId === active.environmentId &&
+          !entry.archivedAt &&
+          entry.workspaceRoot.startsWith(`${root}/`),
+        )
+        .toSorted((a, b) => (b.updatedAt ?? b.createdAt).localeCompare(a.updatedAt ?? a.createdAt))[0];
+      if (project) {
+        useUiStateStore.getState().setSidebarProjectScopeKeys([]);
+        if (!(await openThread(scopeProjectRef(active.environmentId, project.id)))) {
+          throw new Error("工作区尚未就绪，请重试。");
+        }
+      } else {
+        requestAddProject(active.environmentId);
+      }
     } catch (cause) {
       if (current === generation.current) updateScope(active.environmentId, previous);
       throw cause;
@@ -267,7 +337,7 @@ export function ComputerPickerDialog({
     <Dialog open={open} onOpenChange={close}>
       <DialogPopup className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>选择电脑</DialogTitle>
+          <DialogTitle>连接你的电脑</DialogTitle>
           <DialogDescription>
             工作区和 Claude 保留在你的服务器上，通过 SSH 操作所选电脑。
           </DialogDescription>
@@ -310,9 +380,61 @@ export function ComputerPickerDialog({
                   {loading ? <Spinner size="sm" /> : <RefreshCwIcon />}
                 </Button>
               </div>
-              {tailError ? <p className="text-sm text-muted-foreground">{tailError}</p> : null}
-              {!tailError && !loading && !visiblePeers.length ? (
-                <p className="text-sm text-muted-foreground">没有可显示的 Tailscale 电脑</p>
+              {tailscaleIssue ? (
+                <div className="space-y-2 rounded-md border p-3">
+                  <p className="text-sm font-medium">第一步：在服务器上登录 Tailscale</p>
+                  <p className="text-xs text-muted-foreground">
+                    请使用与你电脑相同的 Tailscale 账号登录，登录后这里会列出同一网络里的设备
+                  </p>
+                  {tailscaleLogin.phase === "waiting" ? (
+                    <div className="space-y-2">
+                      <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Spinner size="sm" />
+                        等待登录完成…
+                      </p>
+                      <button
+                        type="button"
+                        className="block max-w-full truncate font-mono text-xs text-primary underline"
+                        onClick={() =>
+                          void window.desktopBridge?.openExternal(tailscaleLogin.url)
+                        }
+                      >
+                        {tailscaleLogin.url}
+                      </button>
+                      <Button size="sm" variant="secondary" onClick={() => void refresh()}>
+                        我已登录，刷新
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {tailscaleLogin.phase === "busy" ? (
+                        <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Spinner size="sm" />
+                          正在服务器上安装/启动 Tailscale…
+                        </p>
+                      ) : null}
+                      {tailscaleLogin.phase === "error" ? (
+                        <p role="alert" className="text-xs text-destructive">
+                          {tailscaleLogin.message}
+                        </p>
+                      ) : null}
+                      <Button
+                        size="sm"
+                        disabled={tailscaleLogin.phase === "busy"}
+                        onClick={() => startTailscaleLogin()}
+                      >
+                        登录 Tailscale
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : tailError ? (
+                <p className="text-sm text-muted-foreground">{tailError}</p>
+              ) : null}
+              {!tailError && !tailscaleIssue && !loading && !visiblePeers.length ? (
+                <p className="text-sm text-muted-foreground">
+                  在你的电脑上安装 Tailscale，并用同一个账号登录，然后点右上角刷新。
+                </p>
               ) : null}
               {visiblePeers.map((peer) => {
                 const known = computers.find((item) => matchesPeer(peer, item.host));
@@ -407,6 +529,15 @@ export function ComputerPickerDialog({
               ) : null}
             </div>
           )}
+          <div className="flex justify-end">
+            <button
+              type="button"
+              className="text-xs text-muted-foreground hover:text-foreground"
+              onClick={() => close(false)}
+            >
+              稍后再说
+            </button>
+          </div>
         </DialogPanel>
       </DialogPopup>
     </Dialog>

@@ -132,7 +132,7 @@ it.layer(NodeServices.layer)("DesktopCliCommand", (it) => {
       yield* fs.symlink(path.join(home, "gone"), path.join(home, "bin", "kelaodeyun"));
 
       const error = yield* Effect.flip(command.install);
-      expect(error.message).toContain("Another kelaodeyun command is already installed");
+      expect(error.message).toContain("已安装另一个 kelaodeyun 命令");
       yield* command.uninstall;
       expect(yield* fs.readFileString(theirs)).toBe("npm's kelaodeyun\n");
       expect(yield* fs.readLink(path.join(home, "bin", "kelaodeyun"))).toBe(
@@ -143,7 +143,7 @@ it.layer(NodeServices.layer)("DesktopCliCommand", (it) => {
       yield* fs.writeFileString(launcher, "npm's kelaodeyun\n");
       process.env.PATH = path.dirname(launcher);
       expect(yield* command.state).toMatchObject({ onPath: false, shadowedBy: launcher });
-      expect((yield* Effect.flip(command.install)).message).toContain("Could not set up");
+      expect((yield* Effect.flip(command.install)).message).toContain("无法在");
       yield* command.uninstall;
       expect(yield* fs.readFileString(launcher)).toBe("npm's kelaodeyun\n");
     }).pipe(Effect.scoped),

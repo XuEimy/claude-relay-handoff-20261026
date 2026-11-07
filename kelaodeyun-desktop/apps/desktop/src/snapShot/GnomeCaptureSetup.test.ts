@@ -101,7 +101,7 @@ it("refuses to replace symlinks or downgrade a newer extension", async () => {
   await NodeFSP.mkdir(NodePath.dirname(installedPath()), { recursive: true });
   await NodeFSP.symlink(bundle, installedPath());
   await expect(installGnomeCaptureBundle({ bundle, dataHome })).rejects.toThrow(
-    "regular directory",
+    "不是普通目录",
   );
   await NodeFSP.unlink(installedPath());
   await installGnomeCaptureBundle({ bundle, dataHome });
@@ -141,7 +141,7 @@ it("requires login for local installs and updates until the new version is loade
 
 it("never changes the global user-extensions preference", async () => {
   const { setup, call } = fixture({ state: 2, version: 3, enabled: false });
-  await expect(setup.perform("enable-extension")).rejects.toThrow("GNOME has disabled");
+  await expect(setup.perform("enable-extension")).rejects.toThrow("GNOME 已禁用");
   expect(call.mock.calls.every(([message]) => message.member.startsWith("Get"))).toBe(true);
   setup.close();
 });

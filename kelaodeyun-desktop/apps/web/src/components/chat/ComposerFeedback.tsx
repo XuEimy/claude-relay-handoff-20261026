@@ -32,7 +32,7 @@ export function feedbackBannerItem(
                 toastManager.add({
                   type: "error",
                   title: "无法复制会话 ID",
-                  description: error instanceof Error ? error.message : "An error occurred.",
+                  description: error instanceof Error ? error.message : "发生错误。",
                 });
               },
             );

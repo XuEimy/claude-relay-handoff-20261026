@@ -1,3 +1,4 @@
+import { APP_BASE_NAME } from "~/branding";
 import type {
   ServerProvider,
   ServerProviderVersionAdvisory,
@@ -56,7 +57,7 @@ export function getProviderSummary(provider: ServerProvider | undefined) {
       headline: "已禁用",
       detail:
         provider.message ??
-        "This provider is installed but disabled for new sessions in kelaodeyun.",
+        `This provider is installed but disabled for new sessions in ${APP_BASE_NAME}.`,
     };
   }
   if (!provider.installed) {

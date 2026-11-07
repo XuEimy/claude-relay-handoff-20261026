@@ -70,7 +70,7 @@ function useRunScopedPlan() {
             Cause.fail(
               new EnvironmentAuthorizationError({
                 requiredScope: missing,
-                message: "This connection lacks permission to change these settings.",
+                message: "此连接没有更改这些设置的权限。",
               }),
             ),
           );
@@ -82,13 +82,13 @@ function useRunScopedPlan() {
       onFailed?.();
       toastManager.add({
         type: "error",
-        title: savedEnvironmentCount > 0 ? "Setting saved on some environments" : "设置未保存",
+        title: savedEnvironmentCount > 0 ? "设置已保存到部分环境" : "设置未保存",
         description: [
           ...failedEnvironments.map(
-            ({ label, message }) => `Could not save on ${label}: ${message}`,
+            ({ label, message }) => `无法保存到 ${label}：${message}`,
           ),
           ...(savedEnvironmentCount > 0
-            ? [`Saved on ${savedEnvironments.map(({ label }) => label).join(", ")}.`]
+            ? [`已保存到 ${savedEnvironments.map(({ label }) => label).join("、")}。`]
             : []),
         ].join("\n"),
       });

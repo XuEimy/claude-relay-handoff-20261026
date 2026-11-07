@@ -98,7 +98,7 @@ export class DesktopUpdateActionInProgressError extends Schema.TaggedError<Deskt
   },
 ) {
   override get message(): string {
-    return `Cannot change the desktop update channel to ${this.requestedChannel} while an update ${this.action} action is in progress.`;
+    return `更新操作 ${this.action} 正在进行，无法将桌面更新通道切换为 ${this.requestedChannel}。`;
   }
 }
 
@@ -110,7 +110,7 @@ export class DesktopUpdateChannelPersistenceError extends Schema.TaggedError<Des
   },
 ) {
   override get message(): string {
-    return `Failed to persist the ${this.channel} desktop update channel.`;
+    return `保存桌面更新通道 ${this.channel} 失败。`;
   }
 }
 
@@ -122,7 +122,7 @@ export class DesktopUpdatePollerError extends Schema.TaggedError<DesktopUpdatePo
   },
 ) {
   override get message(): string {
-    return `Desktop update ${this.poller} poller failed.`;
+    return `桌面更新轮询器 ${this.poller} 失败。`;
   }
 }
 
@@ -134,7 +134,7 @@ export class DesktopUpdateEventHandlingError extends Schema.TaggedError<DesktopU
   },
 ) {
   override get message(): string {
-    return `Failed to handle desktop update ${this.event} event.`;
+    return `处理桌面更新事件 ${this.event} 失败。`;
   }
 }
 
@@ -146,7 +146,7 @@ export class DesktopUpdaterReportedError extends Schema.TaggedError<DesktopUpdat
   },
 ) {
   override get message(): string {
-    return `Desktop updater ${this.operation} operation reported an error.`;
+    return `桌面更新操作 ${this.operation} 报告错误。`;
   }
 }
 
@@ -158,7 +158,7 @@ export class DesktopUpdateUnexpectedActionError extends Schema.TaggedError<Deskt
   },
 ) {
   override get message(): string {
-    return `Desktop update ${this.action} action failed unexpectedly.`;
+    return `桌面更新操作 ${this.action} 意外失败。`;
   }
 }
 
@@ -348,10 +348,10 @@ function getAutoUpdateDisabledReason(args: {
     return "自动更新仅适用于正式打包版本。";
   }
   if (args.disabledByEnv) {
-    return "Automatic updates are disabled by the T3CODE_DISABLE_AUTO_UPDATE setting.";
+    return "T3CODE_DISABLE_AUTO_UPDATE 设置已禁用自动更新。";
   }
   if (args.platform === "linux" && !args.appImage && !args.isDebPackage) {
-    return "Automatic updates on Linux require the AppImage or the .deb package.";
+    return "Linux 自动更新需要 AppImage 或 .deb 软件包。";
   }
   return null;
 }
@@ -479,7 +479,7 @@ export const make = Effect.gen(function* () {
   const channelBlockedReason = (channel: DesktopUpdateChannel): Option.Option<string> =>
     channel === "nightly" && !policy.allowNightly
       ? Option.some(
-          `${policy.message ?? "Nightly updates are turned off on this machine."} Switch to the stable channel to keep getting updates.`,
+          `${policy.message ?? "此设备已关闭 Nightly 更新。"}请切换到稳定通道以继续接收更新。`,
         )
       : Option.none();
 
@@ -1201,7 +1201,7 @@ export const make = Effect.gen(function* () {
       if (Option.isSome(channelBlockedReason(nextChannel))) {
         return yield* new DesktopUpdateChannelManagedError({
           channel: nextChannel,
-          policyMessage: policy.message ?? "Your administrator manages kelaodeyun updates.",
+          policyMessage: policy.message ?? "更新由管理员管理。",
         });
       }
       // A background check holds the updater only briefly, so wait it out instead of refusing.

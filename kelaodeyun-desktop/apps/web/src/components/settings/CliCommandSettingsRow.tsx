@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { APP_BASE_NAME } from "~/branding";
 
 import {
   desktopCliCommandStateAtom,
@@ -27,8 +28,8 @@ export function CliCommandSettingsRow() {
           stackedThreadToast({
             type: "error",
             title:
-              action === "install" ? "Could not install kelaodeyun" : "Could not remove kelaodeyun",
-            description: error instanceof Error ? error.message : "Something went wrong.",
+              action === "install" ? "无法安装 kelaodeyun" : "无法移除 kelaodeyun",
+            description: error instanceof Error ? error.message : "发生错误。",
           }),
         );
       })
@@ -38,12 +39,12 @@ export function CliCommandSettingsRow() {
   if (!bridge || !state?.supported) return null;
   const installed = state.installedPath !== null;
   const description = state.shadowedBy
-    ? `Another kelaodeyun at ${state.shadowedBy} runs first in a new terminal. Remove it to use kelaodeyun's.`
+    ? `另一个位于 ${state.shadowedBy} 的 kelaodeyun 会在新终端中优先运行。请移除它以使用 ${APP_BASE_NAME} 的命令。`
     : !installed
-      ? "Run kelaodeyun's CLI as `kelaodeyun` from any terminal."
+      ? `在任意终端运行 \`kelaodeyun\` 以使用 ${APP_BASE_NAME} 命令行工具。`
       : state.onPath
-        ? `Installed at ${state.installedPath}. Open a new terminal to use it.`
-        : `Installed at ${state.installedPath}, which is not on your PATH yet. Add its folder to your PATH to run \`kelaodeyun\`.`;
+        ? `已安装到 ${state.installedPath}，请打开新终端以使用。`
+        : `已安装到 ${state.installedPath}，但尚未添加到 PATH。请将其目录添加到 PATH 后运行 \`kelaodeyun\`。`;
 
   return (
     <SettingsRow

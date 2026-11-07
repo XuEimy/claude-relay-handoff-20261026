@@ -57,11 +57,11 @@ export default function SideChatPane(props: {
   const mergeRun = projection ? resolveLatestMergeBackRun(projection) : null;
   // A pending merge-back would fail the main thread's queued message, so the server refuses it.
   const bringBackBlockedReason = !canOperate
-    ? "This connection cannot change threads."
+    ? "此连接无法更改会话。"
     : threadRuntimeIsActive(parent?.runtime)
-      ? "Available when the main thread is idle."
+      ? "主会话空闲时可用。"
       : mergeRun === null
-        ? "Available after a finished reply."
+        ? "回复完成后可用。"
         : null;
 
   const bringBack = async () => {
@@ -96,8 +96,8 @@ export default function SideChatPane(props: {
       const confirmed = await settlePromise(() =>
         api.dialogs.confirm(
           [
-            `Delete side chat "${shell.title}"?`,
-            "This permanently clears its conversation history.",
+            `删除侧边对话“${shell.title}”？`,
+            "这将永久清除其对话历史。",
           ].join("\n"),
           { variant: "destructive" },
         ),
@@ -142,7 +142,7 @@ export default function SideChatPane(props: {
             }
           />
           <TooltipPopup side="bottom">
-            {bringBackBlockedReason ?? "Adds this side chat to the main thread's next message."}
+            {bringBackBlockedReason ?? "将此侧边对话添加到主会话的下一条消息中。"}
           </TooltipPopup>
         </Tooltip>
         <Button

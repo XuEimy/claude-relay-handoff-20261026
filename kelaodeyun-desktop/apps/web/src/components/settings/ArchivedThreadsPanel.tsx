@@ -146,7 +146,7 @@ export function ArchivedThreadsPanel() {
           stackedThreadToast({
             type: "error",
             title: "Failed to unarchive thread",
-            description: error instanceof Error ? error.message : "An error occurred.",
+            description: error instanceof Error ? error.message : "发生错误。",
           }),
         );
       }
@@ -163,7 +163,7 @@ export function ArchivedThreadsPanel() {
           stackedThreadToast({
             type: "error",
             title: "Failed to delete thread",
-            description: error instanceof Error ? error.message : "An error occurred.",
+            description: error instanceof Error ? error.message : "发生错误。",
           }),
         );
       }
@@ -194,8 +194,8 @@ export function ArchivedThreadsPanel() {
             }
             description={
               isLoadingArchive
-                ? "Checking connected environments."
-                : (archiveError ?? "Archived threads will appear here.")
+                ? "正在检查已连接的环境。"
+                : (archiveError ?? "已归档的会话将显示在这里。")
             }
           />
         </SettingsSection>
@@ -229,7 +229,7 @@ export function ArchivedThreadsPanel() {
                           type: "error",
                           title: "Archived thread action failed",
                           description:
-                            error instanceof Error ? error.message : "An error occurred.",
+                            error instanceof Error ? error.message : "发生错误。",
                         }),
                       );
                     }
@@ -266,7 +266,7 @@ export function ArchivedThreadsPanel() {
                               type: "error",
                               title: "Failed to unarchive thread",
                               description:
-                                error instanceof Error ? error.message : "An error occurred.",
+                                error instanceof Error ? error.message : "发生错误。",
                             }),
                           );
                         }
@@ -274,7 +274,7 @@ export function ArchivedThreadsPanel() {
                     }}
                   >
                     <ArchiveX className="size-3.5" />
-                    <span>Unarchive</span>
+                    <span>取消归档</span>
                   </Button>
                 }
               />

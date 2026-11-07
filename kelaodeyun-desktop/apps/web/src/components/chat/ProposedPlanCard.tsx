@@ -68,7 +68,7 @@ export const ProposedPlanCard = memo(function ProposedPlanCard({
         stackedThreadToast({
           type: "error",
           title: "无法复制规划",
-          description: error instanceof Error ? error.message : "An error occurred while copying.",
+          description: error instanceof Error ? error.message : "复制时发生错误。",
         }),
       );
     },
@@ -150,7 +150,7 @@ export const ProposedPlanCard = memo(function ProposedPlanCard({
           stackedThreadToast({
             type: "error",
             title: "无法保存规划",
-            description: error instanceof Error ? error.message : "An error occurred while saving.",
+            description: error instanceof Error ? error.message : "保存时发生错误。",
           }),
         );
       }

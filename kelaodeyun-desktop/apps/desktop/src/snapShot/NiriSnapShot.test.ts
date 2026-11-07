@@ -158,7 +158,7 @@ it("waits for the restored T3 window to map instead of polling", async () => {
 it("rejects ambiguous activation targets", async () => {
   const snapshot = await captureNiriWindow(socketPath);
   windows = [1, 2].map((id) => ({ ...window, id, pid: process.pid, title: "kelaodeyun" }));
-  await expect(snapshot.feedback!.activate("kelaodeyun")).rejects.toThrow("More than one");
+  await expect(snapshot.feedback!.activate("kelaodeyun")).rejects.toThrow("有多个");
 });
 
 it("cancels pending activation when capture feedback is closed", async () => {
@@ -169,7 +169,7 @@ it("cancels pending activation when capture feedback is closed", async () => {
     await original(request, socket);
     if (request === "EventStream") started.resolve();
   };
-  const activation = expect(snapshot.feedback!.activate("kelaodeyun")).rejects.toThrow("cancelled");
+  const activation = expect(snapshot.feedback!.activate("kelaodeyun")).rejects.toThrow("已取消");
   await started.promise;
   snapshot.feedback!.close();
   await activation;
@@ -185,7 +185,7 @@ it("does not attach accessibility identity if the captured window changed", asyn
 
 it("fails without a focused window rather than taking the screen", async () => {
   focused = null;
-  await expect(captureNiriWindow(socketPath)).rejects.toThrow("no focused window");
+  await expect(captureNiriWindow(socketPath)).rejects.toThrow("没有可截取的焦点窗口");
   expect(capturePath).toBeUndefined();
 });
 
@@ -203,7 +203,7 @@ it("rejects compositor errors and cleans up its temporary image", async () => {
 
 it.each(["24.11", "25.05", "unknown"])("rejects unsupported Niri version %s", async (value) => {
   version = value;
-  await expect(checkNiriCaptureSupport(socketPath)).rejects.toThrow("25.11 or newer");
+  await expect(checkNiriCaptureSupport(socketPath)).rejects.toThrow("25.11 或更新版本");
 });
 
 it.each(["25.11", "26.04", "niri 26.04 (abc)"])("accepts Niri version %s", async (value) => {
@@ -217,7 +217,7 @@ it.each(["garbage\n", "x".repeat(4 * 1024 * 1024 + 1)])(
     handler = async (_request, socket) => {
       socket.write(reply);
     };
-    await expect(checkNiriCaptureSupport(socketPath)).rejects.toThrow(/invalid|oversized/);
+    await expect(checkNiriCaptureSupport(socketPath)).rejects.toThrow(/无效|过大/);
   },
 );
 
@@ -225,7 +225,7 @@ it("fails promptly when Niri disconnects", async () => {
   handler = async (_request, socket) => {
     socket.end();
   };
-  await expect(checkNiriCaptureSupport(socketPath)).rejects.toThrow("disconnected");
+  await expect(checkNiriCaptureSupport(socketPath)).rejects.toThrow("已断开连接");
 });
 
 it("does not use stale, relative, or sandboxed Niri sockets", () => {

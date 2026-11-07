@@ -10,25 +10,20 @@ const isDevelopment = Boolean(process.env.VITE_DEV_SERVER_URL);
 const __dirname = NodePath.dirname(NodeURL.fileURLToPath(import.meta.url));
 export const desktopDir = NodePath.resolve(__dirname, "..");
 const repoRoot = NodePath.resolve(desktopDir, "..", "..");
-const devBundleIdSuffix = NodePath.basename(repoRoot)
-  .toLowerCase()
-  .replaceAll(/[^a-z0-9]+/g, "");
-const APP_DISPLAY_NAME = isDevelopment ? "kelaodeyun (Dev)" : "kelaodeyun (Beta)";
-const APP_BUNDLE_ID = isDevelopment
-  ? `com.kelaodeyun.terminal.dev.${devBundleIdSuffix || "local"}`
-  : "com.kelaodeyun.terminal";
-const APP_PROTOCOL_SCHEMES = isDevelopment ? ["kelaodeyun-dev"] : ["kelaodeyun"];
+const APP_DISPLAY_NAME = isDevelopment ? "Agent Cloud OS (Dev)" : "Agent Cloud OS (Beta)";
+const APP_BUNDLE_ID = isDevelopment ? "com.agentcloudos.app.dev" : "com.agentcloudos.app";
+const APP_PROTOCOL_SCHEMES = isDevelopment ? ["agentcloudos-dev"] : ["agentcloudos"];
 const LAUNCHER_VERSION = 21;
 const developmentMacIconPngPath = NodePath.join(
   repoRoot,
   "assets",
-  "kelaodeyun",
+  "agent-cloud-os",
   "app-icon-1024.png",
 );
 const productionMacIconPngPath = NodePath.join(
   repoRoot,
   "assets",
-  "kelaodeyun",
+  "agent-cloud-os",
   "app-icon-1024.png",
 );
 // oxlint-disable-next-line t3code/no-global-process-runtime -- Standalone launcher script has no Effect runtime.
@@ -284,9 +279,9 @@ function resolveMacBundleInfoPlistStrings(executableName) {
     CFBundleExecutable: executableName,
     CFBundleIconFile: "icon.icns",
     NSScreenCaptureUsageDescription:
-      "kelaodeyun captures the active window when you use the snapshot shortcut.",
+      "Agent Cloud OS 会在使用截图快捷键时捕获当前窗口。",
     NSDocumentsFolderUsageDescription:
-      "kelaodeyun reads project files you open in the desktop app.",
+      "Agent Cloud OS 会读取你在桌面应用中打开的项目文件。",
   };
 }
 

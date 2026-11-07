@@ -4,7 +4,7 @@ const PAIRING_TOKEN_PARAM = "token";
 const HOSTED_PAIRING_HOST_PARAM = "host";
 const HOSTED_PAIRING_LABEL_PARAM = "label";
 const PAIRING_APP_LINK_PARAM = "pairingUrl";
-const APP_LINK_PROTOCOL = /^kelaodeyun(?:-[a-z]+)?:$/;
+const APP_LINK_PROTOCOL = /^(?:agentcloudos|kelaodeyun)(?:-[a-z]+)?:$/;
 const SUPPORTED_REMOTE_BACKEND_PROTOCOLS = new Set(["http:", "https:", "ws:", "wss:"]);
 
 export const readHashParams = (url: URL): URLSearchParams =>
@@ -187,11 +187,11 @@ export const readHostedPairingRequest = (url: URL): HostedPairingRequest | null 
   };
 };
 
-/** Wraps a pairing URL in the `kelaodeyun://pair` link that desktop opens and mobile scans. */
+/** Wraps a pairing URL in the desktop and mobile app link. */
 export const buildPairingAppLink = (pairingUrl: string): string =>
-  `kelaodeyun://pair?${new URLSearchParams([[PAIRING_APP_LINK_PARAM, pairingUrl]])}`;
+  `agentcloudos://pair?${new URLSearchParams([[PAIRING_APP_LINK_PARAM, pairingUrl]])}`;
 
-/** Reads the pairing URL from a `kelaodeyun://pair` link on any app channel scheme. */
+/** Reads the pairing URL from a link on any app channel scheme. */
 export const readPairingAppLink = (value: string): string | null => {
   if (!URL.canParse(value)) return null;
   const url = new URL(value);

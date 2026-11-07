@@ -77,7 +77,7 @@ function RecoveryActions({ runId, resetAt, recovery, snoozedUntil, onChange }: R
       toastManager.add({
         type: "error",
         title: action === "resume" ? "Could not change auto-resume" : "无法推迟会话",
-        description: cause instanceof Error ? cause.message : "An error occurred.",
+        description: cause instanceof Error ? cause.message : "发生错误。",
       });
     }
     setPending(false);

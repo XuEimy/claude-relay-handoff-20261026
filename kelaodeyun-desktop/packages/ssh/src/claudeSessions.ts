@@ -75,7 +75,7 @@ def message_text(message):
     return ''
 def interrupted(message):
     return message_text(message).lstrip().startswith('[Request interrupted by user')
-def messages(path, tail=False):
+def messages(path, tail=False, origin=False):
     with path.open('rb') as stream:
         if tail:
             size = stream.seek(0, 2)
@@ -94,7 +94,10 @@ def messages(path, tail=False):
             content = message.get('content', '')
             text = content if isinstance(content, str) else '\n'.join(part.get('text', '') for part in content if isinstance(part, dict) and part.get('type') == 'text')
             if text.lstrip().startswith(('<system-reminder>', '<local-command', '<command-name>')): continue
-            if text.strip(): yield {'id': str(row.get('uuid') or stream.tell()), 'role': role, 'text': text[:16000], 'createdAt': row.get('timestamp')}
+            if text.strip():
+                result = {'id': str(row.get('uuid') or stream.tell()), 'role': role, 'text': text[:16000], 'createdAt': row.get('timestamp')}
+                if origin: result['entrypoint'] = row.get('entrypoint')
+                yield result
 if request['operation'] == 'claude-info':
     session = request['relativePath']
     if not re.fullmatch(r'[a-fA-F0-9-]{36}', session): raise ValueError('Invalid session id')
@@ -217,8 +220,8 @@ elif request['operation'] == 'claude-list':
     for path in paths:
         if not re.fullmatch(r'[a-fA-F0-9-]{36}', path.stem) or path.is_symlink(): continue
         try:
-            first = next((m for m in messages(path) if m['role'] == 'user'), None)
-            if first: sessions.append({'id': path.stem, 'title': first['text'].replace('\n', ' ')[:100], 'updatedAt': path.stat().st_mtime})
+            first = next((m for m in messages(path, origin=True) if m['role'] == 'user'), None)
+            if first and first['entrypoint'] != 't3-code': sessions.append({'id': path.stem, 'title': first['text'].replace('\n', ' ')[:100], 'updatedAt': path.stat().st_mtime})
         except (OSError, ValueError): continue
     print(json.dumps(sessions, ensure_ascii=False))
 elif request['operation'] == 'claude-read':

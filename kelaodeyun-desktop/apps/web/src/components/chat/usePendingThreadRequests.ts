@@ -288,7 +288,7 @@ export function usePendingThreadRequests(input: {
       const error = squashAtomCommandFailure(result);
       setThreadError(
         activeThreadId,
-        error instanceof Error ? error.message : "Failed to submit approval decision.",
+        error instanceof Error ? error.message : "提交审批结果失败。",
       );
     }
     setRespondingRequestIds((existing) => existing.filter((id) => id !== requestId));
@@ -327,7 +327,7 @@ export function usePendingThreadRequests(input: {
       if (!uploaded) {
         setThreadError(
           activeThreadId,
-          "Wait for attachments to finish uploading, or remove failed uploads.",
+          "请等待附件上传完成，或移除上传失败的附件。",
         );
         return;
       }
@@ -353,7 +353,7 @@ export function usePendingThreadRequests(input: {
       const error = squashAtomCommandFailure(result);
       setThreadError(
         activeThreadId,
-        error instanceof Error ? error.message : "Failed to submit user input.",
+        error instanceof Error ? error.message : "提交用户输入失败。",
       );
     }
     userInputResponsesInFlight.current.delete(responseKey);
@@ -375,7 +375,7 @@ export function usePendingThreadRequests(input: {
       const error = squashAtomCommandFailure(result);
       setThreadError(
         activeThreadId,
-        error instanceof Error ? error.message : "Failed to dismiss the question.",
+        error instanceof Error ? error.message : "关闭问题失败。",
       );
     }
     setRespondingUserInputRequestIds((existing) => existing.filter((id) => id !== requestId));

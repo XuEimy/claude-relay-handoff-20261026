@@ -226,7 +226,11 @@ runpy.run_path(sys.argv[0], run_name='__main__')
       f.file,
       [
         "broken json",
-        JSON.stringify({ uuid: "one", message: { role: "user", content: "继续这个项目" } }),
+        JSON.stringify({
+          uuid: "one",
+          entrypoint: "cli",
+          message: { role: "user", content: "继续这个项目" },
+        }),
         JSON.stringify({
           uuid: "two",
           message: {
@@ -244,9 +248,38 @@ runpy.run_path(sys.argv[0], run_name='__main__')
         JSON.stringify({ isMeta: true, message: { role: "user", content: "hidden metadata" } }),
       ].join("\n"),
     );
+    const appId = "87654321-4321-4321-4321-cba987654321";
+    const legacyId = "11111111-1111-1111-1111-111111111111";
+    NodeFS.writeFileSync(
+      NodePath.join(f.project, `${appId}.jsonl`),
+      [
+        JSON.stringify({
+          isSidechain: true,
+          entrypoint: "cli",
+          message: { role: "user", content: "child" },
+        }),
+        JSON.stringify({
+          entrypoint: "cli",
+          message: { role: "user", content: "<system-reminder>ignored" },
+        }),
+        JSON.stringify({ entrypoint: "cli", message: { role: "assistant", content: "hello" } }),
+        JSON.stringify({ entrypoint: "t3-code", message: { role: "user", content: "app thread" } }),
+        JSON.stringify({ entrypoint: "cli", message: { role: "user", content: "follow-up" } }),
+      ].join("\n"),
+    );
+    NodeFS.writeFileSync(
+      NodePath.join(f.project, `${legacyId}.jsonl`),
+      JSON.stringify({ message: { role: "user", content: "legacy session" } }),
+    );
     const listed = f.run("claude-list");
     expect(listed.status).toBe(0);
-    expect(JSON.parse(listed.stdout)).toMatchObject([{ id, title: "继续这个项目" }]);
+    expect(JSON.parse(listed.stdout)).toHaveLength(2);
+    expect(JSON.parse(listed.stdout)).toEqual(
+      expect.arrayContaining([
+        { id, title: "继续这个项目", updatedAt: expect.any(Number) },
+        { id: legacyId, title: "legacy session", updatedAt: expect.any(Number) },
+      ]),
+    );
     expect(JSON.parse(f.run("claude-read").stdout)).toEqual([
       { id: "one", role: "user", text: "继续这个项目", createdAt: null },
       { id: "two", role: "assistant", text: "好的", createdAt: null },

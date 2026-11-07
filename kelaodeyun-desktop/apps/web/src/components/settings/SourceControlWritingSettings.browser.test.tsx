@@ -60,7 +60,7 @@ vi.mock(import("./settingsLayout"), async (original) => ({
 import { SourceControlWritingSettingsSection } from "./SourceControlWritingSettings";
 
 const resetButton = (label: string) =>
-  page.getByRole("button", { name: `Reset ${label} to default` });
+  page.getByRole("button", { name: `将${label}恢复默认` });
 
 const content = () => (
   <StrictMode>
@@ -99,8 +99,8 @@ describe("mixed source control instructions", () => {
       customInstructions,
     }));
 
-    await userEvent.click(page.getByRole("button", { name: "Advanced" }));
-    await userEvent.click(resetButton("change request templates"));
+    await userEvent.click(page.getByRole("button", { name: "高级" }));
+    await userEvent.click(resetButton("变更请求模板"));
 
     expect(state.updateSettings).toHaveBeenCalledTimes(1);
     expect(state.styles.map((style) => style.followChangeRequestTemplates)).toEqual([

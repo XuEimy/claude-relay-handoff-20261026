@@ -147,13 +147,13 @@ describe("remote", () => {
   it("round-trips pairing urls through app links on every channel scheme", () => {
     const pairingUrl = "https://vps.example.com/pair#token=ABC123";
     const appLink = buildPairingAppLink(pairingUrl);
-    expect(appLink.startsWith("kelaodeyun://pair?")).toBe(true);
+    expect(appLink.startsWith("agentcloudos://pair?")).toBe(true);
     expect(readPairingAppLink(appLink)).toBe(pairingUrl);
     expect(readPairingAppLink(appLink.replace("kelaodeyun:", "kelaodeyun-dev:"))).toBe(pairingUrl);
-    expect(readPairingAppLink("kelaodeyun://pair")).toBeNull();
+    expect(readPairingAppLink("agentcloudos://pair")).toBeNull();
     expect(readPairingAppLink(appLink.replace("//pair?", "//pair/other?"))).toBeNull();
     expect(
-      readPairingAppLink(`kelaodeyun://threads?pairingUrl=${encodeURIComponent(pairingUrl)}`),
+      readPairingAppLink(`agentcloudos://threads?pairingUrl=${encodeURIComponent(pairingUrl)}`),
     ).toBeNull();
     expect(
       readPairingAppLink(`https://pair?pairingUrl=${encodeURIComponent(pairingUrl)}`),

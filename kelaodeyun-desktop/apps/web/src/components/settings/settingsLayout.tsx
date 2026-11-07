@@ -394,8 +394,8 @@ export function SettingsRow({
       scopedKeys.length > 0 ? (
       source === "project" || source === "mixed" ? (
         <SettingResetButton
-          label={typeof title === "string" ? title : "override"}
-          tooltip="Reset to inherited value"
+          label={typeof title === "string" ? title : "覆盖值"}
+          tooltip="恢复继承值"
           onClick={() => (onResetOverride ? onResetOverride() : clearOverrides(scopedKeys))}
         />
       ) : null
@@ -426,24 +426,24 @@ export function SettingsRow({
     managed !== undefined && control
       ? inertControl(managed)
       : managedBy !== undefined && control
-        ? inertControl(`Managed by ${managedBy}.`)
+        ? inertControl(`由 ${managedBy} 管理。`)
         : unavailable && control
           ? inertControl(
               !canWriteSettings
-                ? `This connection lacks permission to change settings on ${
+                ? `此连接没有权限更改以下环境的设置：${
                     context
                       ? context.connectedEnvironments
                           .filter((target) => !writableIds.has(target.environmentId))
                           .map((target) => target.label)
-                          .join(", ") || "the selected environment"
-                      : (primaryEnvironment?.label ?? "the primary environment")
-                  }.`
+                          .join("、") || "所选环境"
+                      : (primaryEnvironment?.label ?? "主环境")
+                  }。`
                 : context
-                  ? "Reconnect the selected environment to change this setting."
+                  ? "请重新连接所选环境以更改此设置。"
                   : PRIMARY_SETTINGS_UNAVAILABLE_MESSAGE,
             )
           : environmentWide && control
-            ? inertControl("Environment-wide setting. Select an environment to change it.")
+            ? inertControl("此设置作用于整个环境，请选择环境后更改。")
             : control;
   const customized =
     context !== null &&
@@ -563,7 +563,7 @@ export function SettingResetButton({
           <Button
             size="icon-micro"
             variant="ghost-muted"
-            aria-label={`Reset ${label} to default`}
+            aria-label={`将${label}恢复默认`}
             disabled={disabled}
             onClick={(event) => {
               event.stopPropagation();

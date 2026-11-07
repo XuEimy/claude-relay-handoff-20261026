@@ -167,6 +167,8 @@ describe("App account and SSH hosts", () => {
     const html = await page.response.text(), code = html.match(/code=([a-f0-9]{64})/)[1];
     expect(page.response.headers.get("cache-control")).toBe("no-store");
     expect(html).toContain("kelaodeyun-dev://app/account/callback");
+    expect(html).toContain("已登录，正在返回 Agent Cloud OS…");
+    expect(html).toContain("返回 Agent Cloud OS");
     const tokenRequest = value => ({ method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code, verifier: value, device: "test" }) });
     expect((await request("/api/app/token", tokenRequest("b".repeat(43)))).status).toBe(400);
     expect((await request("/api/app/token", tokenRequest(verifier))).status).toBe(400);
@@ -175,6 +177,16 @@ describe("App account and SSH hosts", () => {
     expect((await request("/api/config", { headers: { ...bearer(token), Cookie: session } })).status).toBe(403);
     expect((await request("/api/app/me", { headers: { Authorization: "Bearer BAD", Cookie: session } })).status).toBe(401);
     expect((await request("/api/app/authorize?challenge=bad&scheme=kelaodeyun", { headers: { Cookie: session } })).status).toBe(400);
+  });
+  it("accepts the new and legacy desktop callback schemes only", async () => {
+    const session = getSession(await login());
+    const challenge = base64url(await sha256(verifier));
+    for (const scheme of ["agentcloudos", "agentcloudos-dev", "kelaodeyun", "kelaodeyun-dev"]) {
+      const response = await request(`/api/app/authorize?challenge=${challenge}&scheme=${scheme}`, { headers: { Cookie: session } });
+      expect(response.status).toBe(200);
+      expect(await response.text()).toContain(`${scheme}://app/account/callback`);
+    }
+    expect((await request(`/api/app/authorize?challenge=${challenge}&scheme=other`, { headers: { Cookie: session } })).status).toBe(400);
   });
   it("upserts validated hosts, protects secrets and enforces ownership and revocation", async () => {
     const session = getSession(await login()), token = await appLogin(session);

@@ -39,7 +39,7 @@ export function usageAliasCell(targets: readonly UsagePriceTarget[], model: stri
   if (targets.some((target) => target.aliases === null))
     return { value: "", placeholder: "不可用" };
   const values = targets.map((target) => modelAlias(target, model) ?? "");
-  if (values.some((value) => value !== values[0])) return { value: "", placeholder: "Mixed" };
+  if (values.some((value) => value !== values[0])) return { value: "", placeholder: "不一致" };
   return { value: values[0] ?? "", placeholder: "无" };
 }
 
@@ -53,10 +53,10 @@ export function usagePriceCell(
     modelPrice(target, model) ? usagePriceForm(model, modelPrice(target, model))[field] : null,
   );
   if (targets.some((target) => target.prices === null)) return { value: "", placeholder: "不可用" };
-  if (values.some((value) => value !== values[0])) return { value: "", placeholder: "Mixed" };
+  if (values.some((value) => value !== values[0])) return { value: "", placeholder: "不一致" };
   return {
     value: values[0] ?? "",
-    placeholder: values[0] === null ? "Automatic" : optional ? "Input rate" : "0.00",
+    placeholder: values[0] === null ? "自动" : optional ? "输入价格" : "0.00",
   };
 }
 
@@ -80,12 +80,12 @@ export function usagePriceTableChanges(
       if (draft.alias === undefined && Object.keys(draft.values).length > 0) {
         errors.set(
           draft.id,
-          `${target.label} maps this model. Remove it from "Apply to" or clear its mapping first.`,
+          `${target.label} 已映射此模型，请先将其从“应用于”中移除或清除映射。`,
         );
         continue;
       }
-      if (model === "") errors.set(draft.id, "Enter a model ID.");
-      else if (alias === model) errors.set(draft.id, "Map to a different model.");
+      if (model === "") errors.set(draft.id, "请输入模型 ID。");
+      else if (alias === model) errors.set(draft.id, "请映射到其他模型。");
       else {
         if (alias !== currentAlias) changes.push({ model, alias });
         if (modelPrice(target, model)) changes.push({ model, price: null });
@@ -110,10 +110,10 @@ export function usagePriceTableChanges(
       errors.set(
         draft.id,
         model === ""
-          ? "Enter a model ID."
+          ? "请输入模型 ID。"
           : missing
-            ? `${missing.label} is required on ${target.label}.`
-            : "Use non-negative numbers for prices.",
+            ? `${target.label} 需要填写${missing.label}。`
+            : "价格必须使用非负数。",
       );
       continue;
     }
@@ -134,7 +134,7 @@ export function usagePriceTableChanges(
     const seen = new Set<string>();
     while (aliases.has(model)) {
       if (seen.has(model)) {
-        errors.set(draft.id, `Model mappings cannot form a cycle on ${target.label}.`);
+        errors.set(draft.id, `${target.label} 上的模型映射不能形成循环。`);
         break;
       }
       seen.add(model);

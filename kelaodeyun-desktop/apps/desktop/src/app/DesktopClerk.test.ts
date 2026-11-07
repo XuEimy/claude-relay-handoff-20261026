@@ -128,25 +128,25 @@ describe("DesktopClerk", () => {
       name: "packaged macOS",
       isDevelopment: false,
       platform: "darwin" as const,
-      userData: "/tmp/app-data/kelaodeyun-v2",
+      userData: "/tmp/app-data/agent-cloud-os",
     },
     {
       name: "packaged Linux",
       isDevelopment: false,
       platform: "linux" as const,
-      userData: "/tmp/app-data/kelaodeyun-v2",
+      userData: "/tmp/app-data/agent-cloud-os",
     },
     {
       name: "packaged Windows",
       isDevelopment: false,
       platform: "win32" as const,
-      userData: "/tmp/app-data/kelaodeyun-v2",
+      userData: "/tmp/app-data/agent-cloud-os",
     },
     {
       name: "development",
       isDevelopment: true,
       platform: "win32" as const,
-      userData: "/tmp/app-data/kelaodeyun-dev",
+      userData: "/tmp/app-data/agent-cloud-os-dev",
     },
   ])(
     "creates the bridge before startup can yield to the event loop ($name)",
@@ -224,11 +224,11 @@ describe("DesktopClerk", () => {
     createClerkBridgeMock.mockReturnValue({ cleanup: vi.fn(), isPrimaryInstance: true });
     const listeners = new Map<string, (...args: unknown[]) => void>();
     const received: string[] = [];
-    const first = "kelaodeyun://new?prompt=first";
-    const second = "kelaodeyun://threads/env-1/thread-1";
-    const later = "kelaodeyun://new?prompt=later";
+    const first = "agentcloudos://new?prompt=first";
+    const second = "agentcloudos://threads/env-1/thread-1";
+    const later = "agentcloudos://new?prompt=later";
     const launchPair =
-      "kelaodeyun://pair?pairingUrl=https%3A%2F%2Fvps.example.com%2F%23token%3Dabc";
+      "agentcloudos://pair?pairingUrl=https%3A%2F%2Fvps.example.com%2F%23token%3Dabc";
     const delivered = Promise.withResolvers<void>();
     const electronApp = {
       on: (name: string, listener: (...args: unknown[]) => void) =>
@@ -276,9 +276,9 @@ describe("DesktopClerk", () => {
     createClerkBridgeMock.mockReturnValue({ cleanup: vi.fn(), isPrimaryInstance: true });
     const listeners = new Map<string, (...args: unknown[]) => void>();
     const received: string[] = [];
-    const launch = "kelaodeyun-dev://app/account/callback?code=launch";
-    const early = "kelaodeyun-dev://app/account/callback?code=early";
-    const later = "kelaodeyun-dev://app/account/callback?code=later";
+    const launch = "agentcloudos-dev://app/account/callback?code=launch";
+    const early = "agentcloudos-dev://app/account/callback?code=early";
+    const later = "agentcloudos-dev://app/account/callback?code=later";
     const electronApp = {
       on: (name: string, listener: (...args: unknown[]) => void) =>
         Effect.sync(() => {
@@ -341,7 +341,7 @@ describe("DesktopClerk", () => {
 
         assert.isTrue(Exit.hasInterrupts(exit));
         assert.deepEqual(events, [
-          "setPath:userData:/tmp/app-data/kelaodeyun-v2",
+          "setPath:userData:/tmp/app-data/agent-cloud-os",
           "requestSingleInstanceLock",
           "quit",
         ]);
@@ -374,19 +374,19 @@ it.effect(
       const clerk = yield* DesktopClerk.DesktopClerk;
       yield* clerk.configure;
       const event = { preventDefault: vi.fn() };
-      listeners.get("open-url")!(event, "kelaodeyun-dev://app/auth/callback?code=clerk-code");
-      listeners.get("open-url")!(event, "kelaodeyun://app/welcome");
+      listeners.get("open-url")!(event, "agentcloudos-dev://app/auth/callback?code=clerk-code");
+      listeners.get("open-url")!(event, "agentcloudos://app/welcome");
       assert.equal(loadURL.mock.calls.length, 0);
       assert.equal(event.preventDefault.mock.calls.length, 0);
       listeners.get("second-instance")!({}, [
         "t3",
-        "kelaodeyun-dev://app/settings/providers?instanceId=work&code=never-forward",
+        "agentcloudos-dev://app/settings/providers?instanceId=work&code=never-forward",
       ]);
       yield* Effect.promise(() => revealed.promise);
       assert.deepEqual(loadURL.mock.calls, [
-        ["kelaodeyun-dev://app/settings/providers?instanceId=work"],
+        ["agentcloudos-dev://app/settings/providers?instanceId=work"],
       ]);
-      listeners.get("open-url")!(event, "kelaodeyun-dev://app/welcome#agents:machine-id");
+      listeners.get("open-url")!(event, "agentcloudos-dev://app/welcome#agents:machine-id");
       assert.equal(event.preventDefault.mock.calls.length, 1);
     }).pipe(
       Effect.scoped,
@@ -497,7 +497,8 @@ it.effect("hands web and app links to the renderer and leaves other links alone"
         }),
     } as unknown as ElectronApp.ElectronApp["Service"];
     const received: Array<string> = [];
-    const pairLink = "kelaodeyun://pair?pairingUrl=https%3A%2F%2Fvps.example.com%2F%23token%3Dabc";
+    const pairLink =
+      "agentcloudos://pair?pairingUrl=https%3A%2F%2Fvps.example.com%2F%23token%3Dabc";
     yield* Effect.gen(function* () {
       const clerk = yield* DesktopClerk.DesktopClerk;
       yield* clerk.configure;
@@ -508,18 +509,18 @@ it.effect("hands web and app links to the renderer and leaves other links alone"
       };
       assert.strictEqual(open("https://example.com/page"), 1);
       assert.strictEqual(open("http://localhost:3000/"), 1);
-      assert.strictEqual(open("kelaodeyun://new?prompt=hi"), 1);
-      assert.strictEqual(open("kelaodeyun://threads/env-1/thread-1"), 1);
+      assert.strictEqual(open("agentcloudos://new?prompt=hi"), 1);
+      assert.strictEqual(open("agentcloudos://threads/env-1/thread-1"), 1);
       assert.strictEqual(open(pairLink), 1);
-      assert.strictEqual(open("kelaodeyun://pair"), 0);
+      assert.strictEqual(open("agentcloudos://pair"), 0);
       assert.strictEqual(open("mailto:hello@example.com"), 0);
-      assert.strictEqual(open("kelaodeyun://somewhere-else"), 0);
+      assert.strictEqual(open("agentcloudos://somewhere-else"), 0);
       yield* Effect.yieldNow;
       assert.deepStrictEqual(received, [
         "https://example.com/page",
         "http://localhost:3000/",
-        "kelaodeyun://new?prompt=hi",
-        "kelaodeyun://threads/env-1/thread-1",
+        "agentcloudos://new?prompt=hi",
+        "agentcloudos://threads/env-1/thread-1",
         pairLink,
       ]);
     }).pipe(

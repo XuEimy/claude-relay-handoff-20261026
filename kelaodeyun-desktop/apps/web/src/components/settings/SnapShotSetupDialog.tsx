@@ -1,4 +1,5 @@
 import { PermissionChecklist, PermissionContinueButton } from "../permissions/PermissionChecklist";
+import { APP_BASE_NAME } from "~/branding";
 import { usePermissionStatus } from "../permissions/usePermissionStatus";
 import {
   isModifierPairShortcut,
@@ -22,43 +23,42 @@ import {
 } from "./SnapShotSetupDialog.logic";
 
 const SETUP_STEPS = [
-  { id: "access", label: "Access" },
-  { id: "shortcut", label: "Shortcut" },
+  { id: "access", label: "权限" },
+  { id: "shortcut", label: "快捷键" },
 ] as const;
 
 const GNOME_ACCESS_COPY = {
   "not-installed": {
-    title: "Install the extension",
-    description:
-      "The kelaodeyun GNOME extension lets you capture other windows and bring them into your draft. Sign out once after installing.",
+    title: "安装扩展",
+    description: `${APP_BASE_NAME} 的 GNOME 扩展可截取其他窗口并添加到草稿。安装后请注销一次。`,
   },
   "restart-required": {
-    title: "Extension installed",
-    description: "Save your work, then sign out and back in. Your setup will be waiting here.",
+    title: "扩展已安装",
+    description: "请保存工作，然后注销并重新登录。设置进度会保留。",
   },
   "update-required": {
-    title: "Update the extension",
-    description: "Install the update, then sign out and back in.",
+    title: "更新扩展",
+    description: "请安装更新，然后注销并重新登录。",
   },
   "extensions-disabled": {
-    title: "Allow GNOME extensions",
-    description: "Open GNOME Extensions and turn on extensions, then check again.",
+    title: "允许 GNOME 扩展",
+    description: "请打开 GNOME Extensions 并启用扩展，然后重新检查。",
   },
   disabled: {
-    title: "Enable the extension",
-    description: "Enable kelaodeyun SnapShots to start capturing windows.",
+    title: "启用扩展",
+    description: `请启用 ${APP_BASE_NAME} SnapShots 以开始截取窗口。`,
   },
   enabled: {
     title: "截图已就绪",
     description: "接下来请选择快捷键。",
   },
   unsupported: {
-    title: "Automatic capture isn't available",
-    description: "Use Take snapshot from the command palette to choose a window.",
+    title: "自动截图不可用",
+    description: "请在命令面板中选择“截图”来选择窗口。",
   },
   error: {
-    title: "Couldn't set up the extension",
-    description: "Check kelaodeyun SnapShots in GNOME Extensions, then try again.",
+    title: "无法设置扩展",
+    description: `请检查 GNOME Extensions 中的 ${APP_BASE_NAME} SnapShots，然后重试。`,
   },
 };
 
@@ -144,14 +144,14 @@ export function SnapShotSetupDialog({
   const accessCopy =
     state.message && !macPermissions
       ? {
-          title: "Let's try that again",
-          description: "Couldn't check snapshots. Try again to continue.",
+          title: "请重试",
+          description: "无法检查截图功能，请重试后继续。",
         }
       : backend === "gnome" && extension
         ? extension.status === "enabled" && !accessReady
           ? {
-              title: "Check capture access",
-              description: "The extension isn't ready yet. Try again in a moment.",
+              title: "检查截图权限",
+              description: "扩展尚未准备就绪，请稍后重试。",
             }
           : GNOME_ACCESS_COPY[extension.status]
         : helperBackend
@@ -162,16 +162,15 @@ export function SnapShotSetupDialog({
               }
             : helper?.status === "error"
               ? {
-                  title: "Let's fix capture access",
-                  description: "Try reinstalling the capture helper, then check again.",
+                  title: "修复截图权限",
+                  description: "请尝试重新安装截图助手，然后再次检查。",
                 }
               : {
                   title:
                     helper?.status === "update-required"
-                      ? "Update the capture helper"
-                      : "Allow snapshots",
-                  description:
-                    "kelaodeyun's capture helper lets you capture other apps and return to your draft. It's included with kelaodeyun.",
+                      ? "更新截图助手"
+                      : "允许截图",
+                  description: `${APP_BASE_NAME} 的截图助手可截取其他应用并返回草稿，它已随 ${APP_BASE_NAME} 提供。`,
                 }
           : backend === "niri"
             ? {
@@ -180,30 +179,30 @@ export function SnapShotSetupDialog({
               }
             : backend === "picker"
               ? {
-                  title: "Choose a window each time",
+                  title: "每次选择窗口",
                   description:
-                    "Your desktop doesn't support automatic capture. You'll choose the window to capture instead.",
+                    "你的桌面不支持自动截图，需要手动选择要截取的窗口。",
                 }
               : {
-                  title: "Allow snapshots",
+                  title: "允许截图",
                   description:
                     backend === "portal"
-                      ? "Your desktop may ask for permission when you first capture."
+                      ? "首次截图时，桌面可能会请求权限。"
                       : macPermissions
                         ? macPermissionsReady
-                          ? "Test a snapshot of the current window. If macOS asks to bypass its window picker, choose Allow. The test image is discarded."
-                          : "Allow each permission, then continue."
-                        : "Allow access when prompted to start capturing windows.",
+                          ? "测试截取当前窗口。如果 macOS 询问是否绕过窗口选择器，请选择允许。测试图片不会保留。"
+                          : "请允许各项权限后继续。"
+                        : "出现提示时允许访问，即可开始截取窗口。",
                 };
-  const title = step === "access" ? accessCopy.title : "Choose your shortcut";
+  const title = step === "access" ? accessCopy.title : "选择快捷键";
   const description =
     step === "access"
       ? accessCopy.description
       : configShortcut
-        ? "Click the shortcut, then press the keys you want."
+        ? "点击快捷键，然后按下所需按键。"
         : state.mode === "portal"
-          ? "Choose your keys, then approve the permission prompt if asked."
-          : "Use both Shift keys, or record a different shortcut.";
+          ? "选择按键，并在出现权限提示时批准。"
+          : "同时使用两个 Shift 键，或录制其他快捷键。";
   const stepIndex = SETUP_STEPS.findIndex(({ id }) => id === step);
   const details = [
     ...new Set(
@@ -266,18 +265,18 @@ export function SnapShotSetupDialog({
                       {
                         id: "screenRecording",
                         icon: <MacScreenRecordingIcon className="size-8 shrink-0 drop-shadow-sm" />,
-                        title: "Screen Recording",
-                        description: "Capture the window you're using.",
+                        title: "屏幕录制",
+                        description: "截取当前使用的窗口。",
                         granted: macPermissions.screenRecording,
                         onAllow: () => void onAction("allow-screen-recording"),
                       },
                       {
                         id: "accessibility",
                         icon: <MacAccessibilityIcon className="size-8 shrink-0 drop-shadow-sm" />,
-                        title: "Accessibility",
+                        title: "辅助功能",
                         description: includeAccessibility
-                          ? "Include text and controls from the captured app."
-                          : "Optional. Include text and controls from the captured app.",
+                          ? "包含截取应用的文本和控件。"
+                          : "可选：包含截取应用的文本和控件。",
                         granted: macPermissions.accessibility,
                         onAllow: () => void onAction("allow-accessibility"),
                       },
@@ -352,7 +351,7 @@ export function SnapShotSetupDialog({
                     </p>
                   ))}
                   {step === "access" && (backend === "gnome" || helperBackend) ? (
-                    <p>Included with kelaodeyun. No download needed.</p>
+                    <p>Included with {APP_BASE_NAME}. No download needed.</p>
                   ) : null}
                   {step === "access" && backend === "gnome" && extension?.status === "enabled" ? (
                     <Button

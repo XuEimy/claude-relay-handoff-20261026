@@ -179,7 +179,7 @@ it.each([
   {
     name: "a saved unrelated branch",
     failedBaseRef: "origin/orphan",
-    recovery: "Automatic",
+    recovery: "自动",
     baseRef: null,
   },
   {
@@ -198,12 +198,12 @@ it.each([
       </RegistryContext.Provider>,
     );
     await expect.element(screen.getByText(errorMessage, { exact: true })).toBeVisible();
-    const selector = screen.getByRole("combobox", { name: /Change comparison target/ });
+    const selector = screen.getByRole("combobox", { name: /更改对比目标/ });
     await vi.waitFor(() => expect(selector.query()).not.toBeNull());
     await userEvent.click(selector);
     await expect.element(page.getByRole("option", { name: "main", exact: true })).toBeVisible();
     await userEvent.click(page.getByRole("option", { name: recovery, exact: true }));
-    await expect.element(screen.getByText("No net changes in this selection.")).toBeVisible();
+    await expect.element(screen.getByText("所选内容没有净变更。")).toBeVisible();
     await expect.element(screen.getByText(errorMessage, { exact: true })).not.toBeInTheDocument();
     const key = scopedThreadKey(context.threadRef);
     await vi.waitFor(() => {

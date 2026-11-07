@@ -563,7 +563,7 @@ export function useComposerSend(input: ComposerSendInput) {
             branch: activeThreadBranch,
           });
     if (multipleModelBlock === "server-outdated") {
-      setThreadError(activeThread.id, "Update this server before starting multiple models.");
+      setThreadError(activeThread.id, "启动多个模型前请先更新此服务器。");
       return;
     }
     if (multipleModelBlock === "needs-new-git-thread") {
@@ -615,12 +615,12 @@ export function useComposerSend(input: ComposerSendInput) {
     if (strandedThread) {
       const owner =
         readEnvironmentPresentation(strandedThread.environmentId)?.entry.target.label ??
-        "its machine";
+        "其所属设备";
       toastManager.add(
         stackedThreadToast({
           type: "warning",
           title: "附加的会话位于另一台设备",
-          description: `This machine's agent can't read "${strandedThread.title}". Remove it, or switch back to ${owner} to send.`,
+          description: `此设备上的智能体无法读取“${strandedThread.title}”。请移除它，或切换回 ${owner} 后发送。`,
         }),
       );
       return;
@@ -882,7 +882,7 @@ export function useComposerSend(input: ComposerSendInput) {
       dispatchMode,
     });
     if (missingWorktreeBaseBranch) {
-      setThreadError(threadIdForSend, "Select a base branch before sending in New worktree mode.");
+      setThreadError(threadIdForSend, "在新工作树模式下发送前，请选择基础分支。");
       return;
     }
     // Records bind attachments by the id each side knows: the local id for the optimistic
@@ -980,7 +980,7 @@ export function useComposerSend(input: ComposerSendInput) {
       }
       if (getUploadedAttachments({ environmentId, images: composerAttachmentsSnapshot }) === null) {
         sendInFlightRef.current = false;
-        setThreadError(threadIdForSend, "Retry or remove failed uploads before sending.");
+        setThreadError(threadIdForSend, "发送前请重试或移除上传失败的附件。");
         return;
       }
     }
@@ -1020,7 +1020,7 @@ export function useComposerSend(input: ComposerSendInput) {
       setThreadError(
         threadIdForSend,
         attachmentCapabilitiesBeforeDispatch.fileBlockReason ??
-          "This connection cannot change threads.",
+          "此连接无法更改会话。",
       );
       setDockedDraftHeroThreadKey((currentThreadKey) =>
         currentThreadKey === activeThreadKey ? null : currentThreadKey,
@@ -1077,7 +1077,7 @@ export function useComposerSend(input: ComposerSendInput) {
         if (composerAttachmentsSnapshot.length > 0 || outgoingMessageContext !== undefined) {
           setThreadError(
             threadIdForSend,
-            "Send approval feedback without attachments or added context.",
+            "发送审批反馈时不能包含附件或额外上下文。",
           );
           sendInFlightRef.current = false;
           return;
@@ -1477,7 +1477,7 @@ export function useComposerSend(input: ComposerSendInput) {
         const error = squashAtomCommandFailure(failure);
         setThreadError(
           threadIdForSend,
-          error instanceof Error ? error.message : "Failed to send message.",
+          error instanceof Error ? error.message : "发送消息失败。",
         );
         if (
           draftId &&
@@ -1488,11 +1488,11 @@ export function useComposerSend(input: ComposerSendInput) {
               type: "error",
               title:
                 submissionIntent === "background"
-                  ? "Background task failed"
-                  : "Could not start thread",
-              description: error instanceof Error ? error.message : "Failed to send message.",
+                  ? "后台任务失败"
+                  : "无法启动会话",
+              description: error instanceof Error ? error.message : "发送消息失败。",
               actionProps: {
-                children: "Open draft",
+                children: "打开草稿",
                 onClick: () => {
                   void navigate({ to: "/draft/$draftId", params: { draftId } });
                 },

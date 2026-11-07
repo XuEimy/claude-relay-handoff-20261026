@@ -10,14 +10,21 @@ import { useEnterEnvironmentWorkspace } from "./useEnterEnvironmentWorkspace";
 
 vi.mock("./useActiveSshEnvironment", () => ({ useActiveSshEnvironment: vi.fn() }));
 vi.mock("./useEnterEnvironmentWorkspace", () => ({ useEnterEnvironmentWorkspace: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  projects: [] as Array<{ id: string; environmentId: string; workspaceRoot: string; archivedAt: null; updatedAt: string; createdAt: string }>,
+  openThread: vi.fn(async () => true),
+}));
+vi.mock("../../state/entities", () => ({ readProjects: () => mocks.projects }));
+vi.mock("../../hooks/useHandleNewThread", () => ({ useNewThreadHandler: () => mocks.openThread }));
 
 it.each([
-  { known: false, expectedUser: "root", probeOk: false },
-  { known: true, expectedUser: "saved-user", probeOk: false },
-  { known: false, expectedUser: "root", probeOk: true },
+  { known: false, expectedUser: "root", probeOk: false, hasProject: false },
+  { known: true, expectedUser: "saved-user", probeOk: false, hasProject: false },
+  { known: false, expectedUser: "root", probeOk: true, hasProject: false },
+  { known: true, expectedUser: "saved-user", probeOk: true, hasProject: true },
 ])(
   "probes first (known: $known, probe succeeds: $probeOk)",
-  async ({ known, expectedUser, probeOk }) => {
+  async ({ known, expectedUser, probeOk, hasProject }) => {
     const target = { alias: "server", hostname: "server.tail", username: "me", port: null };
     const server = {
       environmentId: EnvironmentId.make("server"),
@@ -29,7 +36,13 @@ it.each([
     vi.mocked(useActiveSshEnvironment).mockReturnValue(server as never);
     const enter = vi.fn(async () => undefined);
     vi.mocked(useEnterEnvironmentWorkspace).mockReturnValue(enter);
-    useComputerScopeStore.setState({ byEnvironmentId: {} });
+    mocks.projects = hasProject ? [
+      { id: "root", environmentId: "server", workspaceRoot: "/home/me/computers/box", archivedAt: null, createdAt: "2026-01-01", updatedAt: "2026-12-01" },
+      { id: "older", environmentId: "server", workspaceRoot: "/home/me/computers/box/old", archivedAt: null, createdAt: "2026-01-01", updatedAt: "2026-02-01" },
+      { id: "latest", environmentId: "server", workspaceRoot: "/home/me/computers/box/new", archivedAt: null, createdAt: "2026-01-01", updatedAt: "2026-03-01" },
+    ] : [];
+    mocks.openThread.mockClear();
+    useComputerScopeStore.setState({ byEnvironmentId: {}, addProjectEnvironmentId: null });
     const calls: DesktopSshFileOperation[] = [];
     using _bridge = stubGlobal("desktopBridge", {
       sshFileOperation: async (input: DesktopSshFileOperation) => {
@@ -114,7 +127,13 @@ it.each([
       await vi.waitFor(() => expect(close).toHaveBeenCalledWith(false));
       await expect.element(screen.getByLabelText("密码")).not.toBeInTheDocument();
       expect(calls.some((input) => input.operation === "computer-install-key")).toBe(false);
-      expect(enter).toHaveBeenCalledWith(server, { workspaceRoot: "/home/me/computers/box" });
+      expect(enter).not.toHaveBeenCalled();
+      if (hasProject) {
+        expect(mocks.openThread).toHaveBeenCalledWith({ environmentId: "server", projectId: "latest" });
+        expect(useComputerScopeStore.getState().addProjectEnvironmentId).toBeNull();
+      } else {
+        expect(useComputerScopeStore.getState().addProjectEnvironmentId).toBe("server");
+      }
       return;
     }
     await expect.element(screen.getByLabelText("密码")).toBeVisible();
@@ -124,7 +143,8 @@ it.each([
     await userEvent.type(screen.getByLabelText("密码"), "test-password");
     await userEvent.click(screen.getByRole("button", { name: "连接" }));
     await vi.waitFor(() => expect(close).toHaveBeenCalledWith(false));
-    expect(enter).toHaveBeenCalledWith(server, { workspaceRoot: "/home/me/computers/box" });
+    expect(enter).not.toHaveBeenCalled();
+    expect(useComputerScopeStore.getState().addProjectEnvironmentId).toBe("server");
     expect(
       calls.find((input) => input.operation === "computer-install-key")?.computer,
     ).toMatchObject({
@@ -136,5 +156,73 @@ it.each([
       username: "alice",
       dir: "/home/me/computers/box",
     });
+    expect(useComputerScopeStore.getState().byEnvironmentId.server?.onboarded).toBe(true);
   },
 );
+
+it("logs into tailscale on the server, opens the auth url, then lists peers", async () => {
+  const target = { alias: "server", hostname: "server.tail", username: "me", port: null };
+  const server = {
+    environmentId: EnvironmentId.make("server"),
+    label: "我的服务器",
+    connection: { phase: "connected" },
+    serverConfig: { cwd: "/home/me" },
+    entry: { profile: Option.some({ _tag: "SshConnectionProfile", target }) },
+  };
+  vi.mocked(useActiveSshEnvironment).mockReturnValue(server as never);
+  vi.mocked(useEnterEnvironmentWorkspace).mockReturnValue(vi.fn(async () => undefined));
+  useComputerScopeStore.setState({ byEnvironmentId: {}, addProjectEnvironmentId: null });
+  const peer = {
+    id: "box",
+    hostName: "box",
+    dnsName: "box.tail",
+    ips: ["100.1.1.1"],
+    os: "linux",
+    online: true,
+    self: false,
+  };
+  let peersOk = false;
+  const openExternal = vi.fn(async () => true);
+  using _bridge = stubGlobal("desktopBridge", {
+    openExternal,
+    sshFileOperation: async (input: DesktopSshFileOperation) => {
+      switch (input.operation) {
+        case "computer-list":
+          return JSON.stringify({ ok: true, root: "/home/me/computers", computers: [] });
+        case "computer-peers":
+          return JSON.stringify(
+            peersOk
+              ? { ok: true, peers: [peer] }
+              : {
+                  ok: false,
+                  error: "tailscale-stopped",
+                  message: "服务器上的 Tailscale 未连接",
+                  state: "Stopped",
+                },
+          );
+        case "computer-tailscale-login":
+          return JSON.stringify({
+            ok: true,
+            state: "needs-login",
+            url: "https://login.tailscale.com/a/abc123",
+          });
+        default:
+          throw new Error("unexpected operation");
+      }
+    },
+  });
+  const close = vi.fn();
+  await using screen = await render(<ComputerPickerDialog open onOpenChange={close} />);
+  await expect.element(screen.getByText("第一步：在服务器上登录 Tailscale")).toBeVisible();
+  await userEvent.click(screen.getByRole("button", { name: "登录 Tailscale" }));
+  await vi.waitFor(() =>
+    expect(openExternal).toHaveBeenCalledWith("https://login.tailscale.com/a/abc123"),
+  );
+  await expect.element(screen.getByText("等待登录完成…")).toBeVisible();
+  peersOk = true;
+  await userEvent.click(screen.getByRole("button", { name: "我已登录，刷新" }));
+  await expect.element(screen.getByText("box.tail")).toBeVisible();
+  await userEvent.click(screen.getByRole("button", { name: "稍后再说" }));
+  await vi.waitFor(() => expect(close).toHaveBeenCalledWith(false));
+  expect(useComputerScopeStore.getState().byEnvironmentId.server?.onboarded).toBe(true);
+});

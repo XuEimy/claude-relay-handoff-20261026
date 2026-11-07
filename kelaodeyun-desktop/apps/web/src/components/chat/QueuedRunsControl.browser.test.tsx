@@ -105,7 +105,7 @@ it("previews assistant quotes as readable text and preserves the citation when e
     .element(page.getByText(`${quotedText} Why per worktree?`, { exact: true }))
     .toBeVisible();
 
-  await page.getByRole("button", { name: "Edit queued message", exact: true }).nth(1).click();
+  await page.getByRole("button", { name: "编辑排队消息", exact: true }).nth(1).click();
   expect(onEditQueuedRun).toHaveBeenCalledExactlyOnceWith(
     expect.objectContaining({ text: quoteAndText }),
   );
@@ -164,13 +164,13 @@ it("shows who sent a queued message and folds automation and agent prompts", asy
   await expect.element(page.getByText(/Follow the runbook/)).not.toBeInTheDocument();
   await automation.click();
   await expect.element(page.getByText(/Follow the runbook/)).toBeVisible();
-  await expect.element(page.getByRole("link", { name: "Open automation" })).toBeInTheDocument();
+  await expect.element(page.getByRole("link", { name: "打开自动化任务" })).toBeInTheDocument();
 
   await expect.element(page.getByRole("button", { name: /Release lead/ })).toBeVisible();
-  await page.getByRole("button", { name: "Open thread" }).click({ force: true });
+  await page.getByRole("button", { name: "打开会话" }).click({ force: true });
   expect(onOpenThread).toHaveBeenCalledExactlyOnceWith("thread:lead");
 
-  await expect.element(page.getByText("Sent by kelaodeyun")).toBeVisible();
+  await expect.element(page.getByText("由 Agent Cloud OS 发送")).toBeVisible();
   await expect.element(page.getByText("Continue where you left off.")).toBeVisible();
 });
 

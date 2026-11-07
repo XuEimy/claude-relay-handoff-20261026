@@ -362,7 +362,7 @@ export function UsagePage() {
       : `${formatDayShort(shownWindow.sinceDay)} to ${formatDayShort(shownWindow.untilDay)}`;
   const topbarContent = (
     <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 py-2 @4xl/usage-header:flex">
-      <WorkspaceBreadcrumb ariaLabel="Usage breadcrumb" className="min-w-0">
+      <WorkspaceBreadcrumb ariaLabel="用量导航" className="min-w-0">
         <WorkspaceBreadcrumbItem>
           <h1>用量</h1>
         </WorkspaceBreadcrumbItem>
@@ -399,7 +399,7 @@ export function UsagePage() {
             tabs so dropping it never moves them. */}
         {showingLimits ? null : (
           <ToggleGroup
-            aria-label="Usage period"
+            aria-label="用量周期"
             variant="segmented"
             value={[String(windowDays)]}
             onValueChange={(next) => {
@@ -415,7 +415,7 @@ export function UsagePage() {
           </ToggleGroup>
         )}
         <ToggleGroup
-          aria-label="Usage metric"
+          aria-label="用量指标"
           variant="segmented"
           value={[metric]}
           onValueChange={(next) => {
@@ -431,7 +431,7 @@ export function UsagePage() {
         </ToggleGroup>
         <Button
           onClick={refreshWindow}
-          aria-label={showingLimits ? "Refresh limits" : "Refresh usage"}
+          aria-label={showingLimits ? "刷新额度" : "刷新用量"}
           aria-busy={isRefreshing}
           disabled={isRefreshing || (!showingLimits && !canReadDiagnostics)}
           size="icon-sm"
@@ -444,7 +444,7 @@ export function UsagePage() {
         {showingLimits ? null : (
           <Select value={String(windowDays)} onValueChange={(value) => selectWindow(Number(value))}>
             <SelectTrigger
-              aria-label="Usage period"
+              aria-label="用量周期"
               size="compact"
               variant="ghost"
               className="w-auto min-w-0"
@@ -473,7 +473,7 @@ export function UsagePage() {
           }}
         >
           <SelectTrigger
-            aria-label="Usage metric"
+            aria-label="用量指标"
             size="compact"
             variant="ghost"
             className="w-auto min-w-0"
@@ -492,7 +492,7 @@ export function UsagePage() {
         </Select>
         <Button
           onClick={refreshWindow}
-          aria-label={showingLimits ? "Refresh limits" : "Refresh usage"}
+          aria-label={showingLimits ? "刷新额度" : "刷新用量"}
           aria-busy={isRefreshing}
           disabled={isRefreshing || (!showingLimits && !canReadDiagnostics)}
           size="icon-sm"
@@ -517,8 +517,8 @@ export function UsagePage() {
             {selectedEnvironments.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 {environments.length === 0
-                  ? `Connect an environment to see ${showingLimits ? "limits" : "usage"}.`
-                  : `Select an environment to see ${showingLimits ? "limits" : "usage"}.`}
+                  ? `请连接环境以查看${showingLimits ? "额度" : "用量"}。`
+                  : `请选择环境以查看${showingLimits ? "额度" : "用量"}。`}
               </p>
             ) : showingLimits ? (
               <UsageLimitsSection
@@ -715,7 +715,7 @@ function UsageOverview({
                   <PopoverTrigger
                     openOnHover
                     render={<InlineButton tone="muted" />}
-                    aria-label="Unpriced usage details"
+                    aria-label="未定价用量详情"
                   >
                     <InfoIcon className="size-3" aria-hidden />
                   </PopoverTrigger>
@@ -730,7 +730,7 @@ function UsageOverview({
 
           {showChatGptSharing ? (
             <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-              <span>ChatGPT shared usage</span>
+              <span>ChatGPT 共享用量</span>
               <ChatGptUsageButton size="xs" />
             </div>
           ) : null}
@@ -831,27 +831,27 @@ function UsageOverview({
       </section>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-medium text-foreground">Totals</h2>
+        <h2 className="text-sm font-medium text-foreground">总计</h2>
         <div className="grid grid-cols-2 gap-x-6 gap-y-4 py-1 md:grid-cols-5">
           <Metric
             loading={loadingPartial}
-            label="Processed tokens"
+            label="已处理 token"
             value={formatTokens(merged.totalTokens)}
           />
           <Metric
             loading={loadingPartial}
-            label="Cached input"
+            label="缓存输入"
             value={formatTokens(merged.cachedInputTokens)}
           />
           <Metric
             loading={loadingPartial}
-            label="Uncached input"
+            label="未缓存输入"
             value={formatTokens(merged.uncachedInputTokens)}
           />
           <Metric loading={loadingPartial} label="输出" value={formatTokens(merged.outputTokens)} />
           <Metric
             loading={loadingPartial}
-            label="Cache savings"
+            label="缓存节省"
             value={formatUsd(merged.costQuality.cacheSavingsUsd)}
           />
         </div>
@@ -863,20 +863,20 @@ function UsageOverview({
         >
           {metric === "tokens" ? (
             <UsageShareBar
-              label="Tokens by type"
+              label="按类型划分的 token"
               segments={tokenTypeSegments(merged)}
               format={formatTokens}
             />
           ) : (
             <>
               <UsageShareBar
-                label="Cost by type"
+                label="按类型划分的费用"
                 segments={costTypeSegments(merged.categoryCost)}
                 format={formatUsd}
               />
               {merged.speedCost.fast + merged.speedCost.ultrafast > 0 ? (
                 <UsageShareBar
-                  label="Cost by speed"
+                  label="按速度划分的费用"
                   segments={speedCostSegments(merged.speedCost)}
                   format={formatUsd}
                   aside={<SpeedPremium premiumUsd={merged.speedCost.premium} />}
@@ -889,9 +889,9 @@ function UsageOverview({
 
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-medium text-foreground">Breakdown</h2>
+          <h2 className="text-sm font-medium text-foreground">明细</h2>
           <ToggleGroup
-            aria-label="Usage breakdown"
+            aria-label="用量明细"
             variant="segmented"
             value={[breakdown]}
             onValueChange={(next) => {
@@ -919,8 +919,8 @@ function UsageOverview({
                 <th className="py-2 pr-3 text-left font-normal">#</th>
                 <th className="w-full py-2 text-left font-normal">模型</th>
                 <th className="py-2 pl-6 font-normal">费用</th>
-                <th className="hidden py-2 pl-6 font-normal sm:table-cell">Share</th>
-                <th className="py-2 pl-6 font-normal">Tokens</th>
+                <th className="hidden py-2 pl-6 font-normal sm:table-cell">占比</th>
+                <th className="py-2 pl-6 font-normal">Token</th>
               </tr>
             </thead>
             <tbody>
@@ -969,7 +969,7 @@ function UsageOverview({
                       </td>
                       <td className={cn("py-2.5 pl-6 text-foreground", rowFigures)}>
                         {isModelCostUnknown(model) ? (
-                          <span className="text-muted-foreground">Unpriced</span>
+                          <span className="text-muted-foreground">未定价</span>
                         ) : (
                           formatUsd(model.costUsd)
                         )}
@@ -990,7 +990,7 @@ function UsageOverview({
           <div
             className="overflow-x-auto outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
             role="region"
-            aria-label="Usage breakdown by time"
+            aria-label="按时间划分的用量明细"
             tabIndex={0}
           >
             <table className="w-full text-sm whitespace-nowrap">
@@ -1006,7 +1006,7 @@ function UsageOverview({
                     </th>
                   ))}
                   <th className="py-2 pl-4 text-right font-normal">总计</th>
-                  <th className="py-2 pl-4 text-right font-normal">Tokens</th>
+                  <th className="py-2 pl-4 text-right font-normal">Token</th>
                 </tr>
               </thead>
               <tbody>
@@ -1069,7 +1069,7 @@ function UsageOverview({
   );
 }
 
-const CURSOR_KEYCHAIN_COPY = "Requires access to your Cursor login in macOS Keychain.";
+const CURSOR_KEYCHAIN_COPY = "需要访问 macOS 钥匙串中的 Cursor 登录信息。";
 
 function CursorEnableButton({
   environmentId,
@@ -1085,7 +1085,7 @@ function CursorEnableButton({
   readonly buttonText?: string;
 }) {
   const updateSettings = useAtomCommand(serverEnvironment.updateSettings, {
-    label: "enable Cursor account usage",
+    label: "启用 Cursor 账户用量",
   });
   const [pending, setPending] = useState(false);
   const enable = async () => {
@@ -1101,7 +1101,7 @@ function CursorEnableButton({
     <InlineButton
       disabled={pending}
       aria-busy={pending}
-      aria-label={`Enable Cursor usage from ${label}`}
+      aria-label={`启用 ${label} 的 Cursor 用量`}
       onClick={() => void enable()}
     >
       {buttonText}
@@ -1112,7 +1112,7 @@ function CursorEnableButton({
       variant="outline"
       disabled={pending}
       aria-busy={pending}
-      aria-label={`Enable Cursor usage from ${label}`}
+      aria-label={`启用 ${label} 的 Cursor 用量`}
       onClick={() => void enable()}
     >
       {buttonText}
@@ -1186,7 +1186,7 @@ function CursorEnableLimits({
               key={environment.environmentId}
               environmentId={environment.environmentId}
               label={environment.label}
-              buttonText={environments.length > 1 ? `Enable on ${environment.label}` : "启用"}
+              buttonText={environments.length > 1 ? `在 ${environment.label} 上启用` : "启用"}
               onEnabled={onEnabled}
               tooltip={false}
             />
@@ -1323,7 +1323,7 @@ function UsageEnvironmentFilter({
           {showUsageStatus && hasIssue ? (
             <CircleAlertIcon
               className="size-3.5 text-warning-foreground"
-              aria-label="Some environments could not report usage"
+              aria-label="部分环境无法报告用量"
             />
           ) : (
             <ChevronDownIcon
@@ -1355,13 +1355,13 @@ function UsageEnvironmentFilter({
                     environment.summary.contractVersion,
                     USAGE_CONTRACT_VERSION,
                   )
-                ? "Update required"
+                ? "需要更新"
                 : !environment.isConnected
                   ? "正在连接…"
                   : progress.phase === "loading"
-                    ? "Scanning…"
+                    ? "正在扫描…"
                     : progress.phase === "stale"
-                      ? "Refreshing…"
+                      ? "正在刷新…"
                       : progress.phase === "partway"
                         ? updatingProvidersLabel(progress.providers, providerLabel)
                         : "就绪";
@@ -1428,12 +1428,12 @@ function UsageProviderFilter({
   const visible = PROVIDER_ORDER.filter((provider) => !hiddenProviders.has(provider));
   const label =
     visible.length === PROVIDER_ORDER.length
-      ? "All providers"
+      ? "所有服务"
       : visible.length === 0
-        ? "No providers"
+        ? "没有服务"
         : visible.length === 1
           ? PROVIDER_PRESENTATION[visible[0]!].label
-          : `${visible.length} providers`;
+          : `${visible.length} 个服务`;
 
   return (
     <Menu>
@@ -1511,9 +1511,9 @@ function UsageSkeleton() {
       </section>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-medium text-foreground">Totals</h2>
+        <h2 className="text-sm font-medium text-foreground">总计</h2>
         <MetricSkeletons
-          labels={["Processed tokens", "Cached input", "Uncached input", "输出", "Cache savings"]}
+          labels={["已处理 token", "缓存输入", "未缓存输入", "输出", "缓存节省"]}
         />
       </section>
 
@@ -1527,7 +1527,7 @@ function UsageSkeleton() {
 
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-medium text-foreground">Breakdown</h2>
+          <h2 className="text-sm font-medium text-foreground">明细</h2>
           <Skeleton shape="card" className="h-7 w-28" />
         </div>
         <Skeleton className="h-44" />

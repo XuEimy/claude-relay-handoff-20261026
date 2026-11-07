@@ -4,7 +4,7 @@ import { SshConnectingAnimation } from "./SshConnectingAnimation";
 import { SshConnectionTicker } from "./SshConnectionTicker";
 import { sshProgressLine, useSshConnectionProgress } from "./useSshConnectionProgress";
 import { Spinner } from "../ui/spinner";
-import { ServerIcon } from "lucide-react";
+import { MacIcon } from "./MacIcons";
 import * as Option from "effect/Option";
 import { squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
 import { useNavigate } from "@tanstack/react-router";
@@ -14,7 +14,12 @@ import { environmentCatalog } from "../../connection/catalog";
 import { connectSshEnvironment } from "../../connection/onboarding";
 import { useAccountHosts } from "../../hooks/useDesktopAccount";
 import { unmatchedAccountHosts } from "./accountHosts";
-import { accountHostSshTarget, type DesktopSshEnvironmentTarget } from "@t3tools/contracts";
+import {
+  accountHostMatchesTarget,
+  accountHostSshTarget,
+  type DesktopAccountHost,
+  type DesktopSshEnvironmentTarget,
+} from "@t3tools/contracts";
 import { Button } from "../ui/button";
 import {
   Dialog,
@@ -105,6 +110,7 @@ export function SshConnectionDialog({
               <SshServerCard
                 key={server.environmentId}
                 server={server}
+                accountHosts={accountHosts}
                 onSelected={finish}
                 onConnecting={() => {
                   const profile = Option.getOrNull(server.entry.profile);
@@ -128,7 +134,12 @@ export function SshConnectionDialog({
                     key={host.id}
                     className="flex items-center justify-between gap-2 rounded-md border p-3"
                   >
-                    <div className="min-w-0">
+                    <MacIcon
+                      kind={host.source === "purchased" ? "mini" : "imac"}
+                      size="sm"
+                      className="size-9 shrink-0 text-muted-foreground"
+                    />
+                    <div className="min-w-0 flex-1">
                       <div className="truncate text-sm">
                         {host.label} {host.source === "purchased" ? "· 已购买" : ""}
                       </div>
@@ -198,12 +209,14 @@ export function SshServerCard({
   onConnecting,
   onConnectionFailed,
   dialogOpen = true,
+  accountHosts = [],
 }: {
   server: EnvironmentPresentation;
   onSelected?: () => void;
   onConnecting?: () => void;
   onConnectionFailed?: () => void;
   dialogOpen?: boolean;
+  accountHosts?: readonly DesktopAccountHost[];
 }) {
   const resumeAfterConnect = useRef(false);
   const openWorkspace = useEnterEnvironmentWorkspace();
@@ -227,6 +240,9 @@ export function SshServerCard({
   const [error, setError] = useState<string | null>(null);
   const profile = Option.getOrNull(server.entry.profile);
   const target = profile?._tag === "SshConnectionProfile" ? profile.target : null;
+  const matchingHost = target
+    ? accountHosts.find((host) => accountHostMatchesTarget(host, target))
+    : undefined;
   const phase = server.connection.phase;
   const connected = phase === "connected";
   const connecting = phase === "connecting" || phase === "reconnecting";
@@ -287,7 +303,14 @@ export function SshServerCard({
           {connecting ? (
             <Spinner size="lg" tone="muted" />
           ) : (
-            <ServerIcon className="size-5 text-muted-foreground" />
+            <MacIcon
+              kind={
+                matchingHost?.source === "purchased" ? "mini" : matchingHost ? "imac" : "macbook"
+              }
+              connected={connected}
+              size="sm"
+              className="size-7 text-muted-foreground"
+            />
           )}
         </div>
         <div className="min-w-0 flex-1">

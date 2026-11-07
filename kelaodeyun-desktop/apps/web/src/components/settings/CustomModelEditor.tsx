@@ -138,11 +138,11 @@ export function CustomModelEditor({
         size="compact"
         value={choice.id}
         onChange={(event) => updateChoice(descriptor.key, choice.key, { id: event.target.value })}
-        placeholder="value"
+        placeholder="值"
         font="mono"
         className="w-28"
         spellCheck={false}
-        aria-label="Choice value"
+        aria-label="选项值"
       />
       <Input
         size="compact"
@@ -152,7 +152,7 @@ export function CustomModelEditor({
         }
         placeholder="标签"
         className="min-w-0 flex-1"
-        aria-label="Choice label"
+        aria-label="选项标签"
       />
       <label className="flex shrink-0 items-center gap-1.5 text-2xs text-muted-foreground">
         <Switch
@@ -161,14 +161,14 @@ export function CustomModelEditor({
           onCheckedChange={(checked) =>
             updateChoice(descriptor.key, choice.key, { isDefault: checked })
           }
-          aria-label="Default choice"
+          aria-label="默认选项"
         />
         默认
       </label>
       <Button
         size="icon-micro"
         variant="ghost-muted"
-        aria-label="Remove choice"
+        aria-label="移除选项"
         onClick={() =>
           updateDescriptor(descriptor.key, {
             choices: descriptor.choices.filter((candidate) => candidate.key !== choice.key),
@@ -192,7 +192,7 @@ export function CustomModelEditor({
             value={idSelectValue(descriptor)}
             onValueChange={(value) => applyPresetId(descriptor, value)}
           >
-            <SelectTrigger size="compact" className="w-40" aria-label="Option id">
+            <SelectTrigger size="compact" className="w-40" aria-label="选项 ID">
               <SelectValue>
                 {idSelectValue(descriptor) === CUSTOM_ID_VALUE ? "自定义…" : descriptor.id}
               </SelectValue>
@@ -219,7 +219,7 @@ export function CustomModelEditor({
             font="mono"
             className="w-36"
             spellCheck={false}
-            aria-label="Option id"
+            aria-label="选项 ID"
           />
         ) : null}
         <Input
@@ -228,7 +228,7 @@ export function CustomModelEditor({
           onChange={(event) => updateDescriptor(descriptor.key, { label: event.target.value })}
           placeholder="标签"
           className="min-w-0 flex-1"
-          aria-label="Option label"
+          aria-label="选项标签"
         />
         <Select
           value={descriptor.type}
@@ -236,18 +236,18 @@ export function CustomModelEditor({
             updateDescriptor(descriptor.key, { type: value === "boolean" ? "boolean" : "select" })
           }
         >
-          <SelectTrigger size="compact" className="w-24" aria-label="Option type">
-            <SelectValue>{descriptor.type === "boolean" ? "Toggle" : "Choices"}</SelectValue>
+          <SelectTrigger size="compact" className="w-24" aria-label="选项类型">
+            <SelectValue>{descriptor.type === "boolean" ? "开关" : "选择"}</SelectValue>
           </SelectTrigger>
           <SelectPopup align="end" alignItemWithTrigger={false}>
-            <SelectItem value="select">Choices</SelectItem>
-            <SelectItem value="boolean">Toggle</SelectItem>
+            <SelectItem value="select">选择</SelectItem>
+            <SelectItem value="boolean">开关</SelectItem>
           </SelectPopup>
         </Select>
         <Button
           size="icon-micro"
           variant="ghost-muted"
-          aria-label={`Remove option ${index + 1}`}
+          aria-label={`移除选项 ${index + 1}`}
           onClick={() => removeDescriptor(descriptor.key)}
         >
           <XIcon className="size-3" />
@@ -303,15 +303,15 @@ export function CustomModelEditor({
 
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="text-xs text-muted-foreground">Options shown in the composer</span>
+          <span className="text-xs text-muted-foreground">输入框中显示的选项</span>
           {startFromCandidates.length > 0 ? (
             <Select value={START_FROM_NONE} onValueChange={handleStartFrom}>
               <SelectTrigger
                 size="compact"
                 className="w-44"
-                aria-label="Copy options from a built-in model"
+                aria-label="从内置模型复制选项"
               >
-                <SelectValue>Copy from…</SelectValue>
+                <SelectValue>复制自…</SelectValue>
               </SelectTrigger>
               <SelectPopup align="end" alignItemWithTrigger={false}>
                 {startFromCandidates.map((model) => (

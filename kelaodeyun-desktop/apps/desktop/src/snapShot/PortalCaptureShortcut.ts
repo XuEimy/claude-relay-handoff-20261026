@@ -1,4 +1,5 @@
 // @effect-diagnostics nodeBuiltinImport:off -- Stable shortcut IDs and unique portal request tokens.
+import { APP_BASE_NAME } from "../app/DesktopBranding.ts";
 // @effect-diagnostics globalTimers:off -- Bounded D-Bus calls and user-consent requests at the native boundary.
 import * as NodeCrypto from "node:crypto";
 import {
@@ -63,7 +64,7 @@ export class PortalCaptureShortcut {
   state: PortalShortcutState = {
     shortcutRegistered: false,
     shortcutPending: true,
-    shortcutMessage: "Waiting for shortcut permission. Approve the desktop prompt if one appears.",
+    shortcutMessage: "正在等待快捷键权限。如果出现桌面提示，请予以允许。",
   };
   readonly ready: Promise<void>;
   private closed = false;
@@ -97,7 +98,7 @@ export class PortalCaptureShortcut {
       this.state = {
         shortcutRegistered: false,
         shortcutPending: true,
-        shortcutMessage: "Connecting to Hyprland shortcuts…",
+        shortcutMessage: "正在连接 Hyprland 快捷键…",
       };
     this.stopped = new Promise((_, reject) => {
       this.rejectStopped = reject;
@@ -111,7 +112,7 @@ export class PortalCaptureShortcut {
   close = () => {
     if (this.closed) return;
     this.closed = true;
-    this.rejectStopped(new Error("Capture shortcut registration closed."));
+    this.rejectStopped(new Error("截图快捷键注册已关闭。"));
     try {
       if (this.pending) this.closeObject(this.pending.path, REQUEST);
       if (this.session) this.closeObject(this.session, SESSION);
@@ -127,10 +128,10 @@ export class PortalCaptureShortcut {
 
   async configure() {
     if (this.managedByHyprland)
-      throw new Error("Change the capture binding in your Hyprland config, then save it.");
+      throw new Error("请在 Hyprland 配置中更改截图快捷键绑定，然后保存。");
     if (!this.hasSession || this.version < 2)
       throw new Error(
-        "Open your desktop's shortcut settings and allow kelaodeyun's capture shortcut.",
+        `请打开桌面快捷键设置，允许 ${APP_BASE_NAME} 的截图快捷键。`,
       );
     await this.call({
       destination: this.owner,
@@ -158,10 +159,10 @@ export class PortalCaptureShortcut {
       shortcutPending: false,
       shortcutCanRetry: !this.managedByHyprland,
       shortcutMessage: this.managedByHyprland
-        ? "Couldn't connect to Hyprland shortcuts. Make sure xdg-desktop-portal-hyprland is running, then restart kelaodeyun."
+        ? `无法连接 Hyprland 快捷键。请确认 xdg-desktop-portal-hyprland 正在运行，然后重启 ${APP_BASE_NAME}。`
         : error instanceof Error
           ? error.message
-          : "Could not register the capture shortcut.",
+          : "无法注册截图快捷键。",
     });
     this.close();
   };
@@ -174,7 +175,7 @@ export class PortalCaptureShortcut {
         this.stopped,
         new Promise<never>((_, reject) => {
           timer = setTimeout(
-            () => reject(new Error("Shortcut permission request timed out. Try again.")),
+            () => reject(new Error("快捷键权限请求超时，请重试。")),
             timeoutMs,
           );
         }),
@@ -185,9 +186,9 @@ export class PortalCaptureShortcut {
   }
 
   private async call(message: MessageLike) {
-    if (this.closed) throw new Error("Capture shortcut registration closed.");
+    if (this.closed) throw new Error("截图快捷键注册已关闭。");
     const reply = await this.wait(this.bus.call(new Message(message)));
-    if (!reply) throw new Error("Missing shortcut portal reply.");
+    if (!reply) throw new Error("缺少快捷键门户响应。");
     return reply;
   }
 
@@ -212,7 +213,7 @@ export class PortalCaptureShortcut {
       message.body[0] === PORTAL &&
       message.body[1] === this.owner
     ) {
-      this.failed(new Error("The desktop shortcut service restarted. Retry the shortcut request."));
+      this.failed(new Error("桌面快捷键服务已重启，请重试快捷键请求。"));
       return;
     }
     if (!this.owner || message.sender !== this.owner) return;
@@ -232,7 +233,7 @@ export class PortalCaptureShortcut {
       message.member === "Closed"
     ) {
       this.failed(
-        new Error("Your desktop closed the capture shortcut. Retry the shortcut request."),
+        new Error("桌面已关闭截图快捷键，请重试快捷键请求。"),
       );
       return;
     }
@@ -283,7 +284,7 @@ export class PortalCaptureShortcut {
         body: [...body, { ...options, handle_token: new Variant("s", token) }],
       });
       const handle = string(reply.body[0]);
-      if (!handle.startsWith(this.namespace)) throw new Error("Invalid shortcut request handle.");
+      if (!handle.startsWith(this.namespace)) throw new Error("快捷键请求句柄无效。");
       this.pending.path = handle;
       if (this.responses.has(handle)) resolve(this.responses.get(handle));
       const [status, results] = decodeResponse(
@@ -297,12 +298,12 @@ export class PortalCaptureShortcut {
             shortcutPending: false,
             shortcutMessage:
               this.version >= 2
-                ? "Shortcut permission wasn't granted. Open shortcut permissions to allow it."
-                : "Shortcut permission wasn't granted. Allow kelaodeyun in your desktop's shortcut settings.",
+                ? "未授予快捷键权限，请打开快捷键权限设置以允许。"
+                : `未授予快捷键权限，请在桌面快捷键设置中允许 ${APP_BASE_NAME}。`,
           });
           return undefined;
         }
-        throw new Error("Your desktop could not create a capture shortcut session.");
+        throw new Error("桌面无法创建截图快捷键会话。");
       }
       return results;
     } finally {
@@ -320,8 +321,8 @@ export class PortalCaptureShortcut {
         shortcutActionRegistered: Boolean(shortcut),
         shortcutPending: false,
         shortcutMessage: shortcut
-          ? "Managed by Hyprland. Add the binding to your config and save it."
-          : "Hyprland did not register the capture action. Check that xdg-desktop-portal-hyprland is running, then restart kelaodeyun.",
+          ? "由 Hyprland 管理，请将绑定添加到配置中并保存。"
+          : `Hyprland 未注册截图操作。请确认 xdg-desktop-portal-hyprland 正在运行，然后重启 ${APP_BASE_NAME}。`,
       });
       return;
     }
@@ -331,10 +332,10 @@ export class PortalCaptureShortcut {
       shortcutPending: false,
       ...(label ? { shortcutLabel: label } : {}),
       shortcutMessage: label
-        ? `Desktop shortcut: ${label}`
+        ? `桌面快捷键：${label}`
         : this.version >= 2
-          ? "No shortcut is assigned. Open shortcut permissions to choose one."
-          : "No shortcut is assigned. Choose one in your desktop's shortcut settings.",
+          ? "尚未分配快捷键，请打开快捷键权限设置进行选择。"
+          : "尚未分配快捷键，请在桌面快捷键设置中选择。",
     });
   }
 
@@ -399,7 +400,7 @@ export class PortalCaptureShortcut {
     });
     const session = decodeSession(created).session_handle.value;
     const sessionNamespace = this.namespace.replace("/request/", "/session/");
-    if (!session.startsWith(sessionNamespace)) throw new Error("Invalid shortcut session handle.");
+    if (!session.startsWith(sessionNamespace)) throw new Error("快捷键会话句柄无效。");
     this.session = session;
     this.shortcutId = this.managedByHyprland
       ? HYPRLAND_CAPTURE_ACTION

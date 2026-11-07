@@ -247,7 +247,7 @@ export function MermaidDiagram({
       onRender: () => setRenderError(null),
       onError: (error) =>
         setRenderError(
-          error instanceof Error ? error.message : "The diagram could not be rendered.",
+          error instanceof Error ? error.message : "无法渲染图表。",
         ),
     });
     return () => mounted.destroy();
@@ -256,7 +256,7 @@ export function MermaidDiagram({
   if (load.status === "failed") {
     return (
       <DiagramError
-        message="The diagram renderer failed to load."
+        message="图表渲染器加载失败。"
         source={source}
         onRetry={() => {
           if (core.status === "failed") coreLoad = null;

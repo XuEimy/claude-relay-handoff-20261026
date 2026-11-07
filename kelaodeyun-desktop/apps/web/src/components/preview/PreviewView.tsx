@@ -1,4 +1,5 @@
 import { scopedThreadKey } from "@t3tools/client-runtime/environment";
+import { APP_BASE_NAME } from "~/branding";
 import { settlePromise } from "@t3tools/client-runtime/state/runtime";
 import { previewStreamDownloadUrl } from "@t3tools/client-runtime/preview/server-browser-stream";
 import {
@@ -263,12 +264,12 @@ export function PreviewView({
     } catch (error) {
       toastManager.add({
         type: "error",
-        title: "Could not open this address",
+        title: "无法打开此地址",
         description: isPreviewUrlNormalizationError(error)
-          ? "Enter an http or https URL."
+          ? "请输入 http 或 https URL。"
           : error instanceof Error
             ? error.message
-            : "An error occurred.",
+            : "发生错误。",
       });
     }
   };
@@ -285,12 +286,12 @@ export function PreviewView({
     } catch (error) {
       toastManager.add({
         type: "error",
-        title: "Could not open this address",
+        title: "无法打开此地址",
         description: isPreviewUrlNormalizationError(error)
-          ? "Enter an http or https URL."
+          ? "请输入 http 或 https URL。"
           : error instanceof Error
             ? error.message
-            : "An error occurred.",
+            : "发生错误。",
       });
     }
   };
@@ -310,8 +311,8 @@ export function PreviewView({
       const error = squashAtomCommandFailure(result);
       toastManager.add({
         type: "error",
-        title: "Unable to change the browser tab",
-        description: error instanceof Error ? error.message : "An error occurred.",
+        title: "无法更改浏览器标签页",
+        description: error instanceof Error ? error.message : "发生错误。",
       });
       return;
     }
@@ -411,8 +412,8 @@ export function PreviewView({
       const error = squashAtomCommandFailure(result);
       toastManager.add({
         type: "error",
-        title: "Unable to move the browser tab",
-        description: error instanceof Error ? error.message : "An error occurred.",
+        title: "无法移动浏览器标签页",
+        description: error instanceof Error ? error.message : "发生错误。",
       });
       return;
     }
@@ -480,8 +481,8 @@ export function PreviewView({
     void operation(runtimeTabId).catch((error) => {
       toastManager.add({
         type: "error",
-        title: "Unable to update popped-out preview",
-        description: error instanceof Error ? error.message : "An error occurred.",
+        title: "无法更新弹出的预览",
+        description: error instanceof Error ? error.message : "发生错误。",
       });
     });
   };
@@ -502,7 +503,7 @@ export function PreviewView({
                 toastId,
                 stackedThreadToast({
                   type: "error",
-                  title: "Unable to copy recording path",
+                  title: "无法复制录制文件路径",
                   description: "剪贴板接口不可用。",
                   actionProps: revealAction,
                 }),
@@ -524,8 +525,8 @@ export function PreviewView({
                   toastId,
                   stackedThreadToast({
                     type: "error",
-                    title: "Unable to copy recording path",
-                    description: error instanceof Error ? error.message : "An error occurred.",
+                    title: "无法复制录制文件路径",
+                    description: error instanceof Error ? error.message : "发生错误。",
                     actionProps: revealAction,
                   }),
                 );
@@ -542,7 +543,7 @@ export function PreviewView({
               toastId,
               stackedThreadToast({
                 type: "success",
-                title: "Recording saved",
+                title: "录制已保存",
                 actionProps: revealAction,
                 data: {
                   secondaryActionProps: {
@@ -559,7 +560,7 @@ export function PreviewView({
           toastId = toastManager.add(
             stackedThreadToast({
               type: "success",
-              title: "Recording saved",
+              title: "录制已保存",
               actionProps: revealAction,
               data: {
                 secondaryActionProps: {
@@ -574,8 +575,8 @@ export function PreviewView({
         (error) => {
           toastManager.add({
             type: "error",
-            title: "Unable to stop recording",
-            description: error instanceof Error ? error.message : "An error occurred.",
+            title: "无法停止录制",
+            description: error instanceof Error ? error.message : "发生错误。",
           });
         },
       );
@@ -583,11 +584,11 @@ export function PreviewView({
     }
     if (record) {
       void startBrowserRecording(runtimeTabId, threadRef, tabId).catch((error) => {
-        const description = error instanceof Error ? error.message : "An error occurred.";
+        const description = error instanceof Error ? error.message : "发生错误。";
         if (isBrowserRecordingStartCancelledError(error)) return;
         toastManager.add({
           type: "error",
-          title: "Unable to start recording",
+          title: "无法开始录制",
           description,
         });
       });
@@ -605,7 +606,7 @@ export function PreviewView({
 
         const updateScreenshotToast = (
           type: "success" | "error" = "success",
-          title = "Screenshot saved",
+          title = "截图已保存",
           description?: string,
         ) => {
           toastManager.update(
@@ -615,7 +616,7 @@ export function PreviewView({
               title,
               description,
               actionProps: {
-                children: imageCopied ? "已复制" : "Copy image",
+                children: imageCopied ? "已复制" : "复制图片",
                 disabled: imageCopied,
                 onClick: copyImage,
               },
@@ -641,7 +642,7 @@ export function PreviewView({
 
         const copyPath = () => {
           if (!navigator.clipboard?.writeText) {
-            updateScreenshotToast("error", "Unable to copy screenshot path", "剪贴板接口不可用。");
+            updateScreenshotToast("error", "无法复制截图路径", "剪贴板接口不可用。");
             return;
           }
 
@@ -657,8 +658,8 @@ export function PreviewView({
             (error) => {
               updateScreenshotToast(
                 "error",
-                "Unable to copy screenshot path",
-                error instanceof Error ? error.message : "An error occurred.",
+                "无法复制截图路径",
+                error instanceof Error ? error.message : "发生错误。",
               );
             },
           );
@@ -677,8 +678,8 @@ export function PreviewView({
             (error) => {
               updateScreenshotToast(
                 "error",
-                "Unable to copy screenshot",
-                error instanceof Error ? error.message : "An error occurred.",
+                "无法复制截图",
+                error instanceof Error ? error.message : "发生错误。",
               );
             },
           );
@@ -687,9 +688,9 @@ export function PreviewView({
         toastId = toastManager.add(
           stackedThreadToast({
             type: "success",
-            title: "Screenshot saved",
+            title: "截图已保存",
             actionProps: {
-              children: "Copy image",
+              children: "复制图片",
               onClick: copyImage,
             },
             data: {
@@ -713,8 +714,8 @@ export function PreviewView({
       (error) => {
         toastManager.add({
           type: "error",
-          title: "Unable to capture screenshot",
-          description: error instanceof Error ? error.message : "An error occurred.",
+          title: "无法截屏",
+          description: error instanceof Error ? error.message : "发生错误。",
         });
       },
     );
@@ -778,8 +779,8 @@ export function PreviewView({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Could not capture the picked element",
-            description: "The annotation was kept without the screenshot.",
+            title: "无法截取所选元素",
+            description: "已保留批注，但没有截图。",
           }),
         );
       }
@@ -898,7 +899,7 @@ export function PreviewView({
         pickActive={pickActive}
         pickDisabled={!tabId || isUnreachable}
         pickDisabledReason={
-          isUnreachable ? "Page didn't load. Pick is unavailable until the page renders" : undefined
+          isUnreachable ? "页面未加载，渲染完成后才能选择元素" : undefined
         }
         leadingActions={
           activeProfileId !== browserDefaults.profileId ? (
@@ -997,7 +998,7 @@ export function PreviewView({
           ) : (
             <div className="flex h-full items-center justify-center p-8 text-center">
               <p className="max-w-sm text-sm text-muted-foreground">
-                This tab is open in the kelaodeyun desktop app.
+                This tab is open in the {APP_BASE_NAME} desktop app.
               </p>
             </div>
           )

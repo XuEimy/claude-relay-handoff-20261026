@@ -43,7 +43,7 @@ describe("loadBalancingSendWarning", () => {
         threadContexts: [localThread, remoteThread],
         candidateEnvironmentIds: [local, remote],
       }).description,
-    ).toMatch(/No machine can read every attached thread/);
+    ).toMatch(/没有设备能读取所有附加的会话/);
   });
 
   it("blames resources when one machine can read every attached thread", () => {
@@ -53,7 +53,7 @@ describe("loadBalancingSendWarning", () => {
         threadContexts: [localThread],
         candidateEnvironmentIds: [remote, local],
       }).description,
-    ).toMatch(/No eligible machine has available resources/);
+    ).toMatch(/没有符合条件的设备拥有可用资源/);
   });
 });
 
@@ -100,22 +100,22 @@ describe("approvalRedirectNotice", () => {
 
   it("says the decline went through when the draft changed after it", () => {
     expect(approvalRedirectNotice({ ...settled, draftChanged: true })).toBe(
-      "Approval declined. Your message changed, so it wasn't sent.",
+      "已拒绝审批。消息已更改，因此未发送。",
     );
     expect(approvalRedirectNotice({ ...settled, draftChanged: true, declined: false })).toBe(
-      "Your message changed, so it wasn't sent.",
+      "消息已更改，因此未发送。",
     );
   });
 
   it("explains an approval already being answered", () => {
     expect(
       approvalRedirectNotice({ ...settled, declined: false, approvalResponding: true }),
-    ).toMatch(/already being answered/);
+    ).toMatch(/已有审批正在处理/);
   });
 
   it("explains an approval that arrived during the decline", () => {
     expect(approvalRedirectNotice({ ...settled, approvalArrived: true })).toMatch(
-      /Another approval arrived/,
+      /收到了新的审批/,
     );
   });
 

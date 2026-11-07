@@ -1,4 +1,4 @@
-# kelaodeyun · 项目源码与开发交接
+# Agent Cloud OS · 项目源码与开发交接
 
 最新更新：2026-11-05。当前产品是 **macOS 桌面 App**，基于 T3 Code 二次开发，连接用户自己的云服务器并使用远端 Claude CLI。
 

@@ -1,4 +1,5 @@
 import { AuthPreviewOperateScope, type EnvironmentId } from "@t3tools/contracts";
+import { APP_BASE_NAME } from "../branding";
 import type { AnyRouter } from "@tanstack/react-router";
 
 import { stackedThreadToast, toastManager } from "~/components/ui/toast";
@@ -152,7 +153,7 @@ export function installChatRouteCommands(router: AnyRouter): () => void {
             stackedThreadToast({
               type: "info",
               title: "Preview is desktop-only",
-              description: "Open kelaodeyun in the desktop app to use the in-app preview.",
+              description: `Open ${APP_BASE_NAME} in the desktop app to use the in-app preview.`,
             }),
           );
           return;

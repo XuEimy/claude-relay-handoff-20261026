@@ -95,7 +95,7 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
         stackedThreadToast({
           type: "error",
           title: "无法重新连接环境",
-          description: error instanceof Error ? error.message : "Failed to reconnect.",
+          description: error instanceof Error ? error.message : "重新连接失败。",
         }),
       );
     }
@@ -123,7 +123,7 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
           stackedThreadToast({
             type: "error",
             title: "无法断开服务器",
-            description: error instanceof Error ? error.message : "Failed to disconnect.",
+            description: error instanceof Error ? error.message : "断开连接失败。",
           }),
         );
       }

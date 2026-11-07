@@ -1,4 +1,5 @@
 import { scopeProjectRef, scopeThreadRef } from "@t3tools/client-runtime/environment";
+import { APP_BASE_NAME } from "~/branding";
 import { getCloneDestinationPath } from "@t3tools/client-runtime/operations/projects";
 import {
   findPromptLinkProjects,
@@ -137,7 +138,7 @@ export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
       replace: true,
     }).catch(() => null);
     if (opened === null) {
-      setState({ status: "failed", message: "kelaodeyun could not open a new thread." });
+      setState({ status: "failed", message: `${APP_BASE_NAME} could not open a new thread.` });
       return;
     }
     setState({ status: "opened" });
@@ -180,7 +181,7 @@ export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
     if (project === null) {
       setState({
         status: "failed",
-        message: "None of your machines can start a thread without a project right now.",
+        message: "当前没有设备可以在不选择项目的情况下启动会话。",
       });
       return;
     }
@@ -202,8 +203,7 @@ export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
     if (environmentId === null || newProjectsRoot === null) {
       setState({
         status: "failed",
-        message:
-          "This machine cannot clone from a link. Update kelaodeyun on it, or clone the repository from the command palette.",
+        message: `This machine cannot clone from a link. Update ${APP_BASE_NAME} on it, or clone the repository from the command palette.`,
       });
       return;
     }
@@ -226,7 +226,7 @@ export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
           stackedThreadToast({
             type: "error",
             title: "克隆失败",
-            description: error instanceof Error ? error.message : "An error occurred.",
+            description: error instanceof Error ? error.message : "发生错误。",
           }),
         );
       }
@@ -241,14 +241,14 @@ export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
       () => null,
     );
     if (project === null) {
-      setState({ status: "failed", message: "The clone started, but its project did not appear." });
+      setState({ status: "failed", message: "克隆已开始，但项目尚未出现。" });
       return;
     }
     if (link.kind === "pull-request") {
       setState({
         status: "failed",
-        title: `Cloning ${repository.owner}/${repository.name}`,
-        message: "Open this link again when the clone finishes.",
+        title: `正在克隆 ${repository.owner}/${repository.name}`,
+        message: "克隆完成后请再次打开此链接。",
       });
       return;
     }
@@ -334,10 +334,10 @@ export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
 
   switch (state.status) {
     case "opening":
-      return <LinkPage title="Opening the link..." />;
+      return <LinkPage title="正在打开链接…" />;
     case "opened":
       return (
-        <LinkPage title="This link is open">
+        <LinkPage title="此链接已打开">
           <Button
             size="sm"
             variant="outline"
@@ -347,7 +347,7 @@ export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
               setState({ status: "opening" });
             }}
           >
-            Open it again
+            再次打开
           </Button>
         </LinkPage>
       );
@@ -357,14 +357,14 @@ export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
       const name = `${state.repository.owner}/${state.repository.name}`;
       return (
         <LinkPage
-          title={`You don't have ${name}`}
-          description="Clone it to work on it here, or start without a project."
+          title={`你没有 ${name}`}
+          description="克隆后可在此使用，或不选择项目直接开始。"
         >
           <Button size="sm" onClick={() => void cloneRepository(state.repository)}>
             克隆 {name}
           </Button>
           <Button size="sm" variant="outline" onClick={openWithoutProject}>
-            Use without project
+            不使用项目
           </Button>
         </LinkPage>
       );
@@ -402,8 +402,8 @@ function PullRequestLinkCheckout({
   const { owner, name, number } = link.pullRequest;
   return (
     <LinkPage
-      title={`Check out ${owner}/${name}#${number}?`}
-      description="This puts the pull request's code in a new worktree and runs your project's setup script on it."
+      title={`检出 ${owner}/${name}#${number}？`}
+      description="这会将拉取请求的代码放入新工作树，并在其中运行项目的设置脚本。"
     >
       <Button
         size="sm"
@@ -415,7 +415,7 @@ function PullRequestLinkCheckout({
           )
         }
       >
-        {handoff !== null ? "Checking out..." : "Check out"}
+        {handoff !== null ? "正在检出…" : "检出"}
       </Button>
     </LinkPage>
   );

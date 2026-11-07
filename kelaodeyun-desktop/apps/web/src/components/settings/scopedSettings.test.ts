@@ -264,7 +264,7 @@ describe("scoped settings writes", () => {
     const unsupported = [
       {
         label: server.label,
-        message: "This environment does not support this setting. Update kelaodeyun on it.",
+        message: "This environment does not support this setting. Update Agent Cloud OS on it.",
       },
     ];
 

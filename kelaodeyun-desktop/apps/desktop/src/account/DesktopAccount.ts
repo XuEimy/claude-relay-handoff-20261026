@@ -11,14 +11,18 @@ import {
   accountHostMatchesTarget,
   type DesktopAccountHost,
   type DesktopAccountHostInput,
+  type DesktopAccountSshHostInput,
   type DesktopAccountState,
   type DesktopSshEnvironmentTarget,
 } from "@t3tools/contracts";
 import * as HostProcess from "@t3tools/shared/HostProcess";
+import { discoverSshHosts } from "@t3tools/ssh/config";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
+import * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
+import * as Path from "effect/Path";
 import * as Schema from "effect/Schema";
 import * as DesktopEnvironment from "../app/DesktopEnvironment.ts";
 import * as DesktopUserData from "../app/DesktopUserData.ts";
@@ -64,6 +68,9 @@ export class DesktopAccount extends Context.Service<
     readonly saveHost: (
       input: DesktopAccountHostInput,
     ) => Effect.Effect<DesktopAccountHost, DesktopAccountError>;
+    readonly saveSshHost: (
+      input: DesktopAccountSshHostInput,
+    ) => Effect.Effect<DesktopAccountHost, DesktopAccountError>;
     readonly deleteHost: (id: string) => Effect.Effect<void, DesktopAccountError>;
     readonly credentialFor: (
       target: DesktopSshEnvironmentTarget,
@@ -87,11 +94,14 @@ export const make = Effect.gen(function* () {
   const windows = yield* ElectronWindow.ElectronWindow;
   const env = yield* HostProcess.Environment;
   const home = yield* HostProcess.HomeDirectory;
-  const context = yield* Effect.context<never>();
+  const context = yield* Effect.context<FileSystem.FileSystem | Path.Path>();
   const runPromise = Effect.runPromiseWith(context);
-  const origin = env.KELAODEYUN_ACCOUNT_ORIGIN?.trim() || "https://kelaodeyun.com";
+  const origin =
+    env.AGENT_CLOUD_OS_ACCOUNT_ORIGIN?.trim() ||
+    env.KELAODEYUN_ACCOUNT_ORIGIN?.trim() ||
+    "https://kelaodeyun.com";
   const scheme = ElectronProtocol.getDesktopScheme(environment.isDevelopment);
-  const statePath = NodePath.join(userData, "kelaodeyun-account.json");
+  const statePath = NodePath.join(userData, "account.json");
   const keyDir = NodePath.join(userData, "account-keys");
   let state: DesktopAccountState = { status: "signed-out" };
   let token: string | null = null;
@@ -144,10 +154,18 @@ export const make = Effect.gen(function* () {
         throw error;
       }
       const saved = decodeStored(JSON.parse(raw));
-      if (!(await runPromise(safeStorage.isEncryptionAvailable))) throw Error("系统安全存储不可用");
-      token = await runPromise(
-        safeStorage.decryptString(Buffer.from(saved.encryptedToken, "base64")),
-      );
+      if (!(await runPromise(safeStorage.isEncryptionAvailable))) return;
+      try {
+        token = await runPromise(
+          safeStorage.decryptString(Buffer.from(saved.encryptedToken, "base64")),
+        );
+      } catch {
+        await NodeFs.rm(statePath, { force: true }).catch(() => undefined);
+        await NodeFs.rm(NodePath.join(userData, "kelaodeyun-account.json"), { force: true }).catch(
+          () => undefined,
+        );
+        return;
+      }
       state = { status: "signed-in", user: saved.user };
     })());
 
@@ -283,7 +301,11 @@ export const make = Effect.gen(function* () {
           redirect: "error",
           headers: { "Content-Type": "application/json" },
           signal: AbortSignal.timeout(10_000),
-          body: JSON.stringify({ code, verifier: current.verifier, device: "kelaodeyun macOS" }),
+          body: JSON.stringify({
+            code,
+            verifier: current.verifier,
+            device: "Agent Cloud OS macOS",
+          }),
         });
         if (!response.ok) throw Error("登录码无效或已过期");
         const result = decodeToken(await response.json());
@@ -330,6 +352,42 @@ export const make = Effect.gen(function* () {
     })();
     return true;
   };
+  const readPrivateKey = async (path: string) => {
+    let secret: string;
+    try {
+      secret = await NodeFs.readFile(path, "utf8");
+      if (secret.length > 16384 || !/-----BEGIN [^-]*PRIVATE KEY-----/u.test(secret))
+        throw Error("invalid key");
+      const temporaryDir = await NodeFs.mkdtemp(NodePath.join(NodeOs.tmpdir(), "kelaodeyun-key-"));
+      try {
+        const temp = NodePath.join(temporaryDir, "key");
+        await NodeFs.writeFile(temp, secret, { mode: 0o600, flag: "wx" });
+        await execFileAsync("ssh-keygen", ["-y", "-P", "", "-f", temp], { timeout: 10_000 });
+      } finally {
+        await NodeFs.rm(temporaryDir, { recursive: true, force: true });
+      }
+    } catch {
+      throw Error("私钥无效或带有口令，暂不支持带口令的私钥");
+    }
+    return secret;
+  };
+  const saveSecret = async (
+    input: { label?: string; hostname: string; port: number | null; username: string },
+    authType: "key" | "password",
+    secret: string,
+    sessionGeneration: number,
+  ) => {
+    if (sessionGeneration !== generation) throw Error("登录已失效，请重新登录");
+    const result = decodeHost(await api("/api/app/hosts", "POST", { ...input, authType, secret }));
+    if (!/^[a-zA-Z0-9-]+$/.test(result.id)) throw Error("账户返回了无效的服务器");
+    credentialVersion++;
+    secrets.delete(result.id);
+    secretRetryAt.delete(result.id);
+    await serialize(() => NodeFs.rm(NodePath.join(keyDir, result.id), { force: true }));
+    invalidateHosts();
+    broadcast();
+    return result;
+  };
   const saveHost = async (input: DesktopAccountHostInput) => {
     await load();
     const sessionGeneration = generation;
@@ -338,43 +396,86 @@ export const make = Effect.gen(function* () {
     if (input.auth.type === "password") secret = input.auth.password;
     else {
       if (!selectedKeys.has(input.auth.privateKeyPath)) throw Error("请先选择私钥文件");
-      try {
-        secret = await NodeFs.readFile(input.auth.privateKeyPath, "utf8");
-      } catch {
-        throw Error("私钥无效或带有口令，暂不支持带口令的私钥");
-      }
-      if (secret.length > 16384) throw Error("私钥无效或带有口令，暂不支持带口令的私钥");
-      const temporaryDir = await NodeFs.mkdtemp(NodePath.join(NodeOs.tmpdir(), "kelaodeyun-key-"));
-      const temp = NodePath.join(temporaryDir, "key");
-      try {
-        await NodeFs.writeFile(temp, secret, { mode: 0o600, flag: "wx" });
-        await execFileAsync("ssh-keygen", ["-y", "-P", "", "-f", temp], { timeout: 10_000 });
-      } catch {
-        throw Error("私钥无效或带有口令，暂不支持带口令的私钥");
-      } finally {
-        await NodeFs.rm(temporaryDir, { recursive: true, force: true });
-      }
+      secret = await readPrivateKey(input.auth.privateKeyPath);
     }
-    if (sessionGeneration !== generation) throw Error("登录已失效，请重新登录");
-    const result = decodeHost(
-      await api("/api/app/hosts", "POST", {
-        label: input.label,
+    const result = await saveSecret(
+      {
+        ...(input.label === undefined ? {} : { label: input.label }),
         hostname: input.hostname,
         port: input.port,
         username: input.username,
-        authType: input.auth.type,
-        secret,
-      }),
+      },
+      input.auth.type,
+      secret,
+      sessionGeneration,
     );
-    if (!/^[a-zA-Z0-9-]+$/.test(result.id)) throw Error("账户返回了无效的服务器");
     if (input.auth.type === "key") selectedKeys.delete(input.auth.privateKeyPath);
-    credentialVersion++;
-    secrets.delete(result.id);
-    secretRetryAt.delete(result.id);
-    await serialize(() => NodeFs.rm(NodePath.join(keyDir, result.id), { force: true }));
-    invalidateHosts();
-    broadcast();
     return result;
+  };
+  const saveSshHost = async (input: DesktopAccountSshHostInput) => {
+    await load();
+    const sessionGeneration = generation;
+    if (!token) throw Error("请先登录");
+    const { target } = input;
+    const host = target.alias || target.hostname;
+    if (!host || host.startsWith("-")) throw Error("SSH 主机无效");
+    if (!/^(?:[A-Za-z0-9.:-]|\[|\]){1,253}$/u.test(host)) {
+      const discovered = await runPromise(discoverSshHosts({ homeDir: home }));
+      if (!discovered.some((item) => item.source === "ssh-config" && item.alias === host))
+        throw Error("SSH 主机无效");
+    }
+    const { stdout } = await execFileAsync(
+      "ssh",
+      [
+        "-G",
+        ...(target.username ? ["-l", target.username] : []),
+        ...(target.port ? ["-p", String(target.port)] : []),
+        "--",
+        host,
+      ],
+      { timeout: 10_000 },
+    );
+    const values = new Map<string, string[]>();
+    for (const line of stdout.split(/\r?\n/u)) {
+      const match = /^(\S+)\s+(.+)$/u.exec(line);
+      if (match)
+        values.set(match[1]!.toLowerCase(), [
+          ...(values.get(match[1]!.toLowerCase()) ?? []),
+          match[2]!,
+        ]);
+    }
+    const hostname = values.get("hostname")?.[0] ?? target.hostname;
+    const username = values.get("user")?.[0] ?? target.username;
+    const port = Number(values.get("port")?.[0] ?? target.port ?? 22);
+    if (!username?.trim()) throw Error("请填写 SSH 用户名");
+    if (
+      !/^(?:[A-Za-z0-9.:-]|\[|\]){1,253}$/u.test(hostname) ||
+      !Number.isInteger(port) ||
+      port < 1 ||
+      port > 65535
+    )
+      throw Error("SSH 主机无效");
+    const details = {
+      label: input.label ?? (target.alias && target.alias !== hostname ? target.alias : hostname),
+      hostname,
+      port,
+      username,
+    };
+    if (input.password !== undefined)
+      return saveSecret(details, "password", input.password, sessionGeneration);
+    for (const identity of values.get("identityfile") ?? []) {
+      const path = identity.replace(/^~(?=$|\/|\\)/u, home);
+      try {
+        const secret = await readPrivateKey(path);
+        return await saveSecret(details, "key", secret, sessionGeneration);
+      } catch (error) {
+        if (error instanceof Error && error.message !== "私钥无效或带有口令，暂不支持带口令的私钥")
+          throw error;
+      }
+    }
+    throw Error(
+      "未找到可保存的私钥（带口令的私钥或 ssh-agent 暂不支持），请改用密码或手动选择私钥",
+    );
   };
   const deleteHost = async (id: string) => {
     if (!/^[a-zA-Z0-9-]+$/.test(id)) throw Error("服务器无效");
@@ -479,6 +580,9 @@ export const make = Effect.gen(function* () {
     }).pipe(Effect.mapError(asError)),
     saveHost: Effect.fn("DesktopAccount.saveHost")((input: DesktopAccountHostInput) =>
       Effect.tryPromise({ try: () => saveHost(input), catch: asError }),
+    ),
+    saveSshHost: Effect.fn("DesktopAccount.saveSshHost")((input: DesktopAccountSshHostInput) =>
+      Effect.tryPromise({ try: () => saveSshHost(input), catch: asError }),
     ),
     deleteHost: Effect.fn("DesktopAccount.deleteHost")((id: string) =>
       Effect.tryPromise({ try: () => deleteHost(id), catch: asError }),

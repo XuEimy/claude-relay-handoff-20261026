@@ -123,13 +123,13 @@ export function agentControlledBrowserCloseConfirmation(
   if (activeBrowserCount === 0) return null;
   if (activeBrowserCount === 1) {
     return [
-      "Close browser while the agent is using it?",
-      "The agent is actively controlling this browser. Closing it may interrupt the current browser action.",
+      "智能体正在使用浏览器，仍要关闭吗？",
+      "智能体正在控制此浏览器，关闭可能中断当前操作。",
     ].join("\n");
   }
   return [
-    `Close ${activeBrowserCount} browsers while the agent is using them?`,
-    "The agent is actively controlling these browsers. Closing them may interrupt the current browser actions.",
+    `智能体正在使用 ${activeBrowserCount} 个浏览器，仍要关闭吗？`,
+    "智能体正在控制这些浏览器，关闭可能中断当前操作。",
   ].join("\n");
 }
 
@@ -557,23 +557,23 @@ export function getAntigravitySendBlockReason(
 ): string | null {
   if (provider?.driver !== "antigravity") return null;
   if (!provider.installed) {
-    return "Install Antigravity in provider settings before sending.";
+    return "发送前请在服务设置中安装 Antigravity。";
   }
   if (provider.auth.status === "unauthenticated") {
-    return "Sign in to Antigravity in provider settings before sending.";
+    return "发送前请在服务设置中登录 Antigravity。";
   }
   const slug = model.trim();
   if (slug.length === 0) return "Choose an Antigravity model before sending.";
   if (provider.auth.status === "unknown") return null;
   if (provider.models.length === 0) {
-    return "Refresh Antigravity models in provider settings before sending.";
+    return "发送前请在服务设置中刷新 Antigravity 模型。";
   }
   if (
     provider.status === "ready" &&
     slug !== ANTIGRAVITY_DEFAULT_MODEL &&
     !provider.models.some((entry) => entry.slug === slug || entry.aliases?.includes(slug))
   ) {
-    return "That Antigravity model is no longer available. Choose another model.";
+    return "该 Antigravity 模型已不可用，请选择其他模型。";
   }
   return null;
 }
@@ -776,17 +776,16 @@ export function buildExpiredTerminalContextToastCopy(
   variant: "omitted" | "empty",
 ): { title: string; description: string } {
   const count = Math.max(1, Math.floor(expiredTerminalContextCount));
-  const noun = count === 1 ? "Expired terminal context" : "Expired terminal contexts";
-  const pronoun = count === 1 ? "it" : "them";
+  const noun = count === 1 ? "过期的终端上下文" : `${count} 个过期的终端上下文`;
   if (variant === "empty") {
     return {
-      title: `${noun} won't be sent`,
-      description: `Remove ${pronoun} or re-add ${pronoun} to include terminal output.`,
+      title: `${noun}不会发送`,
+      description: "请移除或重新添加上下文，以包含终端输出。",
     };
   }
   return {
-    title: `${noun} omitted from message`,
-    description: `Re-add ${pronoun} if you want that terminal output included.`,
+    title: `消息已省略${noun}`,
+    description: "如需包含终端输出，请重新添加上下文。",
   };
 }
 
@@ -932,8 +931,8 @@ export function getStartedThreadModelChangeBlockReason(input: {
     return null;
   }
   return {
-    title: "Start a new chat to switch providers",
-    description: "This thread does not support switching providers after it has started.",
+    title: "请新建对话以切换服务",
+    description: "此会话启动后不支持切换服务。",
   };
 }
 
@@ -1020,7 +1019,7 @@ export async function waitForRevertedMessage(
     };
     unsubscribe = appAtomRegistry.subscribe(threadAtom, inspect);
     timeout = globalThis.setTimeout(() => {
-      finish(new Error("Timed out waiting for the thread to rewind."));
+      finish(new Error("等待会话回退超时。"));
     }, timeoutMs);
     Promise.resolve()
       .then(revert)
@@ -1279,7 +1278,7 @@ export type LocalThreadErrorEntry = {
 };
 
 export function chatActionErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "An error occurred.";
+  return error instanceof Error ? error.message : "发生错误。";
 }
 
 export function releaseChatTimelineAnchor<T extends { readonly messageId: MessageId | null }>(

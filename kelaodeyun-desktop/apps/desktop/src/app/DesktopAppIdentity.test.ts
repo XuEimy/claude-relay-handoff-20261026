@@ -134,6 +134,7 @@ const withIdentity = <A, E, R>(
                 : Effect.succeed(
                     input.legacyPathExists === true && /kelaodeyun \((Alpha|Dev)\)/.test(path),
                   ),
+            rename: () => Effect.void,
             readFileString: () =>
               Effect.succeed(input.packageJson ?? '{"t3codeCommitHash":"abcdef1234567890"}'),
           }),
@@ -147,25 +148,25 @@ const withIdentity = <A, E, R>(
 };
 
 describe("DesktopAppIdentity", () => {
-  it.effect("isolates the V2 profile even when the legacy V1 profile exists", () =>
+  it.effect("migrates the legacy profile", () =>
     withIdentity(
       Effect.gen(function* () {
         const identity = yield* DesktopAppIdentity.DesktopAppIdentity;
         const userDataPath = yield* identity.resolveUserDataPath;
 
-        assert.equal(userDataPath, "/Users/alice/Library/Application Support/kelaodeyun-v2");
+        assert.equal(userDataPath, "/Users/alice/Library/Application Support/agent-cloud-os");
       }),
       { legacyPathExists: true },
     ),
   );
 
-  it.effect("keeps using the legacy development profile", () =>
+  it.effect("migrates the legacy development profile", () =>
     withIdentity(
       Effect.gen(function* () {
         const identity = yield* DesktopAppIdentity.DesktopAppIdentity;
         assert.equal(
           yield* identity.resolveUserDataPath,
-          "/Users/alice/Library/Application Support/kelaodeyun (Dev)",
+          "/Users/alice/Library/Application Support/agent-cloud-os-dev",
         );
       }),
       {
@@ -199,9 +200,9 @@ describe("DesktopAppIdentity", () => {
 
         const runtimeName = calls.setName[0];
         assert.isDefined(runtimeName);
-        assert.equal(runtimeName, `kelaodeyun ${stage}`);
+        assert.equal(runtimeName, `Agent Cloud OS ${stage}`);
         assert.match(runtimeName.replaceAll(" ", ""), /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/);
-        assert.equal(calls.setAboutPanelOptions[0]?.applicationName, `kelaodeyun (${stage})`);
+        assert.equal(calls.setAboutPanelOptions[0]?.applicationName, `Agent Cloud OS (${stage})`);
       }),
       { calls, environment },
     );

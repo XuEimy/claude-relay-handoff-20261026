@@ -6,7 +6,9 @@ import { useLocation, useNavigate } from "@tanstack/react-router";
 import { useEnvironments } from "../../state/environments";
 import { useThreadRouteTarget } from "../../hooks/useThreadRouteTarget";
 import { useComposerDraftStore } from "../../composerDraftStore";
+import { useAccountHosts } from "../../hooks/useDesktopAccount";
 import { SshServerCard } from "./SshConnectionDialog";
+import { ServerPickerPage } from "./ServerPickerPage";
 import { useSshConnectionCelebration } from "./useSshConnectionCelebration";
 import { Button } from "../ui/button";
 import { SshConnectingAnimation } from "./SshConnectingAnimation";
@@ -43,6 +45,10 @@ export function CloudConnectionGate({ children }: { children: ReactNode }) {
     ) ??
     servers.find((environment) => environment.entry.enabled) ??
     servers[0];
+  const { hosts: accountHosts } = useAccountHosts(
+    server?.connection.phase === "reconnecting" &&
+      servers.some((item) => item.connection.phase === "connected"),
+  );
   const connected = server?.connection.phase === "connected";
   const profile = server ? Option.getOrNull(server.entry.profile) : null;
   const sshConnecting =
@@ -134,7 +140,11 @@ export function CloudConnectionGate({ children }: { children: ReactNode }) {
                   {servers
                     .filter((item) => item.connection.phase === "connected")
                     .map((item) => (
-                      <SshServerCard key={item.environmentId} server={item} />
+                      <SshServerCard
+                        key={item.environmentId}
+                        server={item}
+                        accountHosts={accountHosts}
+                      />
                     ))}
                 </div>
               ) : null}
@@ -152,25 +162,5 @@ export function CloudConnectionGate({ children }: { children: ReactNode }) {
     );
   }
   if (connected) return children;
-  return (
-    <main className="flex h-dvh w-full items-center justify-center bg-background px-6">
-      <div className="absolute inset-x-0 top-0 h-12 drag-region" />
-      <section className="w-full max-w-xl space-y-6" aria-label="连接云电脑">
-        <div className="space-y-2 text-center">
-          <h1 className="text-xl font-medium">连接你的云电脑</h1>
-          <p role="status" className="text-sm text-muted-foreground">
-            连接成功后，即可使用远程对话、终端和文件。
-          </p>
-        </div>
-        {servers.map((item) => (
-          <SshServerCard key={item.environmentId} server={item} />
-        ))}
-        <div className="flex justify-center">
-          <Button variant="ghost" onClick={() => void navigate({ to: "/settings/connections" })}>
-            管理服务器
-          </Button>
-        </div>
-      </section>
-    </main>
-  );
+  return <ServerPickerPage servers={servers} />;
 }

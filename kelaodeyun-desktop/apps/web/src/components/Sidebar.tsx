@@ -1,6 +1,8 @@
 import { CloudProjectSidebar } from "./sidebar/CloudProjectSidebar";
 import { resolveCloudSidebarTarget } from "./sidebar/cloudSidebarState";
 import { CloudAddProjectDialog } from "./sidebar/CloudAddProjectDialog";
+import { ComputerProjectDialogHost } from "./sidebar/ComputerProjectDialogHost";
+import { useComputerScopeStore } from "./sidebar/computerScopeStore";
 import { useEnvironmentPresentation } from "../state/presentation";
 import { useRightPanelStore } from "../rightPanelStore";
 import { CloudClaudeSessions } from "./sidebar/CloudClaudeSessions";
@@ -136,6 +138,7 @@ import {
 import { useHandleNewThread } from "../hooks/useHandleNewThread";
 import { useOrderWhileOpen } from "../hooks/useOrderWhileOpen";
 import { useProjectPin } from "../hooks/useProjectGroupUpdate";
+import { useScratchProject } from "../hooks/useScratchProject";
 import { useSidebarProjectGroups } from "../hooks/useSidebarProjectGroups";
 import { useTerminalFocus } from "../hooks/useTerminalFocus";
 import { isCommandPaletteOpen, openCommandPalette } from "../commandPaletteBus";
@@ -898,8 +901,8 @@ function checkThreadOperations(
   if (canOperateThreads(threads)) return true;
   toastManager.add({
     type: "error",
-    title: "Thread action unavailable",
-    description: "This connection cannot change one or more selected threads.",
+    title: "会话操作不可用",
+    description: "此连接无法更改一个或多个选中的会话。",
   });
   return false;
 }
@@ -973,7 +976,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
         stackedThreadToast({
           type: "error",
           title: "复制路径失败",
-          description: error instanceof Error ? error.message : "An error occurred.",
+          description: error instanceof Error ? error.message : "发生错误。",
         }),
       );
     },
@@ -983,7 +986,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
     onCopy: ({ branch }) => {
       toastManager.add({
         type: "success",
-        title: "Branch copied",
+        title: "分支已复制",
         description: branch,
       });
     },
@@ -991,8 +994,8 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: "Failed to copy branch",
-          description: error instanceof Error ? error.message : "An error occurred.",
+          title: "复制分支失败",
+          description: error instanceof Error ? error.message : "发生错误。",
         }),
       );
     },
@@ -1001,7 +1004,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
     onCopy: ({ threadId }) => {
       toastManager.add({
         type: "success",
-        title: "Thread ID copied",
+        title: "会话 ID 已复制",
         description: threadId,
       });
     },
@@ -1009,8 +1012,8 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: "Failed to copy thread ID",
-          description: error instanceof Error ? error.message : "An error occurred.",
+          title: "复制会话 ID 失败",
+          description: error instanceof Error ? error.message : "发生错误。",
         }),
       );
     },
@@ -1061,6 +1064,11 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
       ? null
       : (newThreadContext.activeDraftThread?.projectId ?? ("no-draft" as const)),
   );
+  const { scratchWorkspaceRootFor, startScratchThread } = useScratchProject();
+  const cloudStandaloneEnvironmentId =
+    cloudSidebarProject && scratchWorkspaceRootFor(cloudSidebarProject.environmentId) !== null
+      ? cloudSidebarProject.environmentId
+      : null;
   const primaryEnvironmentId = usePrimaryEnvironmentId();
   const clearSelection = useThreadSelectionStore((s) => s.clearSelection);
   const setSelectionAnchor = useThreadSelectionStore((s) => s.setAnchor);
@@ -1134,8 +1142,13 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
     environmentId: EnvironmentId;
     cwd: string;
   } | null>(null);
+  const requestComputerProject = useComputerScopeStore((state) => state.requestAddProject);
   const openAddProjectCommandPalette = () => {
     if (cloudSidebarProject) {
+      if (useComputerScopeStore.getState().byEnvironmentId[cloudSidebarProject.environmentId]?.selected) {
+        requestComputerProject(cloudSidebarProject.environmentId);
+        return;
+      }
       setCloudProjectRequest({
         environmentId: cloudSidebarProject.environmentId,
         cwd: fileThread?.worktreePath ?? cloudSidebarProject.workspaceRoot,
@@ -1339,7 +1352,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
               ...(canPinProject(group)
                 ? [
                     group.pinned
-                      ? { id: "unpin", label: "Unpin project", icon: "pin-off" }
+                      ? { id: "unpin", label: "取消置顶项目", icon: "pin-off" }
                       : { id: "pin", label: "置顶项目", icon: "pin" },
                   ]
                 : []),
@@ -1624,7 +1637,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
           stackedThreadToast({
             type: "error",
             title: "重命名会话失败",
-            description: error instanceof Error ? error.message : "An error occurred.",
+            description: error instanceof Error ? error.message : "发生错误。",
           }),
         );
       }
@@ -1694,8 +1707,8 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
           toastManager.add(
             stackedThreadToast({
               type: "error",
-              title: "Failed to settle thread",
-              description: error instanceof Error ? error.message : "An error occurred.",
+              title: "归结会话失败",
+              description: error instanceof Error ? error.message : "发生错误。",
             }),
           );
         }
@@ -1733,7 +1746,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
           stackedThreadToast({
             type: "error",
             title: "恢复会话失败",
-            description: error instanceof Error ? error.message : "An error occurred.",
+            description: error instanceof Error ? error.message : "发生错误。",
           }),
         );
       }
@@ -1748,7 +1761,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
           stackedThreadToast({
             type: "error",
             title: "唤醒会话失败",
-            description: error instanceof Error ? error.message : "An error occurred.",
+            description: error instanceof Error ? error.message : "发生错误。",
           }),
         );
       }
@@ -1932,8 +1945,8 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Failed to pin thread",
-            description: error instanceof Error ? error.message : "An error occurred.",
+            title: "置顶会话失败",
+            description: error instanceof Error ? error.message : "发生错误。",
           }),
         );
       }
@@ -1947,8 +1960,8 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Failed to unpin thread",
-            description: error instanceof Error ? error.message : "An error occurred.",
+            title: "取消置顶会话失败",
+            description: error instanceof Error ? error.message : "发生错误。",
           }),
         );
       }
@@ -2212,7 +2225,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
             stackedThreadToast({
               type: "error",
               title,
-              description: error instanceof Error ? error.message : "An error occurred.",
+              description: error instanceof Error ? error.message : "发生错误。",
             }),
           );
         }
@@ -2239,7 +2252,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
           return;
         }
         case "move-active":
-          if (plan.unpin && !(await run(unpinThread(threadRef), "Failed to unpin thread"))) return;
+          if (plan.unpin && !(await run(unpinThread(threadRef), "取消置顶会话失败"))) return;
           if (plan.unsettle && !(await run(unsettleThread(threadRef), "恢复会话失败"))) return;
           if (plan.unsnooze && !(await run(unsnoozeThread(threadRef), "唤醒会话失败"))) return;
           break;
@@ -2247,7 +2260,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
           if (
             !(await run(
               pinThread(threadRef, plan.orderKey === undefined ? {} : { orderKey: plan.orderKey }),
-              "Failed to pin thread",
+              "置顶会话失败",
             ))
           )
             return;
@@ -2266,8 +2279,8 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
               assignment.orderKey,
             ),
             plan.kind === "move-active"
-              ? "Failed to reorder active threads"
-              : "Failed to reorder pinned threads",
+              ? "重新排序活动会话失败"
+              : "重新排序置顶会话失败",
           ))
         )
           return;
@@ -2317,9 +2330,9 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Failed to snooze thread",
+            title: "延后会话失败",
             description:
-              outcome.error instanceof Error ? outcome.error.message : "An error occurred.",
+              outcome.error instanceof Error ? outcome.error.message : "发生错误。",
           }),
         );
         return;
@@ -2383,14 +2396,14 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
               : []),
             {
               id: "settle",
-              label: `Settle (${count})`,
+              label: `归结（${count}）`,
               disabled: settlingThreads.length === 0 || !canOperateThreads(settlingThreads),
             },
             ...(canSnoozeSelection
               ? [
                   {
                     id: "snooze",
-                    label: `Snooze (${count})`,
+                    label: `延后（${count}）`,
                     disabled: !canOperateThreads(selectedThreads),
                     children: [
                       ...snoozePresets.map((preset) => ({
@@ -2418,10 +2431,10 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                   },
                 ]
               : []),
-            { id: "mark-unread", label: `Mark unread (${count})` },
+            { id: "mark-unread", label: `标记为未读（${count}）` },
             {
               id: "delete",
-              label: `Delete (${count})`,
+              label: `删除（${count}）`,
               destructive: true,
               disabled: !canOperateThreads(selectedThreads),
             },
@@ -2480,9 +2493,9 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                 title:
                   snoozedThreadRefs.length > 0
                     ? `Failed to snooze ${failures.length} thread${failures.length === 1 ? "" : "s"}`
-                    : "Failed to snooze threads",
+                    : "延后会话失败",
                 description:
-                  firstError instanceof Error ? firstError.message : "An error occurred.",
+                  firstError instanceof Error ? firstError.message : "发生错误。",
               }),
             );
           }
@@ -2508,8 +2521,8 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
             toastManager.add(
               stackedThreadToast({
                 type: "error",
-                title: "Failed to regenerate thread titles",
-                description: error instanceof Error ? error.message : "An error occurred.",
+                title: "重新生成会话标题失败",
+                description: error instanceof Error ? error.message : "发生错误。",
               }),
             );
           }
@@ -2541,7 +2554,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
           api.dialogs.confirm(
             [
               `Delete ${count} thread${count === 1 ? "" : "s"}?`,
-              "This permanently clears conversation history for these threads.",
+              "这将永久清除这些会话的对话历史。",
             ].join("\n"),
             { variant: "destructive" },
           ),
@@ -2572,8 +2585,8 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Failed to delete threads",
-            description: firstError instanceof Error ? firstError.message : "An error occurred.",
+            title: "删除会话失败",
+            description: firstError instanceof Error ? firstError.message : "发生错误。",
           }),
         );
       }
@@ -2656,7 +2669,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
         stackedThreadToast({
           type: "error",
           title: didArchive ? "会话已归档，但跳转失败" : "归档会话失败",
-          description: error instanceof Error ? error.message : "An error occurred.",
+          description: error instanceof Error ? error.message : "发生错误。",
         }),
       );
     }
@@ -2785,8 +2798,8 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
               toastManager.add(
                 stackedThreadToast({
                   type: "error",
-                  title: "Could not create thread",
-                  description: error instanceof Error ? error.message : "An error occurred.",
+                  title: "无法创建会话",
+                  description: error instanceof Error ? error.message : "发生错误。",
                 }),
               );
             }
@@ -2812,7 +2825,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
             if (result._tag === "Success") {
               toastManager.add({
                 type: "success",
-                title: "Project created",
+                title: "项目已创建",
                 description: thread.title,
               });
             } else if (!isAtomCommandInterrupted(result)) {
@@ -2820,8 +2833,8 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
               toastManager.add(
                 stackedThreadToast({
                   type: "error",
-                  title: "Could not turn thread into a project",
-                  description: error instanceof Error ? error.message : "An error occurred.",
+                  title: "无法将会话转换为项目",
+                  description: error instanceof Error ? error.message : "发生错误。",
                 }),
               );
             }
@@ -2838,8 +2851,8 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
               toastManager.add(
                 stackedThreadToast({
                   type: "error",
-                  title: "Failed to update auto-settle",
-                  description: error instanceof Error ? error.message : "An error occurred.",
+                  title: "更新自动归结失败",
+                  description: error instanceof Error ? error.message : "发生错误。",
                 }),
               );
             }
@@ -2862,8 +2875,8 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
               toastManager.add(
                 stackedThreadToast({
                   type: "error",
-                  title: "Failed to regenerate thread title",
-                  description: error instanceof Error ? error.message : "An error occurred.",
+                  title: "重新生成会话标题失败",
+                  description: error instanceof Error ? error.message : "发生错误。",
                 }),
               );
             }
@@ -2877,8 +2890,8 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
               toastManager.add(
                 stackedThreadToast({
                   type: "error",
-                  title: "Path unavailable",
-                  description: "This thread does not have a workspace path to copy.",
+                  title: "路径不可用",
+                  description: "此会话没有可复制的工作区路径。",
                 }),
               );
               return;
@@ -2907,8 +2920,8 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
               const confirmed = await settlePromise(() =>
                 api.dialogs.confirm(
                   [
-                    `Delete thread "${thread.title}"?`,
-                    "This permanently clears conversation history for this thread.",
+                    `删除会话“${thread.title}”？`,
+                    "这将永久清除此会话的对话历史。",
                   ].join("\n"),
                   { variant: "destructive" },
                 ),
@@ -2921,8 +2934,8 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
               toastManager.add(
                 stackedThreadToast({
                   type: "error",
-                  title: "Failed to delete thread",
-                  description: error instanceof Error ? error.message : "An error occurred.",
+                  title: "删除会话失败",
+                  description: error instanceof Error ? error.message : "发生错误。",
                 }),
               );
               return;
@@ -3012,6 +3025,11 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
     newThreadContext.activeDraftThread ?? newThreadContext.activeThread,
   );
   const handleNewThreadClick = (event?: ReactMouseEvent) => {
+    if (cloudStandaloneEnvironmentId !== null && !event?.shiftKey && !legacySidebarEnabled) {
+      if (isMobile) setOpenMobile(false);
+      void startScratchThread(cloudStandaloneEnvironmentId);
+      return;
+    }
     if (
       legacySidebarEnabled ||
       shouldCreateNewThreadInCurrentProject(
@@ -3269,7 +3287,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                                   variant="ghost-muted"
                                   tabIndex={-1}
                                   aria-hidden="true"
-                                  title={`Project settings for ${project.displayName}`}
+                                  title={`${project.displayName} 的项目设置`}
                                   className={canPinProject(project) ? undefined : "ml-auto"}
                                   onPointerDown={(event) => event.stopPropagation()}
                                   onClick={(event) => {
@@ -3292,13 +3310,14 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                 newThreadShortcutLabel={newThreadShortcutLabel}
                 newThreadInProjectShortcutLabel={newThreadInProjectShortcutLabel}
                 showNewThreadInProjectHint={
-                  !legacySidebarEnabled &&
-                  !shouldCreateNewThreadInCurrentProject(
-                    false,
-                    scopeGroups.length,
-                    projectGroups.length,
-                    hasCurrentThreadProject,
-                  )
+                  cloudStandaloneEnvironmentId !== null ||
+                  (!legacySidebarEnabled &&
+                    !shouldCreateNewThreadInCurrentProject(
+                      false,
+                      scopeGroups.length,
+                      projectGroups.length,
+                      hasCurrentThreadProject,
+                    ))
                 }
                 searchInputRef={threadSearchInputRef}
                 searchQuery={threadSearchQuery}
@@ -3336,6 +3355,11 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                 query={threadSearchQuery}
                 onAddProject={openAddProjectCommandPalette}
                 onNewThread={handleNewThread}
+                onNewStandaloneThread={
+                  cloudStandaloneEnvironmentId
+                    ? () => startScratchThread(cloudStandaloneEnvironmentId)
+                    : undefined
+                }
                 onRenameThread={commitThreadRename}
                 onArchiveThread={archiveThreadFromSidebar}
                 onTogglePin={(threadRef, pinned) =>
@@ -3367,7 +3391,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                       <ul
                         id="sidebar-thread-search-results"
                         role="listbox"
-                        aria-label="Thread search results"
+                        aria-label="会话搜索结果"
                         className="flex flex-col gap-px"
                       >
                         {threadSearchResults.map((thread, index) => {
@@ -3763,8 +3787,8 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                                 {olderSettledShelf.loading
                                   ? "正在加载"
                                   : olderSettledShelf.failed
-                                    ? "Could not load older threads. Retry"
-                                    : `Show ${Math.min(hiddenSettledCount, SETTLED_TAIL_PAGE_COUNT)} more`}
+                                    ? "无法加载较早的会话，重试"
+                                    : `再显示 ${Math.min(hiddenSettledCount, SETTLED_TAIL_PAGE_COUNT)} 个`}
                               </button>
                             </li>
                           ) : null}
@@ -3785,7 +3809,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                   <div className="flex flex-col items-center gap-2 px-2 py-6 text-center text-xs text-muted-foreground/60">
                     {projects.length === 0 ? (
                       <>
-                        <span>No projects yet</span>
+                        <span>暂无项目</span>
                         <button
                           type="button"
                           onClick={openAddProjectCommandPalette}
@@ -3810,6 +3834,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
         </SidebarContent>
       </SidebarViewPanel>
       <SidebarChromeFooter />
+      <ComputerProjectDialogHost onCreated={handleNewThread} />
       {cloudProjectRequest ? (
         <CloudAddProjectDialog
           key={`${cloudProjectRequest.environmentId}:${cloudProjectRequest.cwd}`}

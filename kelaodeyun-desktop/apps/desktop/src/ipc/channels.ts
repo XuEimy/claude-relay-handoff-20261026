@@ -64,6 +64,7 @@ export const ACCOUNT_STATE_CHANNEL = "desktop:account-state";
 export const LIST_ACCOUNT_HOSTS_CHANNEL = "desktop:list-account-hosts";
 export const PICK_ACCOUNT_PRIVATE_KEY_CHANNEL = "desktop:pick-account-private-key";
 export const SAVE_ACCOUNT_HOST_CHANNEL = "desktop:save-account-host";
+export const SAVE_ACCOUNT_SSH_HOST_CHANNEL = "desktop:save-account-ssh-host";
 export const DELETE_ACCOUNT_HOST_CHANNEL = "desktop:delete-account-host";
 export const DISCOVER_SSH_HOSTS_CHANNEL = "desktop:discover-ssh-hosts";
 export const RESOLVE_SSH_HOST_CHANNEL = "desktop:resolve-ssh-host";

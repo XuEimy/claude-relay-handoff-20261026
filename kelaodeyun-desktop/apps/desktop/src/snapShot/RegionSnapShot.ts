@@ -65,7 +65,7 @@ export function startRegionSnapShotProcess(
   } catch {
     return {
       alive: false,
-      capture: () => Promise.reject(new Error("Windows window capture is unavailable.")),
+      capture: () => Promise.reject(new Error("Windows 窗口截图不可用。")),
       close: () => undefined,
     };
   }
@@ -77,7 +77,7 @@ export function startRegionSnapShotProcess(
     settled = true;
     ready.resolve();
     if (value) result.resolve(value);
-    else result.reject(error ?? new Error("Windows window capture failed."));
+    else result.reject(error ?? new Error("Windows 窗口截图失败。"));
     child.kill();
   };
   child.onMessage((message) => {
@@ -95,7 +95,7 @@ export function startRegionSnapShotProcess(
       });
     }
   });
-  child.onExit(() => finish(new Error("Windows window capture helper exited.")));
+  child.onExit(() => finish(new Error("Windows 窗口截图助手已退出。")));
   void result.promise.catch(() => undefined);
 
   return {
@@ -103,9 +103,9 @@ export function startRegionSnapShotProcess(
       return !settled;
     },
     capture: async (region) => {
-      if (settled) throw new Error("Windows window capture helper already used.");
+      if (settled) throw new Error("Windows 窗口截图助手已使用。");
       const timeout = setTimeout(
-        () => finish(new Error("Windows window capture timed out. Try again.")),
+        () => finish(new Error("Windows 窗口截图超时，请重试。")),
         CAPTURE_TIMEOUT_MS,
       );
       timeout.unref();
@@ -118,7 +118,7 @@ export function startRegionSnapShotProcess(
         clearTimeout(timeout);
       }
     },
-    close: () => finish(new Error("Windows window capture cancelled.")),
+    close: () => finish(new Error("Windows 窗口截图已取消。")),
   };
 }
 
@@ -150,9 +150,9 @@ export function makeRegionSnapShotPool(
     warm,
     cool,
     capture: async (region) => {
-      if (closed) throw new Error("Windows window capture is unavailable.");
+      if (closed) throw new Error("Windows 窗口截图不可用。");
       if (inFlight?.alive) {
-        throw new Error("Windows window capture is still in progress. Try again.");
+        throw new Error("Windows 窗口截图仍在进行中，请重试。");
       }
       const current = standby?.alive ? standby : start(workerPath);
       standby = undefined;

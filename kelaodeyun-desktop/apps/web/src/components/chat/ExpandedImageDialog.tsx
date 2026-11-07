@@ -223,8 +223,8 @@ export const ExpandedImageDialog = memo(function ExpandedImageDialog({
               <ExpandedMediaFailure>
                 <p>
                   {openOriginalLink
-                    ? "This image could not be loaded."
-                    : "Image unavailable. The file may have been moved or deleted."}
+                    ? "无法加载此图片。"
+                    : "图片不可用，文件可能已被移动或删除。"}
                 </p>
                 {openOriginalLink}
               </ExpandedMediaFailure>

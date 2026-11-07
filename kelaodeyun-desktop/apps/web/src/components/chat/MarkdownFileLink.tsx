@@ -88,7 +88,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
           stackedThreadToast({
             type: "error",
             title: "无法打开文件",
-            description: error instanceof Error ? error.message : "An error occurred.",
+            description: error instanceof Error ? error.message : "发生错误。",
           }),
         );
       } catch (cause) {
@@ -100,7 +100,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
           stackedThreadToast({
             type: "error",
             title: "无法打开文件",
-            description: cause instanceof Error ? cause.message : "An error occurred.",
+            description: cause instanceof Error ? cause.message : "发生错误。",
           }),
         );
       }
@@ -138,7 +138,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
           stackedThreadToast({
             type: "error",
             title: "无法在浏览器中打开文件",
-            description: error instanceof Error ? error.message : "An error occurred.",
+            description: error instanceof Error ? error.message : "发生错误。",
           }),
         );
       } catch (cause) {
@@ -150,7 +150,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
           stackedThreadToast({
             type: "error",
             title: "无法在浏览器中打开文件",
-            description: cause instanceof Error ? cause.message : "An error occurred.",
+            description: cause instanceof Error ? cause.message : "发生错误。",
           }),
         );
       }
@@ -176,7 +176,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
           stackedThreadToast({
             type: "error",
             title: "无法显示文件位置",
-            description: error instanceof Error ? error.message : "An error occurred.",
+            description: error instanceof Error ? error.message : "发生错误。",
           }),
         );
       } catch (cause) {
@@ -188,7 +188,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
           stackedThreadToast({
             type: "error",
             title: "无法显示文件位置",
-            description: cause instanceof Error ? cause.message : "An error occurred.",
+            description: cause instanceof Error ? cause.message : "发生错误。",
           }),
         );
       }
@@ -200,7 +200,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: `Failed to copy ${title.toLowerCase()}`,
+          title: `无法复制${title}`,
           description: "剪贴板接口不可用。",
         }),
       );
@@ -221,7 +221,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
       ([, text]) => {
         toastManager.add({
           type: "success",
-          title: `${title} copied`,
+          title: `${title}已复制`,
           description: text,
         });
       },
@@ -233,8 +233,8 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: `Failed to copy ${title.toLowerCase()}`,
-            description: error instanceof Error ? error.message : "An error occurred.",
+            title: `无法复制${title}`,
+            description: error instanceof Error ? error.message : "发生错误。",
           }),
         );
       },

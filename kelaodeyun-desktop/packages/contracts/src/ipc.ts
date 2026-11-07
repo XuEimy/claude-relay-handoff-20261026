@@ -426,8 +426,12 @@ export const DesktopSshFileOperationSchema = Schema.Struct({
     "computer-probe",
     "computer-install-key",
     "computer-prepare",
+    "computer-list-dir",
+    "computer-add-project",
+    "computer-tailscale-login",
   ]),
   contentsBase64: Schema.optional(Schema.String.check(Schema.isMaxLength(44739244))),
+  path: Schema.optional(Schema.String),
   computer: Schema.optional(Schema.Struct({
     host: Schema.String,
     username: Schema.String,
@@ -535,6 +539,13 @@ export const DesktopAccountHostInputSchema = Schema.Struct({
   ]),
 });
 export type DesktopAccountHostInput = typeof DesktopAccountHostInputSchema.Type;
+
+export const DesktopAccountSshHostInputSchema = Schema.Struct({
+  target: DesktopSshEnvironmentTargetSchema,
+  label: Schema.optionalKey(Schema.String),
+  password: Schema.optionalKey(Schema.String),
+});
+export type DesktopAccountSshHostInput = typeof DesktopAccountSshHostInputSchema.Type;
 
 export const DesktopSshPasswordPromptCancelledType = "ssh-password-prompt-cancelled" as const;
 
@@ -1162,6 +1173,7 @@ export interface DesktopBridge {
   listAccountHosts: () => Promise<readonly DesktopAccountHost[]>;
   pickAccountPrivateKey: () => Promise<{ readonly path: string } | null>;
   saveAccountHost: (input: DesktopAccountHostInput) => Promise<DesktopAccountHost>;
+  saveAccountSshHost: (input: DesktopAccountSshHostInput) => Promise<DesktopAccountHost>;
   deleteAccountHost: (id: string) => Promise<void>;
   discoverSshHosts: () => Promise<readonly DesktopDiscoveredSshHost[]>;
   resolveSshHost: (alias: string) => Promise<DesktopSshEnvironmentTarget>;

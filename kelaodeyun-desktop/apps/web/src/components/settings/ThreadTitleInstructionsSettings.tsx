@@ -23,11 +23,11 @@ export function ThreadTitleInstructionsSettings() {
       serverScoped
       settingKeys={["threadTitleInstructions"]}
       {...searchableSetting("thread-title-instructions")}
-      description="Appended to the prompt for new and regenerated thread titles."
+      description="附加到新建和重新生成会话标题的提示词中。"
       resetAction={
         mixed || settings.threadTitleInstructions !== "" ? (
           <SettingResetButton
-            label="thread title instructions"
+            label="会话标题生成要求"
             onClick={() => updateSettings({ threadTitleInstructions: "" })}
           />
         ) : null
@@ -44,8 +44,8 @@ export function ThreadTitleInstructionsSettings() {
           defaultValue={mixed ? "" : settings.threadTitleInstructions}
           placeholder={
             mixed
-              ? "Mixed. Enter instructions to apply to all selected targets."
-              : "Keep titles to a few words. Lead with the main subject."
+              ? "设置不一致。输入要求以应用到所有选中目标。"
+              : "标题简洁扼要，以主要内容开头。"
           }
           onBlur={(event) => {
             const value = event.target.value.trim();

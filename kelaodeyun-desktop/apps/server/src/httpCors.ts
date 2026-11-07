@@ -10,4 +10,9 @@ export const browserApiCorsAllowedHeaders = [
   ORCHESTRATION_PROTOCOL_HEADER,
 ] as const;
 
-export const DESKTOP_RENDERER_ORIGINS = ["kelaodeyun://app", "kelaodeyun-dev://app"] as const;
+export const DESKTOP_RENDERER_ORIGINS = [
+  "agentcloudos://app",
+  "agentcloudos-dev://app",
+  "kelaodeyun://app",
+  "kelaodeyun-dev://app",
+] as const;

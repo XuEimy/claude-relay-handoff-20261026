@@ -1,4 +1,5 @@
 import { useAtomValue } from "@effect/atom-react";
+import { APP_BASE_NAME } from "~/branding";
 import {
   AuthEnvironmentMaintainScope,
   type AuthSessionState,
@@ -201,7 +202,7 @@ export function ServerUpdatesAction({
       if (desktopTargets.length > 0) {
         const confirmed =
           (await requestConfirmDialog(
-            `Update the kelaodeyun desktop apps on ${desktopTargets.map((target) => target.serverLabel).join(", ")}? They will close and relaunch on those machines.`,
+            `Update the ${APP_BASE_NAME} desktop apps on ${desktopTargets.map((target) => target.serverLabel).join(", ")}? They will close and relaunch on those machines.`,
           )) ?? true;
         if (!confirmed) return;
       }
@@ -307,7 +308,7 @@ export function ServerUpdateAction({
     if (isDesktopAppUpdate) {
       const confirmed =
         (await requestConfirmDialog(
-          `Update the kelaodeyun desktop app that runs the ${serverLabel}? It will close and relaunch on that machine.`,
+          `Update the ${APP_BASE_NAME} desktop app that runs the ${serverLabel}? It will close and relaunch on that machine.`,
         )) ?? true;
       if (!confirmed) {
         return;

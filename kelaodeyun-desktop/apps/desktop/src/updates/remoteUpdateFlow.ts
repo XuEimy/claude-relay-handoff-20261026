@@ -38,7 +38,7 @@ export function nextRemoteDesktopUpdateStep(
     return {
       action: "done",
       outcome: "failed",
-      reason: disabledReason ?? "Automatic updates are disabled on this machine.",
+      reason: disabledReason ?? "此设备已禁用自动更新。",
     };
   }
   // Reinstalling a failed version disrupts threads without updating; retries require the local user.
@@ -49,7 +49,7 @@ export function nextRemoteDesktopUpdateStep(
     return {
       action: "done",
       outcome: "failed",
-      reason: `Update ${state.notAppliedVersion} did not apply on this machine. Retry it from the desktop app there.`,
+      reason: `更新 ${state.notAppliedVersion} 未在此设备上生效，请在该设备的桌面应用中重试。`,
     };
   }
   // Match install admission, including retained downloads after unrelated background or earlier install errors.
@@ -64,7 +64,7 @@ export function nextRemoteDesktopUpdateStep(
       return {
         action: "done",
         outcome: "failed",
-        reason: state.message ?? "The desktop app failed to download the update.",
+        reason: state.message ?? "桌面应用下载更新失败。",
       };
     }
     return { action: "download" };
@@ -83,14 +83,14 @@ export function nextRemoteDesktopUpdateStep(
     return {
       action: "done",
       outcome: "failed",
-      reason: state.message ?? "The desktop app update failed.",
+      reason: state.message ?? "桌面应用更新失败。",
     };
   }
   if (attempts.checks >= MAX_REMOTE_UPDATE_CHECKS) {
     return {
       action: "done",
       outcome: "failed",
-      reason: "The desktop app did not report an update result.",
+      reason: "桌面应用未报告更新结果。",
     };
   }
   return { action: "check" };

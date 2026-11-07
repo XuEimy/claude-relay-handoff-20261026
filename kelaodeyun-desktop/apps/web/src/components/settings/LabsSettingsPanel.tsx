@@ -1,4 +1,5 @@
 import { useAuth } from "@clerk/react";
+import { APP_BASE_NAME } from "~/branding";
 import { Link } from "@tanstack/react-router";
 import { managedCapabilityDenial } from "@t3tools/contracts";
 
@@ -37,7 +38,7 @@ function BoringSidebarRow() {
   return (
     <SettingsRow
       {...searchableSetting("boring-sidebar")}
-      description="Group sidebar threads into project folders. Pinned threads stay on top, and Snoozed and Settled stay below the folders."
+      description="将侧边栏会话按项目文件夹分组。置顶会话保持在顶部，稍后处理和已归结会话显示在文件夹下方。"
       control={
         <Switch
           checked={settings.boringSidebarEnabled || settings.legacySidebarEnabled}
@@ -58,7 +59,7 @@ function BoringSidebarMultilineRow() {
   return (
     <SettingsRow
       {...searchableSetting("boring-sidebar-multiline")}
-      description="In the boring sidebar, show folder threads on two lines: the title, then the branch, pull request, and agent."
+      description="在项目文件夹中分两行显示会话：第一行为标题，第二行为分支、拉取请求和智能体。"
       control={
         <Switch
           checked={settings.boringSidebarMultilineRows}
@@ -81,7 +82,7 @@ function GuestLinksRowWithSignIn() {
   return (
     <SettingsRow
       {...searchableSetting("guest-links")}
-      description="Share a thread with a guest who watches it live in their browser and sends messages you approve. Sign in to T3 Connect to use guest links."
+      description="将会话分享给访客，让其在浏览器中实时查看并发送经你批准的消息。使用访客链接需要登录云中继。"
       control={
         <Button size="sm" variant="outline" onClick={openAuthPrompt}>
           登录
@@ -112,12 +113,11 @@ function GuestLinksRow() {
       managed={settings.guestSharingEnabled ? undefined : connectDenial}
       description={
         <>
-          Share a thread with a guest who watches it live in their browser and sends messages you
-          approve. Needs T3 Connect: sign in and link this machine in{" "}
+          将会话分享给访客，让其在浏览器中实时查看并发送经你批准的消息。使用此功能需要登录云中继，并在
           <Link to="/settings/access" className="underline underline-offset-2">
             分享与访问
           </Link>
-          . While it is off, every guest link stops working.
+          中关联此设备。关闭后，所有访客链接都会失效。
         </>
       }
       control={
@@ -187,7 +187,7 @@ function SimlockHostsRow() {
           <Link to="/settings/devices" className="underline underline-offset-2">
             设备
           </Link>
-          . An alpha that may change or break. kelaodeyun never installs Simlock.
+          . An alpha that may change or break. {APP_BASE_NAME} never installs Simlock.
         </>
       }
       control={

@@ -1,4 +1,5 @@
 import { useEnvironmentScope } from "../../state/session";
+import { APP_BASE_NAME } from "~/branding";
 import { useEnvironmentsWithScope, readEnvironmentScope } from "../../state/session";
 import {
   ChevronDownIcon,
@@ -253,7 +254,7 @@ function UnknownWhenVariableWarning({
 
   return (
     <WarningTooltipIcon label={label} focusable={focusable} className="size-4.5">
-      kelaodeyun 尚不识别此条件。可以保存，但只有运行环境提供此条件时才能匹配。
+      {APP_BASE_NAME} 尚不识别此条件。可以保存，但只有运行环境提供此条件时才能匹配。
     </WarningTooltipIcon>
   );
 }
@@ -1272,7 +1273,7 @@ function KeybindingsGroups(props: KeybindingsGroupsProps) {
 }
 
 function BrowserKeybindingNotice() {
-  const message = "The browser may claim some shortcuts first. The desktop app receives them all.";
+  const message = "浏览器可能会优先占用部分快捷键，桌面应用可以接收全部快捷键。";
   return (
     <Tooltip>
       <TooltipTrigger
@@ -1366,7 +1367,7 @@ export function KeybindingsSettingsPanel() {
       toastManager.add({
         title: "无法打开快捷键配置文件",
         description:
-          error instanceof Error ? error.message : "The keybindings file was not opened.",
+          error instanceof Error ? error.message : "快捷键配置文件未打开。",
         type: "error",
       });
     })();
@@ -1403,7 +1404,7 @@ export function KeybindingsSettingsPanel() {
         const error = squashAtomCommandFailure(failed);
         toastManager.add({
           title: "无法保存快捷键",
-          description: error instanceof Error ? error.message : "The keybinding was not saved.",
+          description: error instanceof Error ? error.message : "快捷键未保存。",
           type: "error",
         });
       }
@@ -1434,7 +1435,7 @@ export function KeybindingsSettingsPanel() {
         const error = squashAtomCommandFailure(result);
         toastManager.add({
           title: "无法移除快捷键",
-          description: error instanceof Error ? error.message : "The keybinding was not removed.",
+          description: error instanceof Error ? error.message : "快捷键未移除。",
           type: "error",
         });
       }
@@ -1505,8 +1506,8 @@ export function KeybindingsSettingsPanel() {
       {!canWriteSettings ? (
         <p className="text-xs text-muted-foreground">
           {connectedEnvironments.length === 0
-            ? "Connect an environment to change keybindings."
-            : "This connection can view keybindings but cannot change them."}
+            ? "请连接环境以更改快捷键。"
+            : "此连接可以查看快捷键，但无法更改。"}
         </p>
       ) : null}
       <div inert={!canWriteSettings} className="flex flex-col gap-8">

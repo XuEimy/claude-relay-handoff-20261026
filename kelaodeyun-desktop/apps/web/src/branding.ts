@@ -20,7 +20,7 @@ export const HOSTED_APP_CHANNEL_LABEL =
     : HOSTED_APP_CHANNEL === "latest"
       ? "最新版"
       : null;
-export const APP_BASE_NAME = injectedDesktopAppBranding?.baseName ?? "kelaodeyun";
+export const APP_BASE_NAME = injectedDesktopAppBranding?.baseName ?? "Agent Cloud OS";
 export const APP_STAGE_LABEL =
   injectedDesktopAppBranding?.stageLabel ??
   HOSTED_APP_CHANNEL_LABEL ??

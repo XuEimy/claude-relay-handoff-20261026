@@ -126,6 +126,7 @@ export const installDesktopIpcHandlers = Effect.fn("desktop.ipc.installHandlers"
   yield* ipc.handle(AccountIpc.listAccountHosts);
   yield* ipc.handle(AccountIpc.pickAccountPrivateKey);
   yield* ipc.handle(AccountIpc.saveAccountHost);
+  yield* ipc.handle(AccountIpc.saveAccountSshHost);
   yield* ipc.handle(AccountIpc.deleteAccountHost);
 
   yield* ipc.handle(discoverSshHosts);

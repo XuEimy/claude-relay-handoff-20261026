@@ -4,21 +4,25 @@ export interface ComputerSelection {
   label: string;
   host: string;
   username: string;
+  os?: string;
 }
 
 export interface ComputerScope {
   computersRoot: string | null;
   selected: ComputerSelection | null;
+  projectPaths?: Record<string, string>;
+  onboarded?: boolean;
 }
 
 export const defaultComputerScope: ComputerScope = { computersRoot: null, selected: null };
 
+export function pathInside(path: string, root: string): boolean {
+  const normalized = root.replace(/\/+$/u, "") || "/";
+  return path === normalized || path.startsWith(normalized === "/" ? "/" : `${normalized}/`);
+}
+
 export function projectInComputerScope(workspaceRoot: string, state: ComputerScope): boolean {
-  const inside = (path: string, root: string) => {
-    const normalized = root.replace(/\/+$/u, "") || "/";
-    return path === normalized || path.startsWith(normalized === "/" ? "/" : `${normalized}/`);
-  };
   return state.selected
-    ? inside(workspaceRoot, state.selected.dir)
-    : state.computersRoot === null || !inside(workspaceRoot, state.computersRoot);
+    ? pathInside(workspaceRoot, state.selected.dir)
+    : state.computersRoot === null || !pathInside(workspaceRoot, state.computersRoot);
 }

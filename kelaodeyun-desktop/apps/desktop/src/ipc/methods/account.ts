@@ -1,6 +1,7 @@
 import {
   DesktopAccountHostInputSchema,
   DesktopAccountHostSchema,
+  DesktopAccountSshHostInputSchema,
   DesktopAccountStateSchema,
 } from "@t3tools/contracts";
 import * as Effect from "effect/Effect";
@@ -55,6 +56,14 @@ export const saveAccountHost = DesktopIpc.makeIpcMethod({
   result: DesktopAccountHostSchema,
   handler: Effect.fn("desktop.ipc.account.saveHost")(function* (input) {
     return yield* (yield* DesktopAccount.DesktopAccount).saveHost(input);
+  }),
+});
+export const saveAccountSshHost = DesktopIpc.makeIpcMethod({
+  channel: IpcChannels.SAVE_ACCOUNT_SSH_HOST_CHANNEL,
+  payload: DesktopAccountSshHostInputSchema,
+  result: DesktopAccountHostSchema,
+  handler: Effect.fn("desktop.ipc.account.saveSshHost")(function* (input) {
+    return yield* (yield* DesktopAccount.DesktopAccount).saveSshHost(input);
   }),
 });
 export const deleteAccountHost = DesktopIpc.makeIpcMethod({

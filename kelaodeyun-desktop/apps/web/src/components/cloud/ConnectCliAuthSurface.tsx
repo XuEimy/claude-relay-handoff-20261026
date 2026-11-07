@@ -69,12 +69,12 @@ export function ConnectCliAuthorizeSurface() {
   return (
     <StandalonePage>
       <StandalonePageHeader
-        context="Browser authorization"
-        title="Connecting your terminal"
+        context="浏览器授权"
+        title="正在连接终端"
         description={
           isSignedIn
-            ? "Redirecting to authorize T3 Connect for your CLI…"
-            : "Sign in to continue authorizing T3 Connect for your CLI."
+            ? "正在跳转，为 CLI 授权云中继…"
+            : "请登录以继续为 CLI 授权云中继。"
         }
       />
       {isLoaded && !isSignedIn ? (

@@ -1,4 +1,4 @@
-import { HOSTED_APP_CHANNEL } from "~/branding";
+import { APP_BASE_NAME, HOSTED_APP_CHANNEL } from "~/branding";
 import { isElectron, isSecretsFeatureEnabled } from "~/env";
 import { isMacPlatform, isWindowsPlatform, normalizeSearchText } from "~/lib/utils";
 import { STATIC_KEYBINDING_COMMANDS, type KeybindingCommand } from "@t3tools/contracts";
@@ -105,7 +105,7 @@ export const SETTINGS_SECTION_LABELS: Readonly<Record<SettingsPath, string>> = {
   "/settings/worktrees": "工作树",
   "/settings/connections": "环境",
   "/settings/access": "分享与访问",
-  "/settings/secrets": "Secrets",
+  "/settings/secrets": "密钥",
   "/settings/maintenance": "维护",
   "/settings/labs": "实验功能",
   "/settings/about": "关于",
@@ -710,7 +710,7 @@ export const SETTINGS_SEARCH_ITEMS = [
   },
   {
     id: "cli-command",
-    title: "kelaodeyun 命令",
+    title: `${APP_BASE_NAME} 命令`,
     to: "/settings/about",
     searchTerms: ["cli terminal shell path install command line"],
     desktopOnly: true,
@@ -933,7 +933,7 @@ export const SETTINGS_SEARCH_ITEMS = [
   },
   {
     id: "pull-request-links-open-in-app",
-    title: "在 kelaodeyun 中打开拉取请求",
+    title: `在 ${APP_BASE_NAME} 中打开拉取请求`,
     to: "/settings/diffs",
     searchTerms: [
       `pr commit links ${SOURCE_CONTROL_HOST_LABELS} browser external click default pull request view panel`,
@@ -1101,7 +1101,7 @@ export const SETTINGS_SEARCH_ITEMS = [
   {
     id: "t3-connect",
     localEnvironmentOnly: true,
-    title: "T3 Connect",
+    title: "云中继",
     to: "/settings/access",
     targetId: "connections-environment",
     searchTerms: ["managed tunnel cloud other devices remote tunnels limit t3 chat"],
@@ -1458,7 +1458,7 @@ const SETTINGS_ENGLISH_TITLES: Readonly<Record<string, string>> = {
   "thread-title-instructions": "Thread title instructions",
   "app-version": "Version",
   "update-track": "Update track",
-  "cli-command": "kelaodeyun command",
+  "cli-command": `${APP_BASE_NAME} command`,
   "mobile-app": "Mobile app",
   "privacy-policy": "Privacy policy",
   "telemetry-export": "OpenTelemetry export",
@@ -1492,7 +1492,7 @@ const SETTINGS_ENGLISH_TITLES: Readonly<Record<string, string>> = {
   "browser-recording-mouse-presses": "Show mouse presses in recordings",
   "browser-link-target": "Open links in",
   "browser-search-engine": "Search engine",
-  "pull-request-links-open-in-app": "Open pull requests in kelaodeyun",
+  "pull-request-links-open-in-app": `Open pull requests in ${APP_BASE_NAME}`,
   "browser-auto-show-floating-preview": "Auto-show floating preview",
   "automatic-pull": "Automatically pull",
   "remove-agent-credits-on-merge": "Remove agent credits when merging",

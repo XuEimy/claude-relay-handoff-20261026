@@ -420,7 +420,7 @@ const NODE_PTY_BINARY_MISSING_EXIT_CODE = 4;
 
 const formatNodePtyProbeFailureReason = (exitCode: number): string | null =>
   exitCode === NODE_PTY_BINARY_MISSING_EXIT_CODE
-    ? "WSL support is missing from this kelaodeyun build: the packaged Linux node-pty binary was not included. Install a build that includes WSL support."
+    ? `WSL support is missing from this ${DesktopEnvironment.APP_BASE_NAME} build: the packaged Linux node-pty binary was not included. Install a build that includes WSL support.`
     : null;
 
 // Capture login-shell PATH because the server launches provider CLIs by name.

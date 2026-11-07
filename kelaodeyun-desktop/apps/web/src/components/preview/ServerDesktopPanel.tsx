@@ -137,6 +137,39 @@ function connectServerDesktop(
   };
 }
 
+/** A miniature desktop booting on the far side of a live link, while the VNC session opens. */
+function ServerDesktopLoader(props: { readonly label: string; readonly detail?: string }) {
+  return (
+    <div className="server-desktop-loader" role="status" aria-live="polite">
+      <div className="server-desktop-loader-scene" aria-hidden="true">
+        <div className="server-desktop-loader-client" />
+        <div className="server-desktop-loader-link">
+          <span className="server-desktop-loader-packet" />
+          <span className="server-desktop-loader-packet" />
+          <span className="server-desktop-loader-packet" />
+        </div>
+        <div className="server-desktop-loader-screen">
+          <div className="server-desktop-loader-bar">
+            <span />
+            <span />
+            <span />
+          </div>
+          <div className="server-desktop-loader-window" />
+          <div className="server-desktop-loader-window" />
+          <div className="server-desktop-loader-window" />
+          <div className="server-desktop-loader-scan" />
+        </div>
+      </div>
+      <div className="server-desktop-loader-copy">
+        <p className="server-desktop-loader-text">{props.label}</p>
+        {props.detail ? (
+          <p className="max-w-sm text-xs text-muted-foreground">{props.detail}</p>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 /**
  * The environment host's desktop over VNC, through the server's authenticated route.
  * No address bar: the browser inside the desktop has its own.
@@ -180,19 +213,16 @@ export function ServerDesktopPanel(props: {
       <div
         ref={containerRef}
         role="application"
-        aria-label="服务器桌面"
+        aria-label="云电脑"
         className="min-h-0 flex-1"
         data-server-desktop
       />
       {status._tag === "connected" ? null : (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background p-4 text-center">
           {status._tag === "connecting" ? (
-            <p className="text-sm text-muted-foreground">正在连接服务器桌面…</p>
+            <ServerDesktopLoader label="正在连接云电脑…" />
           ) : status._tag === "preparing" ? (
-            <>
-              <p className="text-sm text-muted-foreground">正在准备服务器桌面</p>
-              <p className="text-xs text-muted-foreground">{status.detail}</p>
-            </>
+            <ServerDesktopLoader label="正在准备云电脑…" detail={status.detail} />
           ) : status._tag === "hostSetup" ? (
             <>
               <p role="alert" className="max-w-sm text-sm text-muted-foreground">
@@ -206,7 +236,7 @@ export function ServerDesktopPanel(props: {
           ) : (
             <>
               <p role="alert" className="max-w-sm text-sm text-muted-foreground">
-                {status._tag === "failed" ? status.message : "Desktop connection was refused."}
+                {status._tag === "failed" ? status.message : "云电脑连接被拒绝。"}
               </p>
               <Button
                 variant="outline"

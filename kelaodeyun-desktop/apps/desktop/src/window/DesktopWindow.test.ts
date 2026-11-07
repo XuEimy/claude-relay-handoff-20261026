@@ -71,7 +71,7 @@ function makeFakeBrowserWindow() {
     copyImageAt: vi.fn(),
     focus: vi.fn(),
     isDestroyed: vi.fn(() => false),
-    getURL: vi.fn(() => "kelaodeyun-dev://app/"),
+    getURL: vi.fn(() => "agentcloudos-dev://app/"),
     getZoomLevel: vi.fn(() => zoomLevel),
     getZoomFactor: vi.fn(() => 1.2 ** zoomLevel),
     setZoomLevel: vi.fn((level: number) => {
@@ -480,7 +480,7 @@ describe("DesktopWindow", () => {
   });
 
   it("rejects renderer navigations whose origin only serializes as null", () => {
-    for (const applicationUrl of ["kelaodeyun://app/", "kelaodeyun-dev://app/"]) {
+    for (const applicationUrl of ["agentcloudos://app/", "agentcloudos-dev://app/"]) {
       assert.isTrue(
         DesktopWindow.isSameOriginRendererNavigation({
           applicationUrl,
@@ -490,21 +490,21 @@ describe("DesktopWindow", () => {
       );
     }
     for (const navigationUrl of [
-      "kelaodeyun://other/",
-      "kelaodeyun://app.example/",
-      "kelaodeyun://app:8080/",
-      "kelaodeyun://user@other/",
+      "agentcloudos://other/",
+      "agentcloudos://app.example/",
+      "agentcloudos://app:8080/",
+      "agentcloudos://user@other/",
       "t3code:app",
-      "kelaodeyun-dev://app/",
+      "agentcloudos-dev://app/",
       "file:///etc/passwd",
       "data:text/html,<p>hi</p>",
       "javascript:alert(1)",
       "about:blank",
-      "blob:kelaodeyun://app/0b5e2c4a",
+      "blob:agentcloudos://app/0b5e2c4a",
     ]) {
       assert.isFalse(
         DesktopWindow.isSameOriginRendererNavigation({
-          applicationUrl: "kelaodeyun://app/",
+          applicationUrl: "agentcloudos://app/",
           navigationUrl,
         }),
         navigationUrl,
@@ -1126,9 +1126,9 @@ describe("DesktopWindow", () => {
           return yield* Effect.die("will-navigate listener was not registered");
         }
         for (const [url, expectedPrevented] of [
-          ["kelaodeyun-dev://app/threads?id=1#latest", false],
-          ["kelaodeyun-dev://other/", true],
-          ["kelaodeyun://app/", true],
+          ["agentcloudos-dev://app/threads?id=1#latest", false],
+          ["agentcloudos-dev://other/", true],
+          ["agentcloudos://app/", true],
         ] as const) {
           const preventDefault = vi.fn();
           willNavigate({ preventDefault }, url);

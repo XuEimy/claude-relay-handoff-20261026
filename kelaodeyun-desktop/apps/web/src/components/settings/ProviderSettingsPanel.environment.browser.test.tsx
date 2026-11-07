@@ -254,7 +254,7 @@ describe("EnvironmentProviderSettings routing", () => {
     await setProviders([provider()]);
     await using _screen = await render(panel({ targetInstanceId: customId }));
     await expect
-      .element(page.getByText("This provider instance is no longer available on this device."))
+      .element(page.getByText("此设备上的服务实例已不可用。"))
       .toBeVisible();
     expect(state.updateSettings).not.toHaveBeenCalled();
   });
@@ -352,7 +352,7 @@ describe("EnvironmentProviderSettings routing", () => {
     ]);
     await using _screen = await render(panel({ targetInstanceId: codexId }));
     await expect.element(page.getByRole("button", { name: "Reconnect account" })).toBeVisible();
-    await userEvent.click(page.getByRole("button", { name: "Use existing CLI" }).element());
+    await userEvent.click(page.getByRole("button", { name: "使用已安装的命令行工具" }).element());
 
     expect(state.mutateProviderInstance).toHaveBeenCalledWith(
       {
@@ -384,7 +384,7 @@ describe("EnvironmentProviderSettings instance removal", () => {
     };
     await setProviders([provider()]);
     await using _screen = await render(panel({ targetInstanceId: codexId }));
-    const reset = page.getByRole("button", { name: "Reset Codex provider settings to default" });
+    const reset = page.getByRole("button", { name: "将Codex 服务设置恢复默认" });
     await userEvent.click(reset);
 
     expect(state.mutateProviderInstance).not.toHaveBeenCalled();
@@ -416,10 +416,10 @@ describe("EnvironmentProviderSettings instance removal", () => {
     };
     await setProviders([{ ...provider(), instanceId: antigravityId, driver: antigravity }]);
     await using _screen = await render(panel({ targetInstanceId: antigravityId }));
-    await userEvent.click(page.getByRole("button", { name: /^Reset .* provider settings/ }));
+    await userEvent.click(page.getByRole("button", { name: /^将.* 服务设置恢复默认/ }));
 
     expect(state.confirm).toHaveBeenCalledWith(
-      expect.stringContaining("It will also be turned off."),
+      expect.stringContaining("该服务也会被关闭。"),
       {
         variant: "destructive",
       },

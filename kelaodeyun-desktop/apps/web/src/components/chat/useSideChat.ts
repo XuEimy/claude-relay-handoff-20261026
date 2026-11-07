@@ -46,7 +46,7 @@ export function useSideChat(input: {
       input: { sourceThreadId: threadRef.threadId, targetThreadId, title: "侧边对话" },
     });
     if (fork._tag === "Failure") {
-      reportFailure(fork, "Could not start a side chat.");
+      reportFailure(fork, "无法启动侧边对话。");
       return false;
     }
     // Drops the empty side chat a failed start leaves behind; one that got its message stays.
@@ -56,7 +56,7 @@ export function useSideChat(input: {
         input: { threadId: targetThreadId, onlyIfUnused: true },
       });
     if (!(await waitForThreadShell(scopeThreadRef(threadRef.environmentId, targetThreadId)))) {
-      input.onError("The side chat was created, but it did not reach this client.");
+      input.onError("侧边对话已创建，但尚未传到此客户端。");
       discard();
       return false;
     }
@@ -76,7 +76,7 @@ export function useSideChat(input: {
         },
       });
       if (turn._tag === "Failure") {
-        reportFailure(turn, "Could not send the side chat message.");
+        reportFailure(turn, "无法发送侧边对话消息。");
         discard();
         return false;
       }

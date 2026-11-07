@@ -261,8 +261,8 @@ describe("DesktopLifecycle", () => {
         Effect.provideService(HostProcess.Arguments, [
           "/opt/kelaodeyun/t3code",
           "--no-sandbox",
-          "KELAODEYUN://pair?token=spent",
-          "kelaodeyun://new?prompt=hello",
+          "AGENTCLOUDOS://pair?token=spent",
+          "agentcloudos://new?prompt=hello",
         ]),
       );
 

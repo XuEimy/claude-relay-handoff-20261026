@@ -62,7 +62,7 @@ import { Command, Flag } from "effect/cli";
 import { ChildProcess, ChildProcessSpawner } from "effect/process";
 
 const LINUX_ICON_SIZES = [16, 22, 24, 32, 48, 64, 128, 256, 512] as const;
-const DESKTOP_APP_ID = "com.kelaodeyun.terminal";
+const DESKTOP_APP_ID = "com.agentcloudos.app";
 const APPLE_TEAM_ID_PATTERN = /^[A-Z0-9]{10}$/u;
 
 const BuildPlatform = Schema.Literals(["mac", "linux", "win"]);
@@ -2750,8 +2750,8 @@ export function resolvePackageManagerUserAgent(packageManager: string): string {
 
 export function resolveDesktopProductName(version: string): string {
   return resolveDesktopUpdateChannel(version) === "nightly"
-    ? "kelaodeyun (Nightly)"
-    : (desktopPackageJson.productName ?? "kelaodeyun");
+    ? "Agent Cloud OS (Nightly)"
+    : (desktopPackageJson.productName ?? "Agent Cloud OS");
 }
 
 export const createBuildConfig = Effect.fn("createBuildConfig")(function* (
@@ -2774,7 +2774,7 @@ export const createBuildConfig = Effect.fn("createBuildConfig")(function* (
     afterPack: (yield* Path.Path).join(yield* RepoRoot, "scripts/prepare-server-compile-cache.cjs"),
     appId: DESKTOP_APP_ID,
     productName: resolveDesktopProductName(version),
-    artifactName: "T3-Code-${version}-${arch}.${ext}",
+    artifactName: "Agent-Cloud-OS-${version}-${arch}.${ext}",
     electronLanguages: [...DESKTOP_ELECTRON_LANGUAGES],
     files: [
       ...DESKTOP_FILE_EXCLUSIONS,
@@ -2819,14 +2819,14 @@ export const createBuildConfig = Effect.fn("createBuildConfig")(function* (
         // macOS 26 offers Messages/Mail codes in every text field unless opted out.
         NSAutoFillRequiresTextContentTypeForOneTimeCodeOnMac: true,
         NSLocalNetworkUsageDescription:
-          "kelaodeyun connects to devices on your local network for remote environments and commands run by terminals and coding agents.",
+          "Agent Cloud OS 会连接本地网络设备，以使用远程环境和运行命令。",
         NSScreenCaptureUsageDescription:
-          "kelaodeyun captures the active window when you use the window capture shortcut.",
+          "Agent Cloud OS 会在使用截图快捷键时捕获当前窗口。",
         NSCameraUsageDescription:
-          "kelaodeyun lets commands run by terminals and coding agents use the camera.",
+          "Agent Cloud OS 允许终端和智能体运行的命令使用摄像头。",
         NSAudioCaptureUsageDescription: "仅在你开启声音律动时读取系统播放音量，用于驱动背景动画，不保存或上传音频。",
         NSMicrophoneUsageDescription:
-          "kelaodeyun lets commands run by terminals and coding agents use the microphone.",
+          "Agent Cloud OS 允许终端和智能体运行的命令使用麦克风。",
         // macOS lists an app under Default web browser only when it opens web
         // pages as documents as well as http and https links (see protocols).
         CFBundleDocumentTypes: [
@@ -2840,8 +2840,8 @@ export const createBuildConfig = Effect.fn("createBuildConfig")(function* (
       },
       protocols: [
         {
-          name: "kelaodeyun",
-          schemes: ["kelaodeyun", "kelaodeyun-dev"],
+          name: "Agent Cloud OS",
+          schemes: ["agentcloudos", "agentcloudos-dev"],
         },
         {
           name: "Web site URL",
@@ -2893,8 +2893,8 @@ export const createBuildConfig = Effect.fn("createBuildConfig")(function* (
       maintainer: "T3 Tools <hello@t3.codes>",
       protocols: [
         {
-          name: "kelaodeyun",
-          schemes: ["kelaodeyun", "kelaodeyun-dev"],
+          name: "Agent Cloud OS",
+          schemes: ["agentcloudos", "agentcloudos-dev"],
         },
       ],
       desktop: {
@@ -2906,7 +2906,7 @@ export const createBuildConfig = Effect.fn("createBuildConfig")(function* (
     buildConfig.deb = {
       // FPM runs outside the staged app directory, so source paths must be absolute.
       fpm: [
-        `${path.join(repoRoot, "apps/desktop/resources/linux/com.kelaodeyun.terminal.metainfo.xml")}=/usr/share/metainfo/com.kelaodeyun.terminal.metainfo.xml`,
+        `${path.join(repoRoot, "apps/desktop/resources/linux/com.agentcloudos.app.metainfo.xml")}=/usr/share/metainfo/com.agentcloudos.app.metainfo.xml`,
         `${path.join(repoRoot, "LICENSE")}=/usr/share/doc/t3code/copyright`,
       ],
       // Debian 13 and Ubuntu 24.04 use 64-bit-time names; retain old-name fallbacks.
@@ -3853,7 +3853,7 @@ const buildDesktopArtifactUnlocked = Effect.fn("buildDesktopArtifactUnlocked")(f
       ? path.join(stageAppDir, WINDOWS_SERVER_RESOURCE_SOURCE_DIR, WINDOWS_SERVER_ASAR_RESOURCE)
       : undefined;
   const stagePackageJson: StagePackageJson = {
-    name: "kelaodeyun",
+    name: "agent-cloud-os",
     version: appVersion,
     buildVersion: appVersion,
     t3codeCommitHash: commitHash,
@@ -3862,9 +3862,9 @@ const buildDesktopArtifactUnlocked = Effect.fn("buildDesktopArtifactUnlocked")(f
     private: true,
     packageManager: rootPackageJson.packageManager,
     description:
-      "kelaodeyun is an open-source desktop app for coding agents. Work with your existing agent subscriptions, review code changes, and run commands in your projects. Connect from desktop, web, or mobile to continue working remotely.",
+      "Agent Cloud OS is an open-source desktop app for coding agents. Work with your existing agent subscriptions, review code changes, and run commands in your projects. Connect from desktop, web, or mobile to continue working remotely.",
     license: "MIT",
-    author: "kelaodeyun contributors",
+    author: "Agent Cloud OS contributors",
     main: "apps/desktop/dist-electron/boot.cjs",
     build: yield* createBuildConfig(
       options.platform,
@@ -4179,7 +4179,7 @@ const buildDesktopArtifactCli = Command.make("build-desktop-artifact", {
     Flag.optional,
   ),
 }).pipe(
-  Command.withDescription("Build a desktop artifact for kelaodeyun."),
+  Command.withDescription("Build a desktop artifact for Agent Cloud OS."),
   Command.withHandler((input) => Effect.flatMap(resolveBuildOptions(input), buildDesktopArtifact)),
 );
 

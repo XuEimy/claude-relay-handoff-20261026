@@ -69,7 +69,7 @@ function resolveSourceTreeIconPath(
   return environment.path.join(
     environment.rootDir,
     "assets",
-    "kelaodeyun",
+    "agent-cloud-os",
     ext === "ico" ? "app-icon.ico" : "app-icon-1024.png",
   );
 }

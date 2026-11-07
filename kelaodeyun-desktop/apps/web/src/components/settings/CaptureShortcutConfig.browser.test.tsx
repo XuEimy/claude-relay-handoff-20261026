@@ -68,7 +68,7 @@ async function renderConfig(desktop: "niri" | "hyprland" = "niri") {
   return Object.assign(screen, {
     button,
     recorder,
-    diff: () => container.querySelector('[aria-label="Shortcut changes"]'),
+    diff: () => container.querySelector('[aria-label="快捷键更改"]'),
     alert: () => container.querySelector('[role="alert"]'),
     advanced: () => container.querySelector("details")!,
     async click(label: string) {
@@ -89,17 +89,17 @@ it.each(["niri", "hyprland"] as const)(
     using _env = setup();
     await using screen = await renderConfig(desktop);
     expect(screen.recorder().getAttribute("aria-label")).toBe(
-      "Record snapshot shortcut, currently Ctrl+Shift+2",
+      "录制截图快捷键，当前为 Ctrl+Shift+2",
     );
     expect(screen.advanced().textContent).toContain("manual binding");
     expect(bridge.previewSnapShotConfig).not.toHaveBeenCalled();
-    await screen.click("Review changes");
+    await screen.click("检查更改");
     expect(screen.recorder().getAttribute("aria-label")).toBe(
-      "Record snapshot shortcut, currently Ctrl+Shift+2",
+      "录制截图快捷键，当前为 Ctrl+Shift+2",
     );
     expect(bridge.applySnapShotConfig).not.toHaveBeenCalled();
     expect(screen.diff()).not.toBeNull();
-    await screen.click("Save shortcut");
+    await screen.click("保存快捷键");
     expect(bridge.applySnapShotConfig).toHaveBeenCalledExactlyOnceWith(preview.id);
     expect(complete).toHaveBeenCalledOnce();
     expect(toast).toHaveBeenCalledWith(expect.objectContaining({ type: "success" }));
@@ -109,14 +109,14 @@ it.each(["niri", "hyprland"] as const)(
 it("withdraws a stale diff and requires another read instead of retrying its write", async () => {
   using _env = setup();
   await using screen = await renderConfig();
-  await screen.click("Review changes");
+  await screen.click("检查更改");
   bridge.applySnapShotConfig.mockRejectedValue(
     new Error("Your config changed since this preview."),
   );
-  await screen.click("Save shortcut");
-  expect(screen.alert()?.textContent).toContain("Review the changes and try again");
+  await screen.click("保存快捷键");
+  expect(screen.alert()?.textContent).toContain("请检查更改后重试");
   expect(screen.advanced().textContent).toContain("Your config changed since this preview.");
-  expect(screen.button("Review changes")).toBeDefined();
+  expect(screen.button("检查更改")).toBeDefined();
   expect(screen.diff()).toBeNull();
   expect(complete).not.toHaveBeenCalled();
 });

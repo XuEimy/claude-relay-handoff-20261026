@@ -34,7 +34,7 @@ describe("price table edits", () => {
       const environment = target("a", {});
       expect(usagePriceCell([environment], model, "inputCostPerMillionTokens")).toEqual({
         value: "",
-        placeholder: "Automatic",
+        placeholder: "自动",
       });
       const result = usagePriceTableChanges(environment, [
         {
@@ -52,6 +52,16 @@ describe("price table edits", () => {
 
   it("changes only edited columns while preserving each environment's other prices and models", () => {
     const edits = [draft({ inputCostPerMillionTokens: "3" })];
+    expect(
+      usagePriceCell(
+        [
+          target("a", { example: price }),
+          target("b", { example: { ...price, outputCostPerMillionTokens: 10 } }),
+        ],
+        "example",
+        "outputCostPerMillionTokens",
+      ),
+    ).toEqual({ value: "", placeholder: "不一致" });
     const a = usagePriceTableChanges(
       target("a", { example: { ...price, cacheReadCostPerMillionTokens: 0 }, untouched: price }),
       edits,
@@ -118,7 +128,7 @@ describe("price table edits", () => {
       usagePriceTableChanges(mapped, [{ ...draft({}), alias: "example" }]).errors.get(
         "model:example",
       ),
-    ).toBe("Map to a different model.");
+    ).toBe("请映射到其他模型。");
   });
 
   it("requires clearing a mapping before a price edit can apply to every environment", () => {
@@ -126,7 +136,7 @@ describe("price table edits", () => {
     const priced = target("priced", { example: price });
     const edit = draft({ inputCostPerMillionTokens: "3", outputCostPerMillionTokens: "8" });
     expect(usagePriceTableErrors([mapped, priced], [edit]).get(edit.id)).toBe(
-      'mapped maps this model. Remove it from "Apply to" or clear its mapping first.',
+      "mapped 已映射此模型，请先将其从“应用于”中移除或清除映射。",
     );
     expect(usagePriceTableChanges(mapped, [edit]).changes).toEqual([]);
 
@@ -163,7 +173,7 @@ describe("model mapping validation", () => {
     const cyclic = target("two", {}, { a: "b", b: "c" });
     expect(usagePriceTableChanges(acyclic, edits).errors.size).toBe(0);
     expect(usagePriceTableErrors([acyclic, cyclic], edits).get("model:c")).toBe(
-      "Model mappings cannot form a cycle on two.",
+      "two 上的模型映射不能形成循环。",
     );
   });
 

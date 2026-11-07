@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { APP_BASE_NAME } from "~/branding";
 
 import { isLocalEnvironmentDisabled } from "../../localEnvironment";
 import {
@@ -31,7 +32,7 @@ export function LocalEnvironmentSetting() {
     try {
       await setEnabled(!enabled);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Couldn't change this setting.");
+      setError(cause instanceof Error ? cause.message : "无法更改此设置。");
       setIsUpdating(false);
     }
   };
@@ -42,8 +43,8 @@ export function LocalEnvironmentSetting() {
         {...searchableSetting("local-environment")}
         description={
           enabled
-            ? "Run agents on this computer. Turn off to use kelaodeyun only with remote environments."
-            : "Turned off. Agents only run in remote environments."
+            ? `在此设备上运行智能体。关闭后，${APP_BASE_NAME} 将仅使用远程环境。`
+            : "已关闭。智能体仅在远程环境中运行。"
         }
         control={
           <Switch
@@ -65,12 +66,12 @@ export function LocalEnvironmentSetting() {
         <AlertDialogPopup>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {enabled ? "Turn off local environment?" : "Turn on local environment?"}
+              {enabled ? "关闭本地环境？" : "启用本地环境？"}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {enabled
-                ? "kelaodeyun will restart without running a server on this computer. Any agents and terminals running here will stop, and other devices will no longer be able to connect to this computer. Your projects, history, and remote environments are unaffected."
-                : "kelaodeyun will restart and start running a server on this computer again."}
+                ? `${APP_BASE_NAME} 将重启，并停止在此设备上运行服务器。此处的智能体和终端将停止，其他设备也将无法连接此设备。项目、历史记录和远程环境不受影响。`
+                : `${APP_BASE_NAME} 将重启并在此设备上重新运行服务器。`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           {error ? <p className="px-6 pb-4 text-sm text-destructive">{error}</p> : null}

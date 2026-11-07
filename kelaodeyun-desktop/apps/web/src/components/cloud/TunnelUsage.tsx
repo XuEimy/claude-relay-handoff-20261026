@@ -16,11 +16,11 @@ export function tunnelUpgradeCopy(upgrade: Exclude<ManagedTunnelUpgrade, null>):
   const { pro, premier } = T3CHAT_PLAN_TUNNEL_LIMITS;
   switch (upgrade) {
     case "link":
-      return `Link T3 Chat Pro for up to ${pro} tunnels, or Premier for up to ${premier}.`;
+      return `关联 T3 Chat Pro 最多可使用 ${pro} 条隧道，关联 Premier 最多可使用 ${premier} 条。`;
     case "pro":
-      return `Upgrade to T3 Chat Pro for up to ${pro} tunnels, or Premier for up to ${premier}.`;
+      return `升级到 T3 Chat Pro 最多可使用 ${pro} 条隧道，升级到 Premier 最多可使用 ${premier} 条。`;
     case "premier":
-      return `Upgrade to T3 Chat Premier for up to ${premier} tunnels.`;
+      return `升级到 T3 Chat Premier 最多可使用 ${premier} 条隧道。`;
   }
 }
 
@@ -42,13 +42,13 @@ export function TunnelUsageMeter({
     <div className={cn("flex max-w-sm flex-col gap-1.5", className)}>
       <div className="flex items-baseline justify-between gap-3 text-xs">
         <span className={cn("tabular-nums", full ? "text-warning-foreground" : "text-foreground")}>
-          {used} of {limit} tunnels in use
+          已使用 {used} / {limit} 条隧道
         </span>
         {action}
       </div>
       <div
         role="meter"
-        aria-label="T3 Connect tunnels in use"
+        aria-label="已使用的云中继隧道"
         aria-valuemin={0}
         aria-valuemax={limit}
         aria-valuenow={used}
@@ -87,7 +87,7 @@ export function TunnelLimitAlert({
   const action =
     upgrade === "link" && onLinkT3Chat ? (
       <Button size="sm" onClick={onLinkT3Chat}>
-        Link T3 Chat
+        关联 T3 Chat
       </Button>
     ) : upgrade === "pro" || upgrade === "premier" ? (
       <Button
@@ -98,19 +98,19 @@ export function TunnelLimitAlert({
       </Button>
     ) : onManageTunnels ? (
       <Button size="sm" variant="outline" onClick={onManageTunnels}>
-        Manage tunnels
+        管理隧道
       </Button>
     ) : null;
   return (
     <Alert variant="warning">
       <TriangleAlertIcon />
-      <AlertTitle>You&apos;re out of tunnels (they cost us money).</AlertTitle>
+      <AlertTitle>隧道名额已用完。</AlertTitle>
       <AlertDescription>
         {upgrade === "link"
-          ? "Switch to Tailscale or get more tunnels by linking your T3 Chat sub (sorry!)"
+          ? "请改用 Tailscale，或关联 T3 Chat 订阅以获得更多隧道。"
           : upgrade
-            ? "Switch to Tailscale or get more tunnels by upgrading your T3 Chat sub (sorry!)"
-            : "Switch to Tailscale or deregister an environment you no longer use (sorry!)"}
+            ? "请改用 Tailscale，或升级 T3 Chat 订阅以获得更多隧道。"
+            : "请改用 Tailscale，或注销不再使用的环境。"}
       </AlertDescription>
       {action ? <AlertAction>{action}</AlertAction> : null}
     </Alert>

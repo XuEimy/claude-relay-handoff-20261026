@@ -2,7 +2,7 @@ import { EnvironmentId } from "@t3tools/contracts";
 import type { ServerUpdateState } from "@t3tools/client-runtime/state/server";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
-const branding = vi.hoisted(() => ({ APP_VERSION: "0.0.34" }));
+const branding = vi.hoisted(() => ({ APP_BASE_NAME: "Agent Cloud OS", APP_VERSION: "0.0.34" }));
 vi.mock("./branding", () => branding);
 
 import { APP_VERSION } from "./branding";
@@ -17,7 +17,7 @@ import {
 } from "./versionSkew";
 
 const MISMATCH_HINT =
-  "Version mismatch. Try syncing the client and server to the same kelaodeyun version.";
+  "版本不匹配。请将客户端和服务器同步到相同的 Agent Cloud OS 版本。";
 
 describe("versionSkew", () => {
   it("updates only the proven npm prefix and safely quotes its path", () => {

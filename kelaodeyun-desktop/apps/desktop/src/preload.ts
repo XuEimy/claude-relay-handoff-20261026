@@ -155,6 +155,8 @@ contextBridge.exposeInMainWorld("desktopBridge", {
   listAccountHosts: () => ipcRenderer.invoke(IpcChannels.LIST_ACCOUNT_HOSTS_CHANNEL),
   pickAccountPrivateKey: () => ipcRenderer.invoke(IpcChannels.PICK_ACCOUNT_PRIVATE_KEY_CHANNEL),
   saveAccountHost: (input) => ipcRenderer.invoke(IpcChannels.SAVE_ACCOUNT_HOST_CHANNEL, input),
+  saveAccountSshHost: (input) =>
+    ipcRenderer.invoke(IpcChannels.SAVE_ACCOUNT_SSH_HOST_CHANNEL, input),
   deleteAccountHost: (id) => ipcRenderer.invoke(IpcChannels.DELETE_ACCOUNT_HOST_CHANNEL, id),
   discoverSshHosts: () => ipcRenderer.invoke(IpcChannels.DISCOVER_SSH_HOSTS_CHANNEL),
   resolveSshHost: (alias) => ipcRenderer.invoke(IpcChannels.RESOLVE_SSH_HOST_CHANNEL, alias),

@@ -1,4 +1,5 @@
 import { ProcessSignalActions } from "./ProcessSignalActions";
+import { APP_BASE_NAME } from "~/branding";
 import { resolveUsageAccess } from "@t3tools/client-runtime/state/usage-access";
 import { environmentSession } from "../../state/session";
 import { AuthOrchestrationOperateScope } from "@t3tools/contracts";
@@ -216,14 +217,14 @@ function TraceIdCell({ traceId }: { traceId: string }) {
             <Button
               size="icon-micro"
               variant="ghost-muted"
-              aria-label={copied ? "Copied trace ID" : "Copy trace ID"}
+              aria-label={copied ? "追踪 ID 已复制" : "复制追踪 ID"}
               onClick={() => copyToClipboard(traceId)}
             >
               <CopyIcon className="size-3" />
             </Button>
           }
         />
-        <TooltipPopup side="top">{copied ? "已复制" : "Copy full trace ID"}</TooltipPopup>
+        <TooltipPopup side="top">{copied ? "已复制" : "复制完整追踪 ID"}</TooltipPopup>
       </Tooltip>
     </div>
   );
@@ -361,15 +362,15 @@ function ProcessDiagnosticsTable({
               <th className="px-3 py-2 text-right font-semibold">内存</th>
               <th className="px-3 py-2 font-semibold">命令</th>
               <th className="px-3 py-2 text-right font-semibold">PID</th>
-              <th className="px-3 py-2 font-semibold">Type</th>
-              <th className="p-2 text-right font-semibold sm:pr-4">Kill</th>
+              <th className="px-3 py-2 font-semibold">类型</th>
+              <th className="p-2 text-right font-semibold sm:pr-4">结束</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/50">
             {visibleProcesses.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-4 py-4 text-xs text-muted-foreground sm:px-5">
-                  {emptyLabel ?? "No live descendant processes found."}
+                  {emptyLabel ?? "未找到运行中的子进程。"}
                 </td>
               </tr>
             ) : null}
@@ -451,7 +452,7 @@ function ResourceHistoryProcessNameCell({
     <div
       className="grid min-w-0 grid-cols-[1.25rem_0.375rem_minmax(0,1fr)] items-center gap-2"
       style={{ paddingLeft: `${Math.min(visualDepth, 6) * 10}px` }}
-      aria-label={`${process.isServerRoot ? "Root" : "Child"} process ${name}`}
+      aria-label={`${process.isServerRoot ? "根" : "子"}进程 ${name}`}
     >
       <span className="size-5 shrink-0" aria-hidden="true" />
       <span
@@ -530,7 +531,7 @@ function ResourceHistoryWindowSelector({
 }) {
   return (
     <ToggleGroup
-      aria-label="Process history period"
+      aria-label="进程历史时间范围"
       variant="segmented"
       value={[String(selectedWindowMs)]}
       onValueChange={(next) => {
@@ -585,9 +586,9 @@ function ProcessResourceHistoryTable({
               <th className="px-4 py-2 font-semibold sm:pl-5">进程</th>
               <th className="px-3 py-2 text-right font-semibold">CPU 时间</th>
               <th className="px-3 py-2 text-right font-semibold">当前</th>
-              <th className="px-3 py-2 text-right font-semibold">Average</th>
-              <th className="px-3 py-2 text-right font-semibold">Peak</th>
-              <th className="px-3 py-2 text-right font-semibold">Max Mem</th>
+              <th className="px-3 py-2 text-right font-semibold">平均</th>
+              <th className="px-3 py-2 text-right font-semibold">峰值</th>
+              <th className="px-3 py-2 text-right font-semibold">最大内存</th>
               <th className="px-3 py-2 font-semibold">命令</th>
               <th className="px-3 py-2 text-right font-semibold sm:pr-5">PID</th>
             </tr>
@@ -653,7 +654,7 @@ function DiagnosticsLastChecked({ checkedAt }: { checkedAt: DateTime.Utc | null 
   const relative = useRelativeTimeState(checkedAt ? DateTime.formatIso(checkedAt) : null);
 
   if (relative.status === "missing") {
-    return <span className="text-2xs text-muted-foreground/50">Checking</span>;
+    return <span className="text-2xs text-muted-foreground/50">正在检查</span>;
   }
 
   if (relative.status === "invalid") {
@@ -787,7 +788,7 @@ function DiagnosticsSettingsBody() {
       if (result._tag === "Failure" && !isAtomCommandInterrupted(result)) {
         const error = squashAtomCommandFailure(result);
         setOpenLogsDirectoryError(
-          error instanceof Error ? error.message : "Unable to open logs folder.",
+          error instanceof Error ? error.message : "无法打开日志文件夹。",
         );
       }
     })();
@@ -835,7 +836,7 @@ function DiagnosticsSettingsBody() {
         clearSignaling();
         toastManager.add({
           type: "error",
-          title: "Could not confirm signal",
+          title: "无法确认信号",
           description: error instanceof Error ? error.message : `Failed to send ${signal}.`,
         });
         return;
@@ -874,8 +875,8 @@ function DiagnosticsSettingsBody() {
       if (isStaleProcessSignalMessage(message)) {
         toastManager.add({
           type: "info",
-          title: "Process already exited",
-          description: "The process is not a child of the T3 Server. It might already have exited.",
+          title: "进程已退出",
+          description: `此进程不是 ${APP_BASE_NAME} 服务器的子进程，可能已退出。`,
         });
         return;
       }
@@ -902,9 +903,9 @@ function DiagnosticsSettingsBody() {
       <SettingsPageContainer>
         <p className="text-sm text-muted-foreground">
           {environmentId === null
-            ? "Connect an environment to see diagnostics."
+            ? "连接环境后可查看诊断信息。"
             : diagnosticsAccess.isPending
-              ? "Checking diagnostics access…"
+              ? "正在检查诊断访问权限…"
               : diagnosticsAccess.error}
         </p>
       </SettingsPageContainer>
@@ -916,13 +917,13 @@ function DiagnosticsSettingsBody() {
       <ResourceTelemetryDiagnostics environmentId={environmentId} />
 
       <SettingsSection
-        title="Live Processes"
+        title="运行中的进程"
         headerAction={
           <div className="flex items-center gap-1.5">
             <DiagnosticsLastChecked checkedAt={processData?.readAt ?? null} />
             <DiagnosticsRefreshButton
               isPending={isProcessPending}
-              label="Refresh process diagnostics"
+              label="刷新进程诊断"
               onClick={refreshProcesses}
             />
           </div>
@@ -930,21 +931,21 @@ function DiagnosticsSettingsBody() {
       >
         <StatsGrid>
           <StatBlock
-            label="Child Processes"
+            label="子进程"
             value={processData ? formatCount(processData.processCount) : "..."}
           />
           <StatBlock
             label="CPU"
             value={processData ? `${processData.totalCpuPercent.toFixed(1)}%` : "..."}
-            tooltip="Total CPU across live child processes of the current server process. The desktop shell and other parent processes are not included."
+            tooltip="当前服务器进程的运行中子进程使用的 CPU 总量，不包括桌面外壳和其他父进程。"
           />
           <StatBlock
             label="内存"
             value={processData ? formatBytes(processData.totalRssBytes) : "..."}
-            tooltip="Total resident memory across live child processes of the current server process. The desktop shell and other parent processes are not included."
+            tooltip="当前服务器进程的运行中子进程使用的驻留内存总量，不包括桌面外壳和其他父进程。"
           />
           <StatBlock
-            label="Server PID"
+            label="服务器 PID"
             value={processData ? String(processData.serverPid) : "..."}
           />
         </StatsGrid>
@@ -971,14 +972,14 @@ function DiagnosticsSettingsBody() {
           onSignal={signalProcess}
           emptyLabel={
             isProcessInitialLoading
-              ? "Loading live processes..."
-              : "No live descendant processes found."
+              ? "正在加载运行中的进程…"
+              : "未找到运行中的子进程。"
           }
         />
       </SettingsSection>
 
       <SettingsSection
-        title="Resource History"
+        title="资源历史"
         headerAction={
           <div className="flex items-center gap-1.5">
             <ResourceHistoryWindowSelector
@@ -988,7 +989,7 @@ function DiagnosticsSettingsBody() {
             <DiagnosticsLastChecked checkedAt={resourceData?.readAt ?? null} />
             <DiagnosticsRefreshButton
               isPending={isResourcePending}
-              label="Refresh resource history"
+              label="刷新资源历史"
               onClick={refreshResources}
             />
           </div>
@@ -998,19 +999,19 @@ function DiagnosticsSettingsBody() {
           <StatBlock
             label="CPU 时间"
             value={resourceData ? formatCpuTime(resourceData.totalCpuSecondsApprox) : "..."}
-            tooltip="Approximate active CPU time for the T3 server root process and its descendants during the selected window. It grows only while sampled processes use CPU and older samples leave as the window moves."
+            tooltip={`所选时间范围内 ${APP_BASE_NAME} 服务器根进程及其子进程的大致活跃 CPU 时间。仅在采样进程使用 CPU 时增长，较早的样本会随时间窗口移动而移除。`}
           />
           <StatBlock
-            label="Samples"
+            label="样本"
             value={resourceData ? formatCount(resourceData.retainedSampleCount) : "..."}
-            tooltip="In-memory process samples retained by the server. The server samples only while diagnostics is open, and this resets when the server restarts."
+            tooltip="服务器保留在内存中的进程样本。仅在诊断页面打开时采样，服务器重启时重置。"
           />
           <StatBlock
-            label="Interval"
+            label="间隔"
             value={
               resourceData
                 ? resourceData.sampleIntervalMs === 0
-                  ? "On demand"
+                  ? "按需"
                   : formatDuration(resourceData.sampleIntervalMs)
                 : "..."
             }
@@ -1041,14 +1042,14 @@ function DiagnosticsSettingsBody() {
           processes={resourceData?.topProcesses ?? []}
           emptyLabel={
             isResourceInitialLoading
-              ? "Collecting process resource samples..."
-              : "No process resource samples found for this window."
+              ? "正在收集进程资源样本…"
+              : "此时间范围内没有进程资源样本。"
           }
         />
       </SettingsSection>
 
       <SettingsSection
-        title="Trace Diagnostics"
+        title="追踪诊断"
         headerAction={
           <div className="flex items-center gap-1.5">
             <DiagnosticsLastChecked checkedAt={data?.readAt ?? null} />
@@ -1064,41 +1065,41 @@ function DiagnosticsSettingsBody() {
                       isOpeningLogsDirectory
                     }
                     onClick={openLogsDirectory}
-                    aria-label="Open logs folder"
+                    aria-label="打开日志文件夹"
                   >
                     <FolderOpenIcon />
                   </Button>
                 }
               />
-              <TooltipPopup side="top">Open logs folder</TooltipPopup>
+              <TooltipPopup side="top">打开日志文件夹</TooltipPopup>
             </Tooltip>
             <DiagnosticsRefreshButton
               isPending={isPending}
-              label="Refresh trace diagnostics"
+              label="刷新追踪诊断"
               onClick={refresh}
             />
           </div>
         }
       >
         <StatsGrid>
-          <StatBlock label="Spans" value={data ? formatCount(data.recordCount) : "..."} />
+          <StatBlock label="追踪片段" value={data ? formatCount(data.recordCount) : "..."} />
           <StatBlock
-            label="Failures"
+            label="失败"
             value={data ? formatCount(data.failureCount) : "..."}
             tone={data && data.failureCount > 0 ? "danger" : "default"}
           />
           <StatBlock
-            label="Slow Spans"
+            label="慢追踪片段"
             value={data ? formatCount(data.slowSpanCount) : "..."}
             tooltip={
               data
-                ? `Spans with a duration of ${formatDuration(data.slowSpanThresholdMs)} or longer.`
-                : "Spans at or above the configured slow-span threshold."
+                ? `持续时间达到或超过 ${formatDuration(data.slowSpanThresholdMs)} 的追踪片段。`
+                : "达到或超过配置的慢追踪片段阈值的片段。"
             }
             tone={data && data.slowSpanCount > 0 ? "warning" : "default"}
           />
           <StatBlock
-            label="Parse Errors"
+            label="解析错误"
             value={data ? formatCount(data.parseErrorCount) : "..."}
             tone={data && data.parseErrorCount > 0 ? "warning" : "default"}
           />
@@ -1136,7 +1137,7 @@ function DiagnosticsSettingsBody() {
         ) : null}
       </SettingsSection>
 
-      <SettingsSection title="Latest Failures">
+      <SettingsSection title="最近失败">
         {data && data.latestFailures.length > 0 ? (
           <DiagnosticsTable headers={["Span", "Cause", "Duration", "Ended"]}>
             {data.latestFailures.map((failure) => (
@@ -1157,11 +1158,11 @@ function DiagnosticsSettingsBody() {
             ))}
           </DiagnosticsTable>
         ) : (
-          <EmptyRows label={isInitialLoading ? "Loading failures..." : "No failed spans found."} />
+          <EmptyRows label={isInitialLoading ? "正在加载失败记录…" : "未找到失败的追踪片段。"} />
         )}
       </SettingsSection>
 
-      <SettingsSection title="Most Common Failures">
+      <SettingsSection title="最常见的失败">
         {data && data.commonFailures.length > 0 ? (
           <DiagnosticsTable
             headers={["Span", "Count", "Cause", "Last Seen"]}
@@ -1186,12 +1187,12 @@ function DiagnosticsSettingsBody() {
           </DiagnosticsTable>
         ) : (
           <EmptyRows
-            label={isInitialLoading ? "Loading failure groups..." : "No repeated failures found."}
+            label={isInitialLoading ? "正在加载失败分组…" : "未找到重复的失败。"}
           />
         )}
       </SettingsSection>
 
-      <SettingsSection title="Slowest Spans">
+      <SettingsSection title="最慢的追踪片段">
         {data && data.slowestSpans.length > 0 ? (
           <DiagnosticsTable
             headers={["Span", "Duration", "Ended", "Trace"]}
@@ -1216,11 +1217,11 @@ function DiagnosticsSettingsBody() {
             ))}
           </DiagnosticsTable>
         ) : (
-          <EmptyRows label={isInitialLoading ? "Loading slow spans..." : "No spans found."} />
+          <EmptyRows label={isInitialLoading ? "正在加载慢追踪片段…" : "未找到追踪片段。"} />
         )}
       </SettingsSection>
 
-      <SettingsSection title="Span Logs">
+      <SettingsSection title="追踪片段日志">
         {data && data.latestWarningAndErrorLogs.length > 0 ? (
           <ScrollArea
             radius="none"
@@ -1240,10 +1241,10 @@ function DiagnosticsSettingsBody() {
               <thead className="border-b border-border/60 text-2xs uppercase tracking-widest text-muted-foreground/70">
                 <tr>
                   <th className="whitespace-nowrap px-4 py-2.5 font-semibold sm:pl-5">时间</th>
-                  <th className="whitespace-nowrap px-4 py-2.5 font-semibold">Level</th>
-                  <th className="whitespace-nowrap px-4 py-2.5 font-semibold">Span</th>
+                  <th className="whitespace-nowrap px-4 py-2.5 font-semibold">级别</th>
+                  <th className="whitespace-nowrap px-4 py-2.5 font-semibold">追踪片段</th>
                   <th className="whitespace-nowrap px-4 py-2.5 font-semibold">消息</th>
-                  <th className="whitespace-nowrap px-4 py-2.5 font-semibold sm:pr-5">Trace</th>
+                  <th className="whitespace-nowrap px-4 py-2.5 font-semibold sm:pr-5">追踪</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60">
@@ -1280,12 +1281,12 @@ function DiagnosticsSettingsBody() {
           </ScrollArea>
         ) : (
           <EmptyRows
-            label={isInitialLoading ? "Loading recent logs..." : "No warnings or errors found."}
+            label={isInitialLoading ? "正在加载最近日志…" : "未找到警告或错误。"}
           />
         )}
       </SettingsSection>
 
-      <SettingsSection title="Top Span Names">
+      <SettingsSection title="常见追踪片段名称">
         {data && data.topSpansByCount.length > 0 ? (
           <DiagnosticsTable
             headers={["Span", "Count", "Failures", "Average", "Max"]}
@@ -1313,7 +1314,7 @@ function DiagnosticsSettingsBody() {
             ))}
           </DiagnosticsTable>
         ) : (
-          <EmptyRows label={isInitialLoading ? "Loading span names..." : "No spans found."} />
+          <EmptyRows label={isInitialLoading ? "正在加载追踪片段名称…" : "未找到追踪片段。"} />
         )}
       </SettingsSection>
       {exportFormEnvironmentId === environmentId && <TelemetryExportSettings />}

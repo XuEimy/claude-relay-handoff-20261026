@@ -775,8 +775,6 @@ export const exportBrandIconsCommand = Command.make(
 );
 
 if (import.meta.main) {
-  Command.run(exportBrandIconsCommand, { version: "0.0.0" }).pipe(
-    Effect.provide(NodeServices.layer),
-    NodeRuntime.runMain,
-  );
+  Effect.fail(new Error("Use `vp run icons:export` or `vp run icons:check` for Agent Cloud OS icons."))
+    .pipe(Effect.provide(NodeServices.layer), NodeRuntime.runMain);
 }

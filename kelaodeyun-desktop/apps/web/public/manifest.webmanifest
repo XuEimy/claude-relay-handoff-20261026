@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "kelaodeyun",
-  "short_name": "kelaodeyun",
+  "name": "Agent Cloud OS",
+  "short_name": "Agent Cloud OS",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

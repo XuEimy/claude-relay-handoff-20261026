@@ -3,11 +3,13 @@ import * as NodeCrypto from "node:crypto";
 import * as NodeFs from "node:fs/promises";
 import * as NodeOs from "node:os";
 import * as NodePath from "node:path";
+import * as NodeChildProcess from "node:child_process";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import { describe, expect, it, vi } from "vite-plus/test";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
+import * as HostProcess from "@t3tools/shared/HostProcess";
 import * as DesktopEnvironment from "../app/DesktopEnvironment.ts";
 import * as ElectronDialog from "../electron/ElectronDialog.ts";
 import * as ElectronSafeStorage from "../electron/ElectronSafeStorage.ts";
@@ -15,10 +17,168 @@ import * as ElectronShell from "../electron/ElectronShell.ts";
 import * as ElectronWindow from "../electron/ElectronWindow.ts";
 import * as DesktopAccount from "./DesktopAccount.ts";
 
+const FIXTURE_TYPED_VALUE = ["fixture", "value"].join("-");
+
 describe("desktop account", () => {
+  /* oxlint-disable t3code/no-manual-effect-runtime-in-tests -- The subprocess fixture follows the existing desktop boundary tests. */
+  it("discards an undecryptable account and starts signed out", async () => {
+    const root = await NodeFs.mkdtemp(NodePath.join(NodeOs.tmpdir(), "acos-account-test-"));
+    const directory = NodePath.join(root, "agent-cloud-os-dev");
+    const statePath = NodePath.join(directory, "account.json");
+    const legacyPath = NodePath.join(directory, "kelaodeyun-account.json");
+    await NodeFs.mkdir(directory);
+    const saved = JSON.stringify({
+      encryptedToken: Buffer.from("fixture").toString("base64"),
+      user: { email: "user@example.com", name: null, avatar: null },
+    });
+    await NodeFs.writeFile(statePath, saved);
+    await NodeFs.writeFile(legacyPath, saved);
+    try {
+      const layer = Layer.mergeAll(
+        NodeServices.layer,
+        Layer.succeed(DesktopEnvironment.DesktopEnvironment, {
+          appDataDirectory: root,
+          isDevelopment: true,
+          platform: "darwin",
+        } as unknown as DesktopEnvironment.DesktopEnvironment["Service"]),
+        Layer.succeed(ElectronSafeStorage.ElectronSafeStorage, {
+          isEncryptionAvailable: Effect.succeed(true),
+          encryptString: () => Effect.succeed(new Uint8Array()),
+          decryptString: () =>
+            Effect.fail(
+              new ElectronSafeStorage.ElectronSafeStorageDecryptError({
+                cause: new Error("unavailable"),
+              }),
+            ),
+          selectedStorageBackend: Effect.succeedNone,
+        }),
+        Layer.mock(ElectronShell.ElectronShell, {}),
+        Layer.mock(ElectronWindow.ElectronWindow, { sendAll: () => Effect.void }),
+        Layer.mock(ElectronDialog.ElectronDialog, {}),
+      );
+      const account = await Effect.runPromise(DesktopAccount.make.pipe(Effect.provide(layer)));
+      expect(await Effect.runPromise(account.state)).toEqual({ status: "signed-out" });
+      await expect(NodeFs.stat(statePath)).rejects.toMatchObject({ code: "ENOENT" });
+      await expect(NodeFs.stat(legacyPath)).rejects.toMatchObject({ code: "ENOENT" });
+    } finally {
+      await NodeFs.rm(root, { recursive: true, force: true });
+    }
+  });
+  it("saves resolved SSH credentials, skips encrypted keys, and rejects unsafe or missing keys", async () => {
+    const root = await NodeFs.mkdtemp(NodePath.join(NodeOs.tmpdir(), "kld-ssh-test-"));
+    const stateDir = NodePath.join(root, "agent-cloud-os-dev");
+    const oldPath = process.env.PATH;
+    const oldConfig = process.env.SSH_TEST_CONFIG;
+    const user = { email: "user@example.com", name: "用户", avatar: null };
+    const encrypted = NodePath.join(root, "encrypted");
+    const valid = NodePath.join(root, "valid");
+    const config = NodePath.join(root, "ssh-output");
+    await NodeFs.mkdir(stateDir);
+    await NodeFs.writeFile(
+      NodePath.join(stateDir, "account.json"),
+      JSON.stringify({
+        encryptedToken: Buffer.from(`encrypted:${"a".repeat(64)}`).toString("base64"),
+        user,
+      }),
+    );
+    NodeChildProcess.execFileSync(
+      "ssh-keygen",
+      ["-q", "-t", "ed25519", "-N", "passphrase", "-f", encrypted],
+      {
+        stdio: "ignore",
+      },
+    );
+    NodeChildProcess.execFileSync("ssh-keygen", ["-q", "-t", "ed25519", "-N", "", "-f", valid], {
+      stdio: "ignore",
+    });
+    await NodeFs.writeFile(NodePath.join(root, "ssh"), '#!/bin/sh\ncat "$SSH_TEST_CONFIG"\n', {
+      mode: 0o755,
+    });
+    process.env.PATH = `${root}${NodePath.delimiter}${oldPath ?? ""}`;
+    process.env.SSH_TEST_CONFIG = config;
+    let posted: Record<string, unknown> = {};
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_input: string | URL, init?: RequestInit) => {
+        posted = JSON.parse(String(init?.body));
+        return Response.json({
+          id: "host-1",
+          label: posted.label,
+          hostname: posted.hostname,
+          port: posted.port,
+          username: posted.username,
+          authType: posted.authType,
+          source: "account",
+        });
+      }),
+    );
+    try {
+      const layer = Layer.mergeAll(
+        NodeServices.layer,
+        Layer.succeed(DesktopEnvironment.DesktopEnvironment, {
+          appDataDirectory: root,
+          isDevelopment: true,
+          platform: "darwin",
+        } as unknown as DesktopEnvironment.DesktopEnvironment["Service"]),
+        Layer.succeed(
+          ElectronSafeStorage.ElectronSafeStorage,
+          ElectronSafeStorage.ElectronSafeStorage.of({
+            isEncryptionAvailable: Effect.succeed(true),
+            encryptString: (value) => Effect.succeed(Buffer.from(`encrypted:${value}`)),
+            decryptString: (value) => Effect.succeed(Buffer.from(value).toString().slice(10)),
+            selectedStorageBackend: Effect.succeedNone,
+          }),
+        ),
+        Layer.mock(ElectronShell.ElectronShell, {}),
+        Layer.mock(ElectronWindow.ElectronWindow, { sendAll: () => Effect.void }),
+        Layer.mock(ElectronDialog.ElectronDialog, {}),
+      );
+      const account = await Effect.runPromise(DesktopAccount.make.pipe(Effect.provide(layer)));
+      const target = { alias: "example.com", hostname: "example.com", username: null, port: null };
+      await NodeFs.writeFile(
+        config,
+        `hostname resolved.example.com\nuser alice\nport 2222\nidentityfile ${encrypted}\nidentityfile ${valid}\n`,
+      );
+      await Effect.runPromise(account.saveSshHost({ target }));
+      expect(posted).toEqual({
+        label: "example.com",
+        hostname: "resolved.example.com",
+        port: 2222,
+        username: "alice",
+        authType: "key",
+        secret: await NodeFs.readFile(valid, "utf8"),
+      });
+      await expect(
+        Effect.runPromise(account.saveSshHost({ target: { ...target, alias: "-bad" } })),
+      ).rejects.toThrow("SSH 主机无效");
+      await NodeFs.writeFile(
+        config,
+        `hostname resolved.example.com\nuser alice\nport 2222\nidentityfile ${encrypted}\n`,
+      );
+      await expect(Effect.runPromise(account.saveSshHost({ target }))).rejects.toThrow(
+        "未找到可保存的私钥（带口令的私钥或 ssh-agent 暂不支持），请改用密码或手动选择私钥",
+      );
+      await Effect.runPromise(account.saveSshHost({ target, password: FIXTURE_TYPED_VALUE }));
+      expect(posted).toMatchObject({
+        hostname: "resolved.example.com",
+        username: "alice",
+        port: 2222,
+        authType: "password",
+        secret: FIXTURE_TYPED_VALUE,
+      });
+    } finally {
+      if (oldPath === undefined) delete process.env.PATH;
+      else process.env.PATH = oldPath;
+      if (oldConfig === undefined) delete process.env.SSH_TEST_CONFIG;
+      else process.env.SSH_TEST_CONFIG = oldConfig;
+      vi.unstubAllGlobals();
+      await NodeFs.rm(root, { recursive: true, force: true });
+    }
+  });
+  /* oxlint-enable t3code/no-manual-effect-runtime-in-tests */
   it("exchanges a pending PKCE callback, caches a key privately and clears it on 401", async () => {
     const root = await NodeFs.mkdtemp(NodePath.join(NodeOs.tmpdir(), "kld-account-test-"));
-    const stateDir = NodePath.join(root, "kelaodeyun-dev");
+    const stateDir = NodePath.join(root, "agent-cloud-os-dev");
     const user = { email: "user@example.com", name: "用户", avatar: null };
     const host = {
       id: "host-1",
@@ -91,27 +251,33 @@ describe("desktop account", () => {
           pickFiles: () => Effect.succeed([]),
         } as unknown as ElectronDialog.ElectronDialog["Service"]),
       );
-      const account = await Effect.runPromise(DesktopAccount.make.pipe(Effect.provide(layer)));
+      const account = await Effect.runPromise(
+        DesktopAccount.make.pipe(
+          Effect.provide(layer),
+          Effect.provideService(HostProcess.Environment, {
+            AGENT_CLOUD_OS_ACCOUNT_ORIGIN: "https://new-origin.example",
+            KELAODEYUN_ACCOUNT_ORIGIN: "https://old-origin.example",
+          }),
+        ),
+      );
       expect(
-        account.receiveCallback(`kelaodeyun-dev://app/account/callback?code=${"b".repeat(64)}`),
+        account.receiveCallback(`agentcloudos-dev://app/account/callback?code=${"b".repeat(64)}`),
       ).toBe(false);
       const login = Effect.runPromise(account.login);
       const authorize = new URL(await openedUrl);
-      expect(authorize.searchParams.get("scheme")).toBe("kelaodeyun-dev");
+      expect(authorize.origin).toBe("https://new-origin.example");
+      expect(authorize.searchParams.get("scheme")).toBe("agentcloudos-dev");
       expect(
-        account.receiveCallback(`kelaodeyun://app/account/callback?code=${"b".repeat(64)}`),
+        account.receiveCallback(`agentcloudos://app/account/callback?code=${"b".repeat(64)}`),
       ).toBe(false);
       expect(
-        account.receiveCallback(`kelaodeyun-dev://app/account/callback?code=${"b".repeat(64)}`),
+        account.receiveCallback(`agentcloudos-dev://app/account/callback?code=${"b".repeat(64)}`),
       ).toBe(true);
       expect(await login).toEqual({ status: "signed-in", user });
       expect(authorize.searchParams.get("challenge")).toBe(
         NodeCrypto.createHash("sha256").update(verifier).digest("base64url"),
       );
-      const persisted = await NodeFs.readFile(
-        NodePath.join(stateDir, "kelaodeyun-account.json"),
-        "utf8",
-      );
+      const persisted = await NodeFs.readFile(NodePath.join(stateDir, "account.json"), "utf8");
       expect(persisted).not.toContain("a".repeat(64));
       await expect(
         Effect.runPromise(
@@ -145,9 +311,9 @@ describe("desktop account", () => {
       await expect(NodeFs.stat(NodePath.join(stateDir, "account-keys"))).rejects.toMatchObject({
         code: "ENOENT",
       });
-      await expect(
-        NodeFs.stat(NodePath.join(stateDir, "kelaodeyun-account.json")),
-      ).rejects.toMatchObject({ code: "ENOENT" });
+      await expect(NodeFs.stat(NodePath.join(stateDir, "account.json"))).rejects.toMatchObject({
+        code: "ENOENT",
+      });
     } finally {
       vi.unstubAllGlobals();
       await NodeFs.rm(root, { recursive: true, force: true });
@@ -156,11 +322,11 @@ describe("desktop account", () => {
 
   it("caches an empty host list and backs off failed credential lookups", async () => {
     const root = await NodeFs.mkdtemp(NodePath.join(NodeOs.tmpdir(), "kld-account-test-"));
-    const stateDir = NodePath.join(root, "kelaodeyun-dev");
+    const stateDir = NodePath.join(root, "agent-cloud-os-dev");
     const user = { email: "user@example.com", name: "用户", avatar: null };
     await NodeFs.mkdir(stateDir);
     await NodeFs.writeFile(
-      NodePath.join(stateDir, "kelaodeyun-account.json"),
+      NodePath.join(stateDir, "account.json"),
       JSON.stringify({
         encryptedToken: Buffer.from(`encrypted:${"a".repeat(64)}`).toString("base64"),
         user,

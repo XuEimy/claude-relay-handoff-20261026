@@ -246,7 +246,7 @@ describe("GuestPage", () => {
     expect(screen.container.querySelector('[aria-label="Fork from this response"]')).toBeNull();
     expect(socket).not.toHaveBeenCalled();
     // The composer names the thread's model, as the owner's does, with nothing to pick.
-    await expect.element(screen.getByLabelText("Model: GPT-5.4")).toBeVisible();
+    await expect.element(screen.getByLabelText("模型：GPT-5.4")).toBeVisible();
   });
 
   it("sends attached files with the message, as form data", async () => {
@@ -259,11 +259,21 @@ describe("GuestPage", () => {
       .mockImplementation(fakeEventSource(opening([run("run-1", 1, "completed")], items)) as never);
     await using screen = await render(<GuestPage />);
 
-    await expect.element(screen.getByLabelText("Attach files")).toBeVisible();
+    await expect.element(screen.getByLabelText("添加附件")).toBeVisible();
     const notes = new File(["hello"], "notes.txt", { type: "text/plain" });
-    await userEvent.upload(screen.getByLabelText("Files to attach"), notes);
+    const transfer = new DataTransfer();
+    transfer.items.add(notes);
+    const dragOver = new DragEvent("dragover", {
+      bubbles: true,
+      cancelable: true,
+      dataTransfer: transfer,
+    });
+    expect(screen.getByLabelText("消息").element().closest("form")!.dispatchEvent(dragOver)).toBe(
+      false,
+    );
+    await userEvent.upload(screen.getByLabelText("要附加的文件"), notes);
     await expect.element(screen.getByText("notes.txt")).toBeVisible();
-    await userEvent.click(screen.getByRole("button", { name: "Send" }));
+    await userEvent.click(screen.getByRole("button", { name: "发送" }));
     await vi.waitFor(() =>
       expect(fetchSpy).toHaveBeenCalledWith(
         `/api/guest/messages?share=${SHARE_ID}`,

@@ -2465,6 +2465,186 @@ code {
   }
 }
 
+/* Computer folder listing loader: a delayed fade-in keeps fast cached reads
+   quiet, while the orb, stepped text shimmer, and row sweeps signal progress
+   without layout or paint-heavy effects. */
+.computer-listing-loader {
+  display: flex;
+  min-height: 12rem;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.25rem 0.75rem 0.75rem;
+  opacity: 0;
+  animation: computer-listing-loader-in 180ms ease-out 150ms forwards;
+}
+
+@keyframes computer-listing-loader-in {
+  to {
+    opacity: 1;
+  }
+}
+
+.computer-listing-loader-status {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.computer-listing-loader-orb {
+  position: relative;
+  width: 0.5rem;
+  height: 0.5rem;
+  flex: none;
+  border-radius: 9999px;
+  background: var(--success);
+  box-shadow: 0 0 0.75rem color-mix(in srgb, var(--success) 55%, transparent);
+}
+
+.computer-listing-loader-orb::after {
+  content: "";
+  position: absolute;
+  inset: -0.25rem;
+  border: 1px solid color-mix(in srgb, var(--success) 45%, transparent);
+  border-radius: 9999px;
+  animation: computer-listing-loader-orb-pulse 1.6s ease-out infinite;
+}
+
+@keyframes computer-listing-loader-orb-pulse {
+  0% {
+    opacity: 0.75;
+    transform: scale(0.55);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2);
+  }
+}
+
+.computer-listing-loader-text {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: transparent;
+  background-image:
+    linear-gradient(to right, transparent, var(--foreground), transparent),
+    linear-gradient(var(--muted-foreground), var(--muted-foreground));
+  background-size:
+    4.5rem 100%,
+    100% 100%;
+  background-repeat: no-repeat;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: computer-listing-loader-shimmer 2.4s steps(24) infinite;
+}
+
+@keyframes computer-listing-loader-shimmer {
+  from {
+    background-position:
+      -4.5rem 0,
+      0 0;
+  }
+  to {
+    background-position:
+      calc(100% + 4.5rem) 0,
+      0 0;
+  }
+}
+
+.computer-listing-loader-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.computer-listing-loader-row {
+  position: relative;
+  display: flex;
+  height: 1.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  border-radius: 0.375rem;
+  padding: 0 0.75rem;
+}
+
+.computer-listing-loader-row::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 42%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--foreground) 9%, transparent),
+    transparent
+  );
+  transform: translateX(-120%);
+  animation: computer-listing-loader-row-sweep 1.7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.computer-listing-loader-row:nth-child(2)::after {
+  animation-delay: 120ms;
+}
+
+.computer-listing-loader-row:nth-child(3)::after {
+  animation-delay: 240ms;
+}
+
+.computer-listing-loader-row:nth-child(4)::after {
+  animation-delay: 360ms;
+}
+
+.computer-listing-loader-row:nth-child(5)::after {
+  animation-delay: 480ms;
+}
+
+@keyframes computer-listing-loader-row-sweep {
+  to {
+    transform: translateX(260%);
+  }
+}
+
+.computer-listing-loader-icon {
+  width: 1rem;
+  height: 1rem;
+  flex: none;
+  border-radius: 0.25rem;
+  background: color-mix(in srgb, var(--muted-foreground) 20%, transparent);
+}
+
+.computer-listing-loader-bar {
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--muted-foreground) 16%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .computer-listing-loader {
+    opacity: 1;
+    animation: none;
+  }
+
+  .computer-listing-loader-orb::after,
+  .computer-listing-loader-text,
+  .computer-listing-loader-row::after {
+    animation: none;
+  }
+
+  .computer-listing-loader-orb::after,
+  .computer-listing-loader-row::after {
+    opacity: 0;
+  }
+
+  .computer-listing-loader-text {
+    color: var(--muted-foreground);
+    background: none;
+  }
+}
+
 /* Let the sortable rows open label clearance before painting the dividers.
    This runs once per pickup; rows retain dnd-kit's normal 200ms transitions. */
 .sidebar-drag-boundary-label {
@@ -2635,4 +2815,289 @@ code {
     -apple-system, BlinkMacSystemFont, "Inter Variable", "Segoe UI", system-ui, sans-serif;
   --font-composer: var(--font-sans);
   font-family: var(--font-sans);
+}
+
+/* Server desktop connecting loader: a miniature screen "boots" — windows
+   rise in sequence while a soft scan sweeps down — and packets travel along
+   the link from this machine to the server. Transform/opacity only. */
+.server-desktop-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  opacity: 0;
+  animation: server-desktop-loader-in 260ms ease-out 120ms forwards;
+}
+
+@keyframes server-desktop-loader-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.server-desktop-loader-scene {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.server-desktop-loader-client {
+  position: relative;
+  width: 2.25rem;
+  height: 1.5rem;
+  flex: none;
+  border: 1.5px solid color-mix(in srgb, var(--muted-foreground) 55%, transparent);
+  border-radius: 0.3rem;
+}
+
+.server-desktop-loader-client::after {
+  content: "";
+  position: absolute;
+  left: -0.375rem;
+  right: -0.375rem;
+  bottom: -0.375rem;
+  height: 1.5px;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--muted-foreground) 55%, transparent);
+}
+
+.server-desktop-loader-link {
+  position: relative;
+  width: 3.5rem;
+  height: 0.375rem;
+  flex: none;
+  background-image: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--muted-foreground) 30%, transparent) 1px,
+    transparent 1.5px
+  );
+  background-size: 0.5rem 100%;
+  background-position: center;
+}
+
+.server-desktop-loader-packet {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 0.375rem;
+  height: 0.375rem;
+  margin-top: -0.1875rem;
+  border-radius: 9999px;
+  background: var(--primary);
+  box-shadow: 0 0 0.5rem color-mix(in srgb, var(--primary) 70%, transparent);
+  opacity: 0;
+  animation: server-desktop-loader-packet 1.5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.server-desktop-loader-packet:nth-child(2) {
+  animation-delay: 0.5s;
+}
+
+.server-desktop-loader-packet:nth-child(3) {
+  animation-delay: 1s;
+}
+
+@keyframes server-desktop-loader-packet {
+  0% {
+    opacity: 0;
+    transform: translateX(0) scale(0.6);
+  }
+  20%,
+  80% {
+    opacity: 1;
+    transform: translateX(1.5rem) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(3.125rem) scale(0.6);
+  }
+}
+
+.server-desktop-loader-screen {
+  position: relative;
+  width: 9.5rem;
+  height: 6rem;
+  flex: none;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 0.625rem;
+  background:
+    radial-gradient(
+      120% 90% at 20% 0%,
+      color-mix(in srgb, var(--primary) 16%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      90% 80% at 100% 100%,
+      color-mix(in srgb, var(--success) 12%, transparent),
+      transparent 65%
+    ),
+    color-mix(in srgb, var(--muted-foreground) 6%, var(--background));
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--foreground) 4%, transparent),
+    0 12px 32px -12px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+.server-desktop-loader-bar {
+  position: absolute;
+  inset: 0 0 auto;
+  display: flex;
+  height: 0.75rem;
+  align-items: center;
+  gap: 0.1875rem;
+  padding: 0 0.375rem;
+  background: color-mix(in srgb, var(--foreground) 5%, transparent);
+}
+
+.server-desktop-loader-bar span {
+  width: 0.25rem;
+  height: 0.25rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--muted-foreground) 45%, transparent);
+}
+
+.server-desktop-loader-window {
+  position: absolute;
+  border: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
+  border-radius: 0.3rem;
+  background: color-mix(in srgb, var(--background) 82%, transparent);
+  box-shadow: 0 4px 10px -6px color-mix(in srgb, var(--foreground) 35%, transparent);
+  opacity: 0;
+  animation: server-desktop-loader-window 3.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.server-desktop-loader-window::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 0.3125rem;
+  border-radius: 0.3rem 0.3rem 0 0;
+  background: color-mix(in srgb, var(--primary) 22%, transparent);
+}
+
+.server-desktop-loader-window:nth-of-type(2) {
+  top: 1.25rem;
+  left: 0.75rem;
+  width: 4.25rem;
+  height: 2.75rem;
+}
+
+.server-desktop-loader-window:nth-of-type(3) {
+  top: 2.25rem;
+  left: 3.75rem;
+  width: 4.75rem;
+  height: 3rem;
+  animation-delay: 0.35s;
+}
+
+.server-desktop-loader-window:nth-of-type(4) {
+  top: 1.5rem;
+  right: 0.625rem;
+  width: 2rem;
+  height: 1.5rem;
+  animation-delay: 0.7s;
+}
+
+@keyframes server-desktop-loader-window {
+  0% {
+    opacity: 0;
+    transform: translateY(0.375rem) scale(0.94);
+  }
+  14%,
+  78% {
+    opacity: 1;
+    transform: none;
+  }
+  92%,
+  100% {
+    opacity: 0;
+    transform: translateY(-0.125rem) scale(0.98);
+  }
+}
+
+.server-desktop-loader-scan {
+  position: absolute;
+  inset: 0;
+  height: 45%;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    color-mix(in srgb, var(--primary) 14%, transparent) 70%,
+    color-mix(in srgb, var(--primary) 32%, transparent) 98%,
+    transparent
+  );
+  transform: translateY(-110%);
+  animation: server-desktop-loader-scan 2.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  pointer-events: none;
+}
+
+@keyframes server-desktop-loader-scan {
+  to {
+    transform: translateY(240%);
+  }
+}
+
+.server-desktop-loader-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.server-desktop-loader-text {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: transparent;
+  background-image:
+    linear-gradient(to right, transparent, var(--foreground), transparent),
+    linear-gradient(var(--muted-foreground), var(--muted-foreground));
+  background-size:
+    5rem 100%,
+    100% 100%;
+  background-repeat: no-repeat;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: server-desktop-loader-shimmer 2.4s linear infinite;
+}
+
+@keyframes server-desktop-loader-shimmer {
+  from {
+    background-position:
+      -5rem 0,
+      0 0;
+  }
+  to {
+    background-position:
+      calc(100% + 5rem) 0,
+      0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .server-desktop-loader {
+    opacity: 1;
+    animation: none;
+  }
+
+  .server-desktop-loader-packet,
+  .server-desktop-loader-scan {
+    animation: none;
+    opacity: 0;
+  }
+
+  .server-desktop-loader-window {
+    animation: none;
+    opacity: 1;
+  }
+
+  .server-desktop-loader-text {
+    animation: none;
+    color: var(--muted-foreground);
+    background: none;
+  }
 }

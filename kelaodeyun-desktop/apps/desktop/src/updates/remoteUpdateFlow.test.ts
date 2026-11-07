@@ -39,7 +39,7 @@ describe("nextRemoteDesktopUpdateStep", () => {
       null,
     );
     assert.equal(step.action, "done");
-    assert.include(step.action === "done" ? step.reason : "", "1.2.4 did not apply");
+    assert.include(step.action === "done" ? step.reason : "", "更新 1.2.4 未在此设备上生效");
     assert.deepEqual(
       nextRemoteDesktopUpdateStep(
         makeState({ status: "available", availableVersion: "1.2.5", notAppliedVersion: "1.2.4" }),
@@ -60,7 +60,7 @@ describe("nextRemoteDesktopUpdateStep", () => {
     assert.deepEqual(nextRemoteDesktopUpdateStep(state, NO_ATTEMPTS, null), {
       action: "done",
       outcome: "failed",
-      reason: "Automatic updates are disabled on this machine.",
+      reason: "此设备已禁用自动更新。",
     });
   });
 
@@ -129,7 +129,7 @@ describe("nextRemoteDesktopUpdateStep", () => {
       {
         action: "done",
         outcome: "failed",
-        reason: "The desktop app failed to download the update.",
+        reason: "桌面应用下载更新失败。",
       },
     );
     assert.deepEqual(
@@ -178,7 +178,7 @@ describe("nextRemoteDesktopUpdateStep", () => {
     assert.deepEqual(nextRemoteDesktopUpdateStep(makeState({ status: "error" }), checked, null), {
       action: "done",
       outcome: "failed",
-      reason: "The desktop app update failed.",
+      reason: "桌面应用更新失败。",
     });
   });
 });

@@ -58,7 +58,7 @@ describe("Niri capture config edits", () => {
   it("refuses occupied keys regardless of modifier order, without removing them", () => {
     const before = "binds { Shift+Control+2 { quit; } }";
     expect(niriConfigConflict(before, app, "Ctrl+Shift+2")).toBe(true);
-    expect(() => editCaptureConfig(before, "niri", app, "install")).toThrow("already used");
+    expect(() => editCaptureConfig(before, "niri", app, "install")).toThrow("已在此配置中使用");
   });
   it.each(["binds {", "binds {}\nbinds {}", "/* unfinished", 'spawn "unfinished'])(
     "fails safely for malformed structure: %s",
@@ -100,13 +100,13 @@ describe("Hyprland capture config edits", () => {
   it("does not steal an existing legacy shortcut", () => {
     expect(() =>
       editCaptureConfig("bind = SHIFT CTRL, 2, exec, kitty\n", "hyprland", app, "install"),
-    ).toThrow("already used");
+    ).toThrow("已在此配置中使用");
   });
   it.each([
     "return {}",
     '--[[\nhl.bind("CTRL + SHIFT + 2", hl.dsp.global("com.t3tools.T3Code:capture-window"))\n]]',
   ])("does not guess how to edit complex Lua", (source) => {
-    expect(() => editCaptureConfig(source, "hyprland-lua", app, "install")).toThrow("manual edit");
+    expect(() => editCaptureConfig(source, "hyprland-lua", app, "install")).toThrow("需要手动编辑");
   });
   it.each(['Ctrl+"\nexec', "Ctrl+;", "2", "Mod+2"])(
     "rejects unsafe or ambiguous keys: %s",

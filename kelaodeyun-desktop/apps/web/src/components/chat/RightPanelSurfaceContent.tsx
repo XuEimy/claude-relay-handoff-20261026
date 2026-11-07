@@ -1,3 +1,4 @@
+import { APP_BASE_NAME } from "~/branding";
 import type {
   EditorId,
   EnvironmentId,
@@ -128,7 +129,7 @@ export function RightPanelSurfaceContent(props: {
         return (
           <PullRequestsUnavailableState
             title="拉取请求不可用"
-            error="Update this environment's kelaodeyun server to browse pull requests."
+            error={`Update this environment's ${APP_BASE_NAME} server to browse pull requests.`}
           />
         );
       }

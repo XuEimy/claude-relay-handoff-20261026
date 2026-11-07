@@ -100,7 +100,7 @@ function CheckoutGroupingSelect({ member }: { member: SidebarProjectGroupMember 
             stackedThreadToast({
               type: "error",
               title: "无法保存分组规则",
-              description: error instanceof Error ? error.message : "An error occurred.",
+              description: error instanceof Error ? error.message : "发生错误。",
             }),
           );
         });
@@ -224,8 +224,8 @@ export function ProjectSettingsPanel({
     return (
       <div className="flex flex-1 items-center justify-center p-8 text-sm text-muted-foreground">
         {groups.length === 0
-          ? "Add a project from the sidebar to configure it here."
-          : "This project is no longer available."}
+          ? "请从侧边栏添加项目，然后在此配置。"
+          : "此项目已不可用。"}
       </div>
     );
   }
@@ -321,7 +321,7 @@ function ProjectDetail({
     ) {
       return;
     }
-    await updateAllMembers({ title }, "Failed to rename project");
+    await updateAllMembers({ title }, "重命名项目失败");
   };
 
   const [faviconPickerOpen, setFaviconPickerOpen] = useComposerMenuState(!canEditGroup);
@@ -332,7 +332,7 @@ function ProjectDetail({
     if (savingFaviconRef.current) return;
     savingFaviconRef.current = true;
     setIsSavingFavicon(true);
-    await updateAllMembers(input, "Failed to update project icon");
+    await updateAllMembers(input, "更新项目图标失败");
     savingFaviconRef.current = false;
     setIsSavingFavicon(false);
   };
@@ -343,7 +343,7 @@ function ProjectDetail({
     group.memberProjects.some((member) => member.title !== SCRATCH_PROJECT_TITLE);
 
   const removeMembers = async (members: ReadonlyArray<SidebarProjectGroupMember>) => {
-    if (checkProjectAccess(members, "Failed to remove project")) return;
+    if (checkProjectAccess(members, "移除项目失败")) return;
     const api = readLocalApi();
     if (!api) return;
 
@@ -359,11 +359,11 @@ function ProjectDetail({
       api.dialogs.confirm(confirmationMessage, { variant: "destructive" }),
     );
     if (confirmed._tag === "Failure" || !confirmed.value) return;
-    if (checkProjectAccess(members, "Failed to remove project")) return;
+    if (checkProjectAccess(members, "移除项目失败")) return;
 
     const draftStore = useComposerDraftStore.getState();
     for (const member of members) {
-      if (checkProjectAccess([member], "Failed to remove project")) return;
+      if (checkProjectAccess([member], "移除项目失败")) return;
       const memberThreads = projectThreads.filter(
         (thread) => thread.environmentId === member.environmentId && thread.projectId === member.id,
       );
@@ -378,7 +378,7 @@ function ProjectDetail({
         () => undefined,
       );
       if (result._tag === "Failure") {
-        reportProjectFailure(`Failed to remove "${member.title}"`, result);
+        reportProjectFailure(`移除“${member.title}”失败`, result);
         return;
       }
       const projectRef = scopeProjectRef(member.environmentId, member.id);
@@ -422,7 +422,7 @@ function ProjectDetail({
           variant="outline"
           disabled={!editableIds.has(member.environmentId)}
           onClick={() => void removeMembers([member])}
-          aria-label={`Remove checkout ${member.workspaceRoot}`}
+          aria-label={`移除检出目录 ${member.workspaceRoot}`}
         >
           移除
         </Button>
@@ -439,7 +439,7 @@ function ProjectDetail({
           return members.map((member) => (
             <SettingsRow
               key={member.physicalProjectKey}
-              title={member.environmentLabel ?? "Environment"}
+              title={member.environmentLabel ?? "环境"}
               description={member.workspaceRoot}
               control={checkoutControls(member)}
             />
@@ -450,7 +450,7 @@ function ProjectDetail({
         const environment = environmentById.get(environmentId);
         const labels = environment
           ? settingsScopeEnvironmentLabels(environment, environments)
-          : { primary: firstMember.environmentLabel ?? "Environment", secondary: environmentId };
+          : { primary: firstMember.environmentLabel ?? "环境", secondary: environmentId };
         return (
           <SettingsRow
             key={environmentId}
@@ -513,8 +513,8 @@ function ProjectDetail({
           {!canEditGroup ? (
             <p className="px-3 py-2 text-sm text-muted-foreground sm:px-4">
               {group.memberProjects.length > 1
-                ? "Shared settings require permission to change every checkout in this group."
-                : "This connection cannot change this project."}
+                ? "更改共享设置需要此组中每个检出项的修改权限。"
+                : "此连接无法更改此项目。"}
             </p>
           ) : null}
           <SettingsRow
@@ -523,12 +523,12 @@ function ProjectDetail({
             resetAction={
               canResetScratchTitle ? (
                 <SettingResetButton
-                  label="project name"
+                  label="项目名称"
                   disabled={!canEditGroup}
                   onClick={() =>
                     void updateAllMembers(
                       { title: SCRATCH_PROJECT_TITLE },
-                      "Failed to rename project",
+                      "重命名项目失败",
                     )
                   }
                 />
@@ -615,7 +615,7 @@ function ProjectDetail({
                     onCheckedChange={(checked) =>
                       void organize(
                         { pinned: Boolean(checked) },
-                        checked ? "Failed to pin project" : "Failed to unpin project",
+                        checked ? "置顶项目失败" : "取消置顶项目失败",
                       )
                     }
                     aria-label="置顶项目"
@@ -626,8 +626,8 @@ function ProjectDetail({
                 title="归档"
                 description={
                   group.archived
-                    ? "Hidden from project pickers. Threads and files are kept."
-                    : "Hides the project from project pickers. Threads and files are kept."
+                    ? "已从项目选择器中隐藏，会话和文件会保留。"
+                    : "从项目选择器中隐藏此项目，会话和文件会保留。"
                 }
                 control={
                   <Button
@@ -638,8 +638,8 @@ function ProjectDetail({
                       void organize(
                         { archived: !group.archived },
                         group.archived
-                          ? "Failed to unarchive project"
-                          : "Failed to archive project",
+                          ? "取消归档项目失败"
+                          : "归档项目失败",
                       )
                     }
                   >
@@ -657,17 +657,17 @@ function ProjectDetail({
           <SettingsRow
             title={
               hasOtherMembers
-                ? "Remove checkout"
+                ? "移除检出项"
                 : group.memberProjects.length > 1
-                  ? "Remove this project everywhere"
+                  ? "从所有设备移除此项目"
                   : "移除项目"
             }
             description={
               hasOtherMembers
-                ? "Deletes the selected machine's checkout entries and their threads. Other machines and files on disk are not touched."
+                ? "删除所选设备的检出条目及其会话，不影响其他设备和磁盘文件。"
                 : group.memberProjects.length > 1
-                  ? `Deletes all ${group.memberProjects.length} checkout entries and their threads on every machine. Files on disk are not touched.`
-                  : "Deletes the project entry and its threads. Files on disk are not touched."
+                  ? `删除所有设备上的 ${group.memberProjects.length} 个检出条目及其会话，不影响磁盘文件。`
+                  : "删除项目条目及其会话，不影响磁盘文件。"
             }
             control={
               <Button
@@ -678,9 +678,9 @@ function ProjectDetail({
               >
                 <Trash2Icon />
                 {hasOtherMembers
-                  ? "Remove checkout"
+                  ? "移除检出项"
                   : group.memberProjects.length > 1
-                    ? "Remove all entries"
+                    ? "移除所有条目"
                     : "移除项目"}
               </Button>
             }

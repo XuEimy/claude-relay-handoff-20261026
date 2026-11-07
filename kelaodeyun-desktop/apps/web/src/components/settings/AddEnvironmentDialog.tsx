@@ -86,8 +86,8 @@ export function AddEnvironmentDialog({
 }) {
   const desktopBridge = window.desktopBridge;
   const account = useDesktopAccount();
-  const [saveToAccount, setSaveToAccount] = useState(false);
-  const [accountAuthType, setAccountAuthType] = useState<"key" | "password">("key");
+  const [saveToAccount, setSaveToAccount] = useState(true);
+  const [accountAuthType, setAccountAuthType] = useState<"auto" | "key" | "password">("auto");
   const [privateKeyPath, setPrivateKeyPath] = useState("");
   const [accountPassword, setAccountPassword] = useState("");
   const keybindings = useAtomValue(primaryServerKeybindingsAtom);
@@ -163,33 +163,39 @@ export function AddEnvironmentDialog({
       setSavedBackendSshHost("");
       setSavedBackendSshUsername("");
       setSavedBackendSshPort("");
-      setSaveToAccount(false);
+      setSaveToAccount(true);
+      setAccountAuthType("auto");
       setPrivateKeyPath("");
       setAccountPassword("");
     }
     onOpenChange(nextOpen);
   };
-  const connectSavedBackendSshTarget = async (target: DesktopSshEnvironmentTarget) => {
+  const connectSavedBackendSshTarget = async (
+    target: DesktopSshEnvironmentTarget,
+    fromConfig = false,
+  ) => {
     const session = savedBackendSessionRef.current;
     setIsAddingSavedBackend(true);
     onErrorChange(null);
+    let saveError: string | null = null;
     if (saveToAccount && desktopBridge && account.status === "signed-in") {
       try {
-        if (!target.username) throw new Error("请填写 SSH 用户名");
-        await desktopBridge.saveAccountHost({
-          hostname: target.hostname,
-          port: target.port,
-          username: target.username,
-          auth:
-            accountAuthType === "key"
-              ? { type: "key", privateKeyPath }
-              : { type: "password", password: accountPassword },
-        });
+        if (accountAuthType === "key" && !fromConfig) {
+          if (!target.username) throw new Error("请填写 SSH 用户名");
+          await desktopBridge.saveAccountHost({
+            hostname: target.hostname,
+            port: target.port,
+            username: target.username,
+            auth: { type: "key", privateKeyPath },
+          });
+        } else {
+          await desktopBridge.saveAccountSshHost({
+            target,
+            ...(accountAuthType === "password" && !fromConfig ? { password: accountPassword } : {}),
+          });
+        }
       } catch (cause) {
-        if (session === savedBackendSessionRef.current)
-          onErrorChange(cause instanceof Error ? cause.message : "保存账户服务器失败");
-        setIsAddingSavedBackend(false);
-        return;
+        saveError = cause instanceof Error ? cause.message : "保存账户服务器失败";
       }
     }
     const result = await connectSshEnvironment({
@@ -206,12 +212,14 @@ export function AddEnvironmentDialog({
     }
 
     handleOpenChange(false);
+    if (saveError)
+      toastManager.add({ type: "warning", title: `已连接，但未保存到账户：${saveError}` });
     toastManager.add({
       type: "success",
-      title: routeTarget ? "Route added" : "Environment connected",
+      title: routeTarget ? "已添加连接路线" : "环境已连接",
       description: routeTarget
-        ? `${routeTarget.label} can now be reached over SSH ${target.alias}.`
-        : `${target.alias} is ready over an SSH-managed tunnel.`,
+        ? `现在可通过 SSH ${target.alias} 连接 ${routeTarget.label}。`
+        : `${target.alias} 的 SSH 隧道已就绪。`,
     });
     setIsAddingSavedBackend(false);
   };
@@ -225,6 +233,16 @@ export function AddEnvironmentDialog({
           username: savedBackendSshUsername,
           port: savedBackendSshPort,
         });
+        if (desktopBridge) {
+          try {
+            const resolved = await desktopBridge.resolveSshHost(target.alias);
+            target = {
+              ...resolved,
+              username: target.username ?? resolved.username,
+              port: target.port ?? resolved.port,
+            };
+          } catch {}
+        }
       } catch (error) {
         onErrorChange(formatDesktopSshConnectionError(error));
         return;
@@ -243,7 +261,7 @@ export function AddEnvironmentDialog({
         pairingCode: savedBackendPairingCode,
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to add backend.";
+      const message = error instanceof Error ? error.message : "添加后端失败。";
       onErrorChange(message);
       toastManager.add(
         stackedThreadToast({
@@ -263,7 +281,7 @@ export function AddEnvironmentDialog({
     if (result._tag === "Failure") {
       if (!isAtomCommandInterrupted(result)) {
         const error = squashAtomCommandFailure(result);
-        const message = error instanceof Error ? error.message : "Failed to add backend.";
+        const message = error instanceof Error ? error.message : "添加后端失败。";
         onErrorChange(message);
         toastManager.add(
           stackedThreadToast({
@@ -282,13 +300,13 @@ export function AddEnvironmentDialog({
       routeTarget
         ? {
             type: "success",
-            title: "Route added",
-            description: `${routeTarget.label} now has another way to connect.`,
+            title: "已添加连接路线",
+            description: `${routeTarget.label} 已增加一种连接方式。`,
           }
         : {
             type: "success",
-            title: "Backend added",
-            description: "The environment is saved and will reconnect on app startup.",
+            title: "已添加后端",
+            description: "环境已保存，应用启动时会重新连接。",
           },
     );
     setIsAddingSavedBackend(false);
@@ -325,7 +343,7 @@ export function AddEnvironmentDialog({
     }
     setSavedBackendSshUsername(resolved.username ?? "");
     setSavedBackendSshPort(resolved.port === null ? "" : String(resolved.port));
-    await connectSavedBackendSshTarget(resolved);
+    await connectSavedBackendSshTarget(resolved, true);
   };
 
   const handleSavedBackendSshHostKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -470,15 +488,15 @@ export function AddEnvironmentDialog({
     if (result._tag === "Failure") {
       if (!isAtomCommandInterrupted(result)) {
         const error = squashAtomCommandFailure(result);
-        onErrorChange(error instanceof Error ? error.message : "Could not add the route.");
+        onErrorChange(error instanceof Error ? error.message : "无法添加连接路线。");
       }
       return;
     }
     handleOpenChange(false);
     toastManager.add({
       type: "success",
-      title: "Route added",
-      description: `${routeTarget.label} falls back to T3 Connect when its other routes are unreachable.`,
+      title: "已添加连接路线",
+      description: `${routeTarget.label} 的其他路线不可用时，将使用云中继。`,
     });
   };
   const renderRemoteModeBody = () => (
@@ -486,7 +504,7 @@ export function AddEnvironmentDialog({
       {relayRouteOffer !== null ? (
         <div className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2">
           <p className="text-xs text-muted-foreground">
-            This machine is on your T3 Connect account. Use it as a fallback route.
+            此设备已关联你的云中继账户，可将其用作备用路线。
           </p>
           <Button
             size="xs"
@@ -494,7 +512,7 @@ export function AddEnvironmentDialog({
             disabled={isAddingSavedBackend}
             onClick={() => void addRelayRoute()}
           >
-            Add T3 Connect
+            添加云中继
           </Button>
         </div>
       ) : null}
@@ -507,7 +525,7 @@ export function AddEnvironmentDialog({
         onClick={() => void handleAddSavedBackend()}
       >
         <PlusIcon className="size-3.5" />
-        {isAddingSavedBackend ? "Adding…" : routeTarget ? "Add route" : "添加环境"}
+        {isAddingSavedBackend ? "正在添加…" : routeTarget ? "添加路线" : "添加环境"}
       </Button>
     </div>
   );
@@ -519,7 +537,7 @@ export function AddEnvironmentDialog({
             htmlFor="saved-backend-ssh-host"
             className="mb-1.5 block text-xs font-medium text-foreground"
           >
-            SSH host or alias
+            SSH 主机或别名
           </label>
           <Autocomplete
             items={filteredDiscoveredSshHosts}
@@ -543,14 +561,14 @@ export function AddEnvironmentDialog({
             <AutocompleteInput
               id="saved-backend-ssh-host"
               onKeyDown={handleSavedBackendSshHostKeyDown}
-              placeholder="Search hosts or type devbox"
+              placeholder="搜索主机或输入 devbox"
               disabled={isAddingSavedBackend}
               spellCheck={false}
             />
             {hasSshHostSuggestionContent ? (
               <AutocompletePopup>
                 {isLoadingDiscoveredSshHosts ? (
-                  <div className="px-3 py-2 text-xs text-muted-foreground">Loading hosts…</div>
+                  <div className="px-3 py-2 text-xs text-muted-foreground">正在加载主机…</div>
                 ) : filteredDiscoveredSshHosts.length > 0 ? (
                   <AutocompleteList className="max-h-72">
                     {filteredDiscoveredSshHosts.map((target, index) => {
@@ -584,7 +602,7 @@ export function AddEnvironmentDialog({
                   </AutocompleteList>
                 ) : (
                   <AutocompleteEmpty className="break-all">
-                    No hosts match "{savedBackendSshHost.trim()}".
+                    没有与“{savedBackendSshHost.trim()}”匹配的主机。
                   </AutocompleteEmpty>
                 )}
               </AutocompletePopup>
@@ -593,7 +611,7 @@ export function AddEnvironmentDialog({
         </div>
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_7rem]">
           <label className="block">
-            <span className="mb-1.5 block text-xs font-medium text-foreground">Username</span>
+            <span className="mb-1.5 block text-xs font-medium text-foreground">用户名</span>
             <Input
               value={savedBackendSshUsername}
               onChange={(event) => setSavedBackendSshUsername(event.target.value)}
@@ -604,7 +622,7 @@ export function AddEnvironmentDialog({
             />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-xs font-medium text-foreground">Port</span>
+            <span className="mb-1.5 block text-xs font-medium text-foreground">端口</span>
             <Input
               value={savedBackendSshPort}
               onChange={(event) => setSavedBackendSshPort(event.target.value)}
@@ -629,10 +647,19 @@ export function AddEnvironmentDialog({
                     <input
                       type="radio"
                       name="account-auth"
+                      checked={accountAuthType === "auto"}
+                      onChange={() => setAccountAuthType("auto")}
+                    />{" "}
+                    本机密钥（自动）
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="account-auth"
                       checked={accountAuthType === "key"}
                       onChange={() => setAccountAuthType("key")}
                     />{" "}
-                    私钥
+                    选择私钥
                   </label>
                   <label>
                     <input
@@ -664,14 +691,14 @@ export function AddEnvironmentDialog({
                     </Button>
                     <span className="truncate text-xs">{privateKeyPath || "尚未选择私钥"}</span>
                   </div>
-                ) : (
+                ) : accountAuthType === "password" ? (
                   <Input
                     type="password"
                     aria-label="SSH 密码"
                     value={accountPassword}
                     onChange={(event) => setAccountPassword(event.target.value)}
                   />
-                )}
+                ) : null}
               </>
             ) : null}
           </div>
@@ -688,7 +715,7 @@ export function AddEnvironmentDialog({
           onClick={() => void handleAddSavedBackend()}
         >
           <PlusIcon className="size-3.5" />
-          {isAddingSavedBackend ? "Adding…" : routeTarget ? "Add route" : "添加环境"}
+          {isAddingSavedBackend ? "正在添加…" : routeTarget ? "添加路线" : "添加环境"}
         </Button>
       </div>
     </div>
@@ -714,12 +741,12 @@ export function AddEnvironmentDialog({
       <DialogPopup className="max-h-[80dvh] sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>
-            {routeTarget ? `Add a route to ${routeTarget.label}` : "Add Environment"}
+            {routeTarget ? `为 ${routeTarget.label} 添加连接路线` : "添加环境"}
           </DialogTitle>
           <DialogDescription>
             {routeTarget
-              ? "Pair this machine again over another address, such as its Tailscale name. It joins the existing routes instead of adding a second machine."
-              : "Pair another environment to this client."}
+              ? "使用其他地址（例如 Tailscale 名称）重新配对此设备。新地址会加入现有连接路线，不会添加第二台设备。"
+              : "将其他环境与此客户端配对。"}
           </DialogDescription>
         </DialogHeader>
         <DialogPanel>
@@ -727,15 +754,15 @@ export function AddEnvironmentDialog({
             <div className="grid gap-3 sm:grid-cols-2">
               {renderConnectionModeCard({
                 mode: "remote",
-                title: "Remote link",
-                description: "Enter a backend host and pairing code.",
+                title: "远程链接",
+                description: "输入后端主机和配对码。",
                 icon: <ChevronsLeftRightEllipsisIcon aria-hidden className="size-4" />,
               })}
               {desktopBridge
                 ? renderConnectionModeCard({
                     mode: "ssh",
                     title: "SSH",
-                    description: "Use local SSH config, agent, and tunnels for the backend.",
+                    description: "使用本地 SSH 配置、代理和隧道连接后端。",
                     icon: <TerminalIcon aria-hidden className="size-4" />,
                   })
                 : null}

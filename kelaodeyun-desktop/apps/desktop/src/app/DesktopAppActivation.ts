@@ -164,7 +164,7 @@ export async function startDesktopAppControlServer(input: {
         finish(
           invalidResponse(
             parsed.requestId,
-            "kelaodeyun could not process the desktop app request.",
+            `${DesktopEnvironment.APP_BASE_NAME} could not process the desktop app request.`,
           ),
         );
       });

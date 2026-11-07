@@ -1,4 +1,5 @@
 import { useAtomValue } from "@effect/atom-react";
+import { APP_BASE_NAME } from "~/branding";
 import { linkRequestFailureMessage } from "@t3tools/client-runtime/link-request";
 import {
   AuthAccessWriteScope,
@@ -68,13 +69,13 @@ export function LinkedEnvironmentsSettings({
       headerAction={canLink ? <LinkEnvironmentAction environmentId={environmentId} /> : null}
     >
       {links.error ? (
-        <SettingsRow title="Could not load linked environments" description={links.error} />
+        <SettingsRow title="无法加载已关联环境" description={links.error} />
       ) : !links.data ? (
-        <SettingsRow title="Loading linked environments…" role="status" />
+        <SettingsRow title="正在加载已关联环境…" role="status" />
       ) : links.data.links.length === 0 ? (
         <SettingsRow
-          title="No linked environments"
-          description="Link another machine running kelaodeyun, such as a VPS, so agents here can launch and drive threads there."
+          title="没有已关联环境"
+          description={`Link another machine running ${APP_BASE_NAME}, such as a VPS, so agents here can launch and drive threads there.`}
         />
       ) : (
         links.data.links.map((link) => (
@@ -103,7 +104,7 @@ function LinkedEnvironmentRow({
   const [busy, setBusy] = useState(false);
   const forget = async () => {
     const confirmed = await (requestConfirmDialog(
-      `Forget ${link.label}? Agents here stop working there. Revoke "kelaodeyun · …" in ${link.label}'s Connections to end the session there too.`,
+      `Forget ${link.label}? Agents here stop working there. Revoke "${APP_BASE_NAME} · …" in ${link.label}'s Connections to end the session there too.`,
       { variant: "destructive" },
     ) ?? Promise.resolve(false));
     if (!confirmed) return;
@@ -116,9 +117,9 @@ function LinkedEnvironmentRow({
   };
   const status =
     health.kind === "expired"
-      ? "Expired. Link it again with a new pairing code."
+      ? "已过期，请使用新的配对码重新关联。"
       : health.kind === "unreachable"
-        ? (health.detail ?? "Not answering right now.")
+        ? (health.detail ?? "当前没有响应。")
         : health.kind === "failing"
           ? health.detail
           : health.expiresInDays !== null
@@ -264,7 +265,7 @@ function LinkEnvironmentAction({ environmentId }: { readonly environmentId: Envi
       />
       <DialogPopup className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Link an environment</DialogTitle>
+          <DialogTitle>关联环境</DialogTitle>
           <DialogDescription>
             Agents here can then launch, message and wait on threads there. It appears in that
             environment's Connections, where it can be revoked.

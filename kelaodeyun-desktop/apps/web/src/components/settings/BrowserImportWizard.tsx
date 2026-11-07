@@ -1,4 +1,5 @@
 import { PermissionChecklist, PermissionContinueButton } from "../permissions/PermissionChecklist";
+import { APP_BASE_NAME } from "~/branding";
 import { usePermissionStatus } from "../permissions/usePermissionStatus";
 import type { BrowserImportSource } from "@t3tools/contracts";
 import { BROWSER_IMPORT_FAILURE_COPY } from "@t3tools/contracts";
@@ -82,7 +83,7 @@ export function BrowserImportWizard({
     if (importInFlight.current) return;
     const chosen = resolveWizardTarget(target, newProfileId.current, targetProfiles);
     if (chosen === undefined) {
-      setTargetError("That profile is no longer available. Choose where to import these cookies.");
+      setTargetError("该配置文件已不可用，请选择 Cookie 的导入位置。");
       setStep({ step: "configure" });
       return;
     }
@@ -192,16 +193,16 @@ function QuitStep({
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Quit {source.name} to import</DialogTitle>
+        <DialogTitle>退出 {source.name} 后导入</DialogTitle>
         <DialogDescription>
-          {source.name} is open, so its cookies can&rsquo;t be read yet. Quit it, then continue.
+          {source.name} 仍在运行，暂时无法读取其 Cookie。请退出后继续。
         </DialogDescription>
       </DialogHeader>
       <DialogFooter>
         <Button variant="outline" onClick={onCancel}>
           取消
         </Button>
-        <Button onClick={onRechecked}>I&rsquo;ve quit it</Button>
+        <Button onClick={onRechecked}>我已退出</Button>
       </DialogFooter>
     </>
   );
@@ -209,12 +210,12 @@ function QuitStep({
 
 function cookieCountLabel(count: number | undefined): string | undefined {
   if (count === undefined) return undefined;
-  if (count === 0) return "no cookies";
-  return `${count.toLocaleString()} ${count === 1 ? "cookie" : "cookies"}`;
+  if (count === 0) return "没有 Cookie";
+  return `${count.toLocaleString()} 个 Cookie`;
 }
 
 function cookieResultCount(count: number): string {
-  return `${count.toLocaleString()} ${count === 1 ? "cookie" : "cookies"}`;
+  return `${count.toLocaleString()} 个 Cookie`;
 }
 
 type ConfigureStepProps = {
@@ -257,17 +258,18 @@ function FullDiskAccessStep({
     setOpeningError(null);
     void Promise.resolve()
       .then(onOpenSettings)
-      .catch(() => setOpeningError("Could not open System Settings. Try Allow again."))
+      .catch(() => setOpeningError("无法打开系统设置，请再次尝试允许。"))
       .finally(() => setOpening(false));
   };
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Let kelaodeyun read {source.name}&rsquo;s cookies</DialogTitle>
+        <DialogTitle>
+          允许 {APP_BASE_NAME} 读取 {source.name} 的 Cookie
+        </DialogTitle>
         <DialogDescription>
-          To import cookies from {source.name}, kelaodeyun needs Full Disk Access. Turn it on in
-          System Settings, then come back to finish the import. You can revoke it again once the
-          import is done.
+          从 {source.name} 导入 Cookie 需要授予 {APP_BASE_NAME} 完全磁盘访问权限。请在系统设置中启用，
+          然后返回完成导入。导入后可以撤销此权限。
         </DialogDescription>
       </DialogHeader>
       <DialogPanel>
@@ -282,8 +284,8 @@ function FullDiskAccessStep({
                   aria-hidden="true"
                 />
               ),
-              title: "Full Disk Access",
-              description: `Read ${source.name}'s cookies for this import.`,
+              title: "完全磁盘访问权限",
+              description: `读取 ${source.name} 的 Cookie 以完成此次导入。`,
               granted: permission.status.fullDiskAccess,
               onAllow: () => void allow(),
             },
@@ -297,8 +299,8 @@ function FullDiskAccessStep({
         {!permission.isReady(["fullDiskAccess"]) ? (
           <p className="mt-3 text-xs text-muted-foreground">
             {stillRequired
-              ? "Access is still required. Quit and reopen kelaodeyun if you just allowed it, then retry the import."
-              : "If access doesn't update after you allow it, quit and reopen kelaodeyun, then retry the import."}
+              ? `仍需要访问权限。如果刚刚授予权限，请退出并重新打开 ${APP_BASE_NAME}，然后重试导入。`
+              : `如果授予权限后状态未更新，请退出并重新打开 ${APP_BASE_NAME}，然后重试导入。`}
           </p>
         ) : null}
       </DialogPanel>
@@ -337,16 +339,16 @@ function ConfigureStep({
   const targetFeedback =
     targetError ??
     (targetMissing
-      ? "That profile is no longer available. Choose where to import these cookies."
+      ? "该配置文件已不可用，请选择 Cookie 的导入位置。"
       : targetUncreatable
-        ? "You've reached the profile limit. Choose an existing profile to import into."
+        ? "已达到配置文件数量上限，请选择现有配置文件导入。"
         : undefined);
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Import from {source.name}</DialogTitle>
+        <DialogTitle>从 {source.name} 导入</DialogTitle>
         <DialogDescription>
-          Choose which cookies to import for {destinationEnvironmentName}.
+          选择要为 {destinationEnvironmentName} 导入的 Cookie。
         </DialogDescription>
       </DialogHeader>
       <DialogPanel>
@@ -371,13 +373,13 @@ function ConfigureStep({
           </div>
           <section className="flex-1 space-y-2">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Into
+              导入到
             </p>
             {canCreateProfile ? (
               <SelectableTile
                 selected={target.kind === "new"}
-                title="New profile"
-                subtitle="Created for these cookies"
+                title="新配置文件"
+                subtitle="为这些 Cookie 创建"
                 onSelect={() => onTargetChange({ kind: "new" })}
               />
             ) : null}
@@ -386,7 +388,7 @@ function ConfigureStep({
                 key={profile.id}
                 selected={target.kind === "existing" && target.profileId === profile.id}
                 title={profile.name}
-                subtitle="Existing profile"
+                subtitle="现有配置文件"
                 onSelect={() => onTargetChange({ kind: "existing", profileId: profile.id })}
               />
             ))}
@@ -460,13 +462,13 @@ function ImportingStep() {
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Importing cookies</DialogTitle>
-        <DialogDescription>This may take a moment.</DialogDescription>
+        <DialogTitle>正在导入 Cookie</DialogTitle>
+        <DialogDescription>这可能需要一些时间。</DialogDescription>
       </DialogHeader>
       <DialogPanel>
         <div className="flex items-center gap-3 py-2">
           <Spinner size="md" tone="muted" />
-          <span className="text-sm text-muted-foreground">Importing…</span>
+          <span className="text-sm text-muted-foreground">正在导入…</span>
         </div>
       </DialogPanel>
     </>
@@ -483,18 +485,18 @@ function CheckingStep({
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Checking {sourceName}</DialogTitle>
+        <DialogTitle>正在检查 {sourceName}</DialogTitle>
         <DialogDescription>
           {check === "fullDiskAccess"
-            ? "Checking Full Disk Access."
-            : "Checking whether the browser has closed."}
+            ? "正在检查完全磁盘访问权限。"
+            : "正在检查浏览器是否已关闭。"}
         </DialogDescription>
       </DialogHeader>
       <DialogPanel>
         <div className="flex items-center gap-3 py-2">
           <Spinner size="md" tone="muted" />
           <span className="text-sm text-muted-foreground">
-            {check === "fullDiskAccess" ? "Checking access…" : "正在检查…"}
+            {check === "fullDiskAccess" ? "正在检查权限…" : "正在检查…"}
           </span>
         </div>
       </DialogPanel>
@@ -522,17 +524,17 @@ function DoneStep({
       <DialogHeader>
         <DialogTitle>
           {imported > 0
-            ? `Imported ${cookieResultCount(imported)}`
+            ? `已导入 ${cookieResultCount(imported)}`
             : skipped > 0
-              ? `Skipped ${cookieResultCount(skipped)}`
-              : "No cookies found"}
+              ? `已跳过 ${cookieResultCount(skipped)}`
+              : "未找到 Cookie"}
         </DialogTitle>
         <DialogDescription>
           {imported > 0
-            ? `Added to ${targetName} for ${destinationEnvironmentName}.${skipped > 0 ? ` ${cookieResultCount(skipped)} skipped.` : ""}`
+            ? `已为 ${destinationEnvironmentName} 添加到 ${targetName}。${skipped > 0 ? `已跳过 ${cookieResultCount(skipped)}。` : ""}`
             : skipped > 0
-              ? `No cookies were imported for ${destinationEnvironmentName}.`
-              : `There were no cookies to import for ${destinationEnvironmentName}.`}
+              ? `未为 ${destinationEnvironmentName} 导入任何 Cookie。`
+              : `${destinationEnvironmentName} 没有可导入的 Cookie。`}
         </DialogDescription>
       </DialogHeader>
       {skippedDomains.length > 0 ? (
@@ -568,7 +570,7 @@ function BlockedStep({
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Couldn&rsquo;t import from {source.name}</DialogTitle>
+        <DialogTitle>无法从 {source.name} 导入</DialogTitle>
         <DialogDescription>{message ?? BROWSER_IMPORT_FAILURE_COPY[reason]}</DialogDescription>
       </DialogHeader>
       <DialogFooter>

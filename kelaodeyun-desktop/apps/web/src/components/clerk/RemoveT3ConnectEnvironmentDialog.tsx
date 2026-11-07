@@ -46,10 +46,10 @@ export function RemoveT3ConnectEnvironmentDialog({
         openAccountPage();
       }}
     >
-      T3 Connect settings
+      云中继设置
     </InlineButton>
   ) : (
-    "T3 Connect settings"
+    "云中继设置"
   );
 
   return (
@@ -62,22 +62,20 @@ export function RemoveT3ConnectEnvironmentDialog({
       >
         <AlertDialogPopup>
           <AlertDialogHeader>
-            <AlertDialogTitle>移除 {shown.label} from this device?</AlertDialogTitle>
+            <AlertDialogTitle>从此设备移除 {shown.label}？</AlertDialogTitle>
             <AlertDialogDescription>
-              This forgets its pairing, credentials, and cached threads here.
+              此操作会清除此处的配对、凭据和缓存会话。
             </AlertDialogDescription>
             <AlertDialogDescription>
               {shown.registration === "registered" ? (
                 <>
-                  It stays on your T3 Connect account and keeps its host space. Deregister it in{" "}
-                  {accountPageLink} to free it.
+                  它仍会保留在你的云中继账户中并占用主机名额。请在{accountPageLink}中注销以释放名额。
                 </>
               ) : shown.registration === "unregistered" ? (
-                "It's no longer on your T3 Connect account."
+                "它已不在你的云中继账户中。"
               ) : (
                 <>
-                  This doesn't change your T3 Connect account. To deregister it there, use{" "}
-                  {accountPageLink}.
+                  此操作不会更改你的云中继账户。如需注销，请使用{accountPageLink}。
                 </>
               )}
             </AlertDialogDescription>
@@ -85,7 +83,7 @@ export function RemoveT3ConnectEnvironmentDialog({
           <AlertDialogFooter>
             <AlertDialogClose render={<Button variant="outline" />}>取消</AlertDialogClose>
             <Button variant="destructive" onClick={onConfirm}>
-              Remove from this device
+              从此设备移除
             </Button>
           </AlertDialogFooter>
         </AlertDialogPopup>

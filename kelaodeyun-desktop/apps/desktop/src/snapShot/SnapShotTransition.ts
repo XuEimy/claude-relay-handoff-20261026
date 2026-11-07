@@ -1,4 +1,5 @@
 import * as Effect from "effect/Effect";
+import { APP_BASE_NAME } from "../app/DesktopBranding.ts";
 import type * as Fiber from "effect/Fiber";
 
 import * as Electron from "electron";
@@ -114,7 +115,7 @@ function createWindow(
     resizable: false,
     show: false,
     skipTaskbar: true,
-    title: "kelaodeyun Snapshot Animation",
+    title: `${APP_BASE_NAME} Snapshot Animation`,
     transparent: true,
     webPreferences: {
       backgroundThrottling: false,

@@ -1,4 +1,5 @@
 import { scopeProjectRef } from "@t3tools/client-runtime/environment";
+import { APP_BASE_NAME } from "../branding";
 import {
   type AtomCommandResult,
   isAtomCommandInterrupted,
@@ -77,7 +78,7 @@ export function useStartTriage() {
     // A null result means the user went elsewhere; only a throw is a failure.
     await handleNewThread(scopeProjectRef(project.value.environmentId, project.value.id), {
       prompt: prepared.value.prompt,
-    }).catch(() => fail("kelaodeyun could not open a new thread."));
+    }).catch(() => fail(`${APP_BASE_NAME} could not open a new thread.`));
   };
 
   return async (environmentId: EnvironmentId) => {

@@ -44,7 +44,7 @@ describe("DesktopUpdates", () => {
 
   it.effect("keeps the disabled reason available after configuration and channel changes", () => {
     const harness = makeHarness({ env: { T3CODE_DISABLE_AUTO_UPDATE: "true" } });
-    const reason = "Automatic updates are disabled by the T3CODE_DISABLE_AUTO_UPDATE setting.";
+    const reason = "T3CODE_DISABLE_AUTO_UPDATE 设置已禁用自动更新。";
 
     return Effect.scoped(
       Effect.gen(function* () {
@@ -313,7 +313,7 @@ describe("DesktopUpdates", () => {
         const failedState = yield* updates.getState;
         assert.equal(failedState.status, "available");
         assert.equal(failedState.errorContext, "download");
-        assert.equal(failedState.message, "Desktop update download action failed unexpectedly.");
+        assert.equal(failedState.message, "桌面更新操作 download 意外失败。");
 
         const changedState = yield* updates.setChannel("nightly");
         assert.equal(changedState.channel, "nightly");
@@ -382,7 +382,7 @@ describe("DesktopUpdates", () => {
         const failedState = yield* updates.getState;
         assert.equal(failedState.status, "downloaded");
         assert.equal(failedState.errorContext, "install");
-        assert.equal(failedState.message, "Desktop update install action failed unexpectedly.");
+        assert.equal(failedState.message, "桌面更新操作 install 意外失败。");
 
         const changedState = yield* updates.setChannel("nightly");
         assert.equal(changedState.channel, "nightly");

@@ -1,4 +1,5 @@
 import { DownloadIcon } from "lucide-react";
+import { APP_BASE_NAME } from "~/branding";
 import { useSyncExternalStore } from "react";
 import type { RelayClientInstallProgressStage } from "@t3tools/contracts";
 
@@ -22,13 +23,13 @@ const installSteps: ReadonlyArray<{
   readonly stage: RelayClientInstallProgressStage;
   readonly label: string;
 }> = [
-  { stage: "checking", label: "Checking current installation" },
-  { stage: "waiting_for_lock", label: "Waiting for installer" },
-  { stage: "downloading", label: "Downloading relay client" },
-  { stage: "verifying", label: "Verifying download" },
-  { stage: "installing", label: "Installing relay client" },
-  { stage: "validating", label: "Validating executable" },
-  { stage: "activating", label: "Activating installation" },
+  { stage: "checking", label: "正在检查当前安装" },
+  { stage: "waiting_for_lock", label: "正在等待安装程序" },
+  { stage: "downloading", label: "正在下载中继客户端" },
+  { stage: "verifying", label: "正在校验下载内容" },
+  { stage: "installing", label: "正在安装中继客户端" },
+  { stage: "validating", label: "正在验证可执行文件" },
+  { stage: "activating", label: "正在启用安装" },
 ];
 
 export function RelayClientInstallDialog() {
@@ -65,12 +66,12 @@ export function RelayClientInstallDialog() {
             <DownloadIcon aria-hidden className="size-4.5 text-muted-foreground" />
           </div>
           <DialogTitle>
-            {isInstalling ? "Installing relay client" : "Install relay client?"}
+            {isInstalling ? "正在安装中继客户端" : "安装中继客户端？"}
           </DialogTitle>
           <DialogDescription>
             {isInstalling
-              ? "kelaodeyun is preparing this environment for secure access through T3 Connect."
-              : "kelaodeyun needs the relay client to make this environment available through T3 Connect."}
+              ? `${APP_BASE_NAME} 正在准备此环境，以便通过云中继安全访问。`
+              : `${APP_BASE_NAME} 需要中继客户端，才能通过云中继访问此环境。`}
           </DialogDescription>
         </DialogHeader>
         <DialogPanel scrollFade={false}>
@@ -81,25 +82,25 @@ export function RelayClientInstallDialog() {
                   {activeStep?.label}
                 </p>
                 <p className="shrink-0 tabular-nums text-muted-foreground">
-                  {activeStepIndex + 1} of {installSteps.length}
+                  {activeStepIndex + 1} / {installSteps.length}
                 </p>
               </div>
               <progress
-                aria-label="Relay client installation progress"
+                aria-label="中继客户端安装进度"
                 className="h-2 w-full appearance-none overflow-hidden rounded-full bg-muted [&::-moz-progress-bar]:rounded-full [&::-moz-progress-bar]:bg-primary [&::-webkit-progress-bar]:rounded-full [&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:rounded-full [&::-webkit-progress-value]:bg-primary"
                 max={installSteps.length}
                 value={activeStepIndex + 1}
               />
               <p className="text-xs leading-relaxed text-muted-foreground">
-                Keep kelaodeyun open while the relay client is installed.
+                安装中继客户端时，请保持 {APP_BASE_NAME} 运行。
               </p>
             </div>
           ) : (
             <div className="rounded-xl border border-border/70 bg-muted/35 p-3">
-              <p className="text-sm font-medium text-foreground">Managed relay client</p>
+              <p className="text-sm font-medium text-foreground">托管中继客户端</p>
               <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                kelaodeyun will download and install version{" "}
-                {view.status === "confirming" ? view.version : ""} locally.
+                {APP_BASE_NAME} 将在本地下载并安装版本{" "}
+                {view.status === "confirming" ? view.version : ""}。
               </p>
             </div>
           )}
@@ -113,7 +114,7 @@ export function RelayClientInstallDialog() {
               取消
             </Button>
             <Button onClick={() => respondToRelayClientInstallConfirmation(true)}>
-              Download and install
+              下载并安装
             </Button>
           </DialogFooter>
         ) : null}

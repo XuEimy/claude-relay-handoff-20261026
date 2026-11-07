@@ -224,7 +224,7 @@ export function usePlanFollowUpSend(input: PlanFollowUpSendInput) {
       const error = squashAtomCommandFailure(failure);
       setThreadError(
         threadIdForSend,
-        error instanceof Error ? error.message : "Failed to send plan follow-up.",
+        error instanceof Error ? error.message : "发送计划后续消息失败。",
       );
     }
     sendInFlightRef.current = false;
@@ -386,7 +386,7 @@ export function useImplementPlanInNewThread(input: ImplementPlanInNewThreadInput
             description:
               error instanceof Error
                 ? error.message
-                : "An error occurred while creating the new thread.",
+                : "创建新会话时发生错误。",
           }),
         );
       }

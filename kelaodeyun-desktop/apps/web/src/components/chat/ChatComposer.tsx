@@ -935,7 +935,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
   );
   const sendDisabledReason =
     externalSendDisabledReason ??
-    (multipleModelSelections?.length === 0 ? "Select at least one model." : null) ??
+    (multipleModelSelections?.length === 0 ? "请至少选择一个模型。" : null) ??
     (activePendingProgress
       ? attachmentBlockReason
       : (attachmentBlockReason ??
@@ -2657,7 +2657,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
             if (activeThreadId) {
               setThreadError(
                 activeThreadId,
-                `You can attach up to ${PROVIDER_SEND_TURN_MAX_ATTACHMENTS} files per message.`,
+                `每条消息最多可附加 ${PROVIDER_SEND_TURN_MAX_ATTACHMENTS} 个文件。`,
               );
             }
           },
@@ -2671,8 +2671,8 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
           description:
             isEnvironmentRequestInvalidError(error) &&
             error.reason === "thread_transcript_too_large"
-              ? "This thread exceeds the attachment size limit. Try a shorter thread."
-              : "Check that its environment is connected and up to date, then try again.",
+              ? "此会话超过附件大小限制，请尝试较短的会话。"
+              : "请确认其环境已连接且为最新版本，然后重试。",
         });
       }
       toastManager.close(loadingToast);
@@ -3286,7 +3286,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                   aria-label="展开输入框"
                 >
                   {prompt.trim() ||
-                    (showProviderUnavailable ? "Enable a provider in Settings" : "Ask anything...")}
+                    (showProviderUnavailable ? "请在设置中启用服务" : "有什么问题，尽管问…")}
                 </button>
                 {collapsedComposerImagePreviews}
                 <button
@@ -3360,10 +3360,10 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                 {composerSuggestionsVisible && composerMenuItems.length === 0
                   ? isComposerMenuLoading
                     ? composerTriggerKind === "pull-request"
-                      ? "Finding pull request..."
+                      ? "正在查找拉取请求…"
                       : composerTriggerKind === "skill" || composerTriggerKind === "slash-command"
-                        ? "Searching workspace skills..."
-                        : "Searching workspace files..."
+                        ? "正在搜索工作区技能…"
+                        : "正在搜索工作区文件…"
                     : composerMenuEmptyState
                   : ""}
               </div>

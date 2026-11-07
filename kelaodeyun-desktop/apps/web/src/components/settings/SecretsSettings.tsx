@@ -1,4 +1,5 @@
 import type { SecretProviderConfig, SecretProviderId } from "@t3tools/contracts";
+import { APP_BASE_NAME } from "~/branding";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -43,7 +44,7 @@ export function SecretsSettingsPanel() {
       environment.serverConfig.secretProviderSettings !== true ? (
         <SettingsSection {...searchableSetting("secret-providers")}>
           <p className="px-4 py-3 text-sm text-muted-foreground">
-            Update kelaodeyun on {environment.label} to manage its secret providers.
+            Update {APP_BASE_NAME} on {environment.label} to manage its secret providers.
           </p>
         </SettingsSection>
       ) : connected ? (
@@ -109,13 +110,13 @@ function EnvironmentSecretProviders({
       >
         {projectScoped ? (
           <p className="px-4 pt-3 text-xs text-muted-foreground">
-            Environment-wide setting. Select an environment to change it.
+            此设置作用于整个环境，请选择环境后更改。
           </p>
         ) : null}
         {entries.length === 0 ? (
           <SettingsRow
-            title="No secret providers configured."
-            description="Add a 1Password account, then pick it as the source of a provider variable."
+            title="尚未配置密钥服务。"
+            description="添加 1Password 账户，然后将其选为服务变量的来源。"
           />
         ) : (
           entries.map(([id, config]) => {

@@ -1,0 +1,49 @@
+[data-account-onboarding] {
+  --primary: var(--foreground);
+  --primary-foreground: var(--background);
+  --ring: var(--foreground);
+}
+
+[data-account-login]::before {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  background: radial-gradient(
+    ellipse 520px 400px at center,
+    color-mix(in srgb, var(--foreground) 4%, transparent),
+    transparent 72%
+  );
+}
+
+[data-mac-stage] {
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--foreground) 4%, transparent),
+    transparent 72%
+  );
+}
+
+[data-picker-title] {
+  font-size: 32px;
+}
+
+[data-server-label] {
+  font-size: 15px;
+}
+
+[data-server-tile] {
+  transition-duration: 160ms;
+}
+
+@media (hover: hover) {
+  [data-server-tile]:hover {
+    box-shadow: 0 8px 30px -12px rgb(0 0 0 / 25%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-server-tile] {
+    transition: none;
+  }
+}

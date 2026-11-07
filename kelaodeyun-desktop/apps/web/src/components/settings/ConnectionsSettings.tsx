@@ -1,4 +1,5 @@
 import { SessionPermissions } from "./SessionPermissions";
+import { APP_BASE_NAME } from "~/branding";
 import { AccountServersSettings } from "./AccountServersSettings";
 import { ChevronRightIcon, EllipsisIcon } from "lucide-react";
 import { useAtomValue } from "@effect/atom-react";
@@ -370,7 +371,7 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
       setPendingDesktopServerExposureMode(null);
       setIsUpdatingDesktopServerExposure(false);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to update network exposure.";
+      const message = error instanceof Error ? error.message : "更新网络访问设置失败。";
       setPendingDesktopServerExposureMode(null);
       setDesktopServerExposureMutationError(message);
       toastManager.add(
@@ -411,7 +412,7 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
     if (settled._tag === "Failure") {
       const error = Cause.squash(settled.cause);
       const message =
-        error instanceof Error ? error.message : "Failed to configure Tailscale HTTPS.";
+        error instanceof Error ? error.message : "设置 Tailscale HTTPS 失败。";
       setDesktopServerExposureMutationError(message);
       toastManager.add(
         stackedThreadToast({
@@ -450,7 +451,7 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
     });
     if (settled._tag === "Failure") {
       const error = Cause.squash(settled.cause);
-      const message = error instanceof Error ? error.message : "Failed to disable Tailscale HTTPS.";
+      const message = error instanceof Error ? error.message : "停用 Tailscale HTTPS 失败。";
       setDesktopServerExposureMutationError(message);
       toastManager.add(
         stackedThreadToast({
@@ -480,7 +481,7 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
     });
     if (settled._tag === "Failure") {
       const error = Cause.squash(settled.cause);
-      const message = error instanceof Error ? error.message : "Failed to revoke pairing link.";
+      const message = error instanceof Error ? error.message : "撤销配对链接失败。";
       setDesktopAccessManagementMutationError(message);
       toastManager.add(
         stackedThreadToast({
@@ -508,7 +509,7 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
     });
     if (settled._tag === "Failure") {
       const error = Cause.squash(settled.cause);
-      const message = error instanceof Error ? error.message : "Failed to revoke client access.";
+      const message = error instanceof Error ? error.message : "撤销客户端访问权限失败。";
       setDesktopAccessManagementMutationError(message);
       toastManager.add(
         stackedThreadToast({
@@ -533,13 +534,13 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
       const revokedCount = await revokeOtherServerClientSessions();
       toastManager.add({
         type: "success",
-        title: revokedCount === 1 ? "Revoked 1 other client" : `Revoked ${revokedCount} clients`,
+        title: revokedCount === 1 ? "已撤销 1 个其他客户端" : `已撤销 ${revokedCount} 个客户端`,
         description: "其他已配对客户端需要新的配对链接才能重新连接。",
       });
     });
     if (settled._tag === "Failure") {
       const error = Cause.squash(settled.cause);
-      const message = error instanceof Error ? error.message : "Failed to revoke other clients.";
+      const message = error instanceof Error ? error.message : "撤销其他客户端的访问权限失败。";
       setDesktopAccessManagementMutationError(message);
       toastManager.add(
         stackedThreadToast({
@@ -560,12 +561,12 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
       const message =
         error instanceof Error
           ? error.message
-          : `Failed to switch the backend ${enabled ? "on" : "off"}.`;
+          : `无法${enabled ? "启用" : "停用"}后端。`;
       setSavedBackendError(message);
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: `Could not switch backend ${enabled ? "on" : "off"}`,
+          title: `无法${enabled ? "启用" : "停用"}后端`,
           description: message,
         }),
       );
@@ -580,7 +581,7 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
     setRemovingSavedEnvironmentId(null);
     if (result._tag === "Failure" && !isAtomCommandInterrupted(result)) {
       const error = squashAtomCommandFailure(result);
-      const message = error instanceof Error ? error.message : "Failed to remove backend.";
+      const message = error instanceof Error ? error.message : "移除后端失败。";
       setSavedBackendError(message);
       toastManager.add(
         stackedThreadToast({
@@ -602,7 +603,7 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
       return;
     }
     const confirmed = await requestConfirmDialog(
-      `Remove ${environment.label} from this device?\nThis forgets its pairing, credentials, and cached threads here. Switch it off instead to keep it saved.`,
+      `从此设备移除 ${environment.label}？\n此操作会清除此处的配对、凭据和缓存会话。若要保留，可改为停用。`,
       { variant: "destructive" },
     );
     if (confirmed === true) await removeSavedBackend(environment);
@@ -675,7 +676,7 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
     });
     if (settled._tag === "Failure") {
       const error = Cause.squash(settled.cause);
-      const message = error instanceof Error ? error.message : "Failed to update WSL backend.";
+      const message = error instanceof Error ? error.message : "更新 WSL 后端失败。";
       setDesktopWslMutationError(message);
       toastManager.add(
         stackedThreadToast({
@@ -788,7 +789,7 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
                 onClick={loadWslState}
                 disabled={isLoadingWslState}
               >
-                {isLoadingWslState ? "Retrying…" : "重试"}
+                {isLoadingWslState ? "正在重试…" : "重试"}
               </Button>
             }
           />
@@ -886,7 +887,7 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
         {desktopWslState.enabled ? (
           <SettingsRow
             title="仅 WSL"
-            description="仅运行 WSL 后端。更改此设置后，kelaodeyun 将重启。"
+            description={`仅运行 WSL 后端。更改此设置后，${APP_BASE_NAME} 将重启。`}
             className="bg-muted/20 pl-7 sm:pl-8"
             control={
               <Switch
@@ -909,7 +910,7 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
         tailscaleHttpsEndpoint
           ? tailscaleHttpsEndpoint.status === "available"
             ? tailscaleHttpsEndpoint.httpBaseUrl
-            : "Use Tailscale Serve to expose this backend through a MagicDNS HTTPS URL."
+            : "使用 Tailscale Serve 通过 MagicDNS HTTPS 地址访问此后端。"
           : missingTailscaleEndpointDescription(desktopServerExposureState)
       }
       control={
@@ -976,14 +977,14 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
             onToggleExpanded={() => setIsAdvertisedEndpointListExpanded((expanded) => !expanded)}
             fallback={
               desktopServerExposureState?.endpointUrl
-                ? `Reachable at ${desktopServerExposureState.endpointUrl}`
+                ? `可通过 ${desktopServerExposureState.endpointUrl} 访问`
                 : desktopServerExposureState?.advertisedHost
-                  ? `Exposed on all interfaces. Pairing links use ${desktopServerExposureState.advertisedHost}.`
-                  : "Exposed on all interfaces."
+                  ? `已开放所有网络接口。配对链接使用 ${desktopServerExposureState.advertisedHost}。`
+                  : "已开放所有网络接口。"
             }
           />
         ) : desktopServerExposureState ? (
-          "Limited to this machine."
+          "仅限此设备访问。"
         ) : (
           "正在加载…"
         )
@@ -1002,12 +1003,12 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
       title={searchableSetting("network-access").title}
       description={
         desktopBridge
-          ? "This connection cannot view or change network exposure."
+          ? "此连接无法查看或更改网络访问设置。"
           : currentAuthPolicy === "remote-reachable"
-            ? "Remote access is already configured. Change network exposure where the server starts."
+            ? "远程访问已配置。请在服务器启动处更改网络访问设置。"
             : currentAuthPolicy === "loopback-browser"
-              ? "Only this machine can connect. Restart with a non-loopback host for remote pairing."
-              : "Network exposure information is unavailable."
+              ? "仅此设备可连接。请使用非回环主机地址重启，以进行远程配对。"
+              : "无法获取网络访问状态。"
       }
       control={
         !desktopBridge &&
@@ -1040,7 +1041,7 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
           <SettingsSection
             {...searchableSetting("connections-environment")}
             title={
-              primaryEnvironment?.label ?? (desktopBridge ? "当前设备" : "Primary environment")
+              primaryEnvironment?.label ?? (desktopBridge ? "当前设备" : "主环境")
             }
             icon={
               <EnvironmentMachineIcon
@@ -1106,7 +1107,7 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
                       size="sm"
                       environmentId={primaryEnvironmentId}
                       serverLabel={
-                        primaryEnvironment ? `${primaryEnvironment.label} server` : "server"
+                        primaryEnvironment ? `${primaryEnvironment.label} 服务器` : "服务器"
                       }
                       selfUpdate={resolveServerSelfUpdateCapability(primaryServerConfig)}
                       installation={
@@ -1116,8 +1117,8 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
                       targetVersion={primaryVersionMismatch.clientVersion}
                       label={
                         primaryServerUpdateState.status === "failed"
-                          ? "Retry update"
-                          : `Update to ${primaryVersionMismatch.clientVersion}`
+                          ? "重试更新"
+                          : `更新至 ${primaryVersionMismatch.clientVersion}`
                       }
                     />
                   ) : primaryServerUpdateState.status === "idle" && primaryServerConfig ? (
@@ -1219,13 +1220,13 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
               <AlertDialogHeader>
                 <AlertDialogTitle>
                   {pendingDesktopServerExposureMode === "network-accessible"
-                    ? "Enable network access?"
-                    : "Disable network access?"}
+                    ? "启用网络访问？"
+                    : "停用网络访问？"}
                 </AlertDialogTitle>
                 <AlertDialogDescription>
                   {pendingDesktopServerExposureMode === "network-accessible"
-                    ? "Let your other devices connect to kelaodeyun over the network. Pair devices to give them access. kelaodeyun will restart."
-                    : "Devices connected over your local network will disconnect. Existing tunnels, such as T3 Connect or Tailscale HTTPS, keep working. kelaodeyun will restart."}
+                    ? `允许其他设备通过网络连接 ${APP_BASE_NAME}，配对后即可访问。${APP_BASE_NAME} 将重启。`
+                    : `通过本地网络连接的设备将断开。现有的云中继或 Tailscale HTTPS 等隧道仍可使用。${APP_BASE_NAME} 将重启。`}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -1249,8 +1250,8 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
                     {isUpdatingDesktopServerExposure
                       ? "正在重启…"
                       : pendingDesktopServerExposureMode === "network-accessible"
-                        ? "Restart and enable"
-                        : "Restart and disable"}
+                        ? "重启并启用"
+                        : "重启并停用"}
                   </span>
                 </Button>
               </AlertDialogFooter>
@@ -1268,28 +1269,28 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
                 <AlertDialogTitle>
                   {pendingWslChange?.kind === "disable"
                     ? pendingWslChange.wasWslOnly
-                      ? "Turn off WSL and switch back to Windows?"
-                      : "Disable WSL backend?"
+                      ? "关闭 WSL 并切换回 Windows？"
+                      : "停用 WSL 后端？"
                     : pendingWslChange?.kind === "distro"
-                      ? "Switch WSL distro?"
+                      ? "切换 WSL 发行版？"
                       : pendingWslChange?.kind === "enable"
-                        ? "Start the WSL backend"
+                        ? "启动 WSL 后端"
                         : pendingWslChange?.nextValue
-                          ? "Run only the WSL backend?"
-                          : "Re-enable the Windows backend?"}
+                          ? "仅运行 WSL 后端？"
+                          : "重新启用 Windows 后端？"}
                 </AlertDialogTitle>
                 <AlertDialogDescription>
                   {pendingWslChange?.kind === "disable"
                     ? pendingWslChange.wasWslOnly
-                      ? "kelaodeyun will restart on the Windows backend. Threads and projects opened against WSL stay safe inside the distro and become available again when you re-enable WSL."
-                      : "The WSL backend will stop. Threads and projects opened against WSL stay safe inside the distro, but they'll be unavailable in kelaodeyun until you re-enable WSL."
+                      ? `${APP_BASE_NAME} 将重启并使用 Windows 后端。WSL 中的会话和项目会保留在发行版内，重新启用 WSL 后即可再次使用。`
+                      : `WSL 后端将停止。WSL 中的会话和项目会保留在发行版内，重新启用 WSL 后才能在 ${APP_BASE_NAME} 中使用。`
                     : pendingWslChange?.kind === "distro"
-                      ? "kelaodeyun will restart the WSL backend on the new distro. Sessions still running on the current distro will be interrupted."
+                      ? `${APP_BASE_NAME} 将在新的发行版中重启 WSL 后端，当前发行版中仍在运行的会话将被中断。`
                       : pendingWslChange?.kind === "enable"
-                        ? "Run the WSL backend alongside the Windows one, or stop the Windows backend and use only WSL? You can change this later from Settings."
+                        ? "同时运行 WSL 和 Windows 后端，还是停止 Windows 后端、仅使用 WSL？以后可在设置中更改。"
                         : pendingWslChange?.nextValue
-                          ? "kelaodeyun will restart and start only the WSL backend. Your Windows-side projects won't be accessible until you turn this off again."
-                          : "kelaodeyun will restart and bring the Windows backend back up alongside WSL."}
+                          ? `${APP_BASE_NAME} 将重启并仅运行 WSL 后端。关闭此选项前，Windows 端的项目将无法访问。`
+                          : `${APP_BASE_NAME} 将重启，并同时运行 Windows 和 WSL 后端。`}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -1312,7 +1313,7 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
                           正在应用…
                         </>
                       ) : (
-                        "Use only WSL"
+                        "仅使用 WSL"
                       )}
                     </Button>
                     <Button
@@ -1326,7 +1327,7 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
                           正在应用…
                         </>
                       ) : (
-                        "Run both backends"
+                        "同时运行两个后端"
                       )}
                     </Button>
                   </>
@@ -1350,14 +1351,14 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
                       pendingWslChange.wasWslOnly ? (
                         "切换到 Windows"
                       ) : (
-                        "Disable WSL"
+                        "停用 WSL"
                       )
                     ) : pendingWslChange?.kind === "distro" ? (
-                      "Switch distro"
+                      "切换发行版"
                     ) : pendingWslChange?.nextValue ? (
-                      "Restart and enable"
+                      "重启并启用"
                     ) : (
-                      "Restart and disable"
+                      "重启并停用"
                     )}
                   </Button>
                 )}
@@ -1375,7 +1376,7 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
               <AlertDialogHeader>
                 <AlertDialogTitle>停用 Tailscale HTTPS？</AlertDialogTitle>
                 <AlertDialogDescription>
-                  kelaodeyun 将重启本地后端，并停用 Tailscale Serve。
+                  {APP_BASE_NAME} 将重启本地后端，并停用 Tailscale Serve。
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -1396,7 +1397,7 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
                       正在重启…
                     </>
                   ) : (
-                    "Restart and disable"
+                    "重启并停用"
                   )}
                 </Button>
               </AlertDialogFooter>
@@ -1413,7 +1414,7 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
               <DialogHeader>
                 <DialogTitle>设置 Tailscale HTTPS？</DialogTitle>
                 <DialogDescription>
-                  kelaodeyun 将重启本地后端并启用 Tailscale Serve，让 Tailscale 将 HTTPS
+                  {APP_BASE_NAME} 将重启本地后端并启用 Tailscale Serve，让 Tailscale 将 HTTPS
                   流量转发至此后端。
                 </DialogDescription>
               </DialogHeader>
@@ -1441,7 +1442,7 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
                     <TooltipTrigger
                       render={
                         <p className="mt-1 truncate text-sm text-foreground">
-                          {pendingTailscaleServeBaseUrl ?? "Pending MagicDNS endpoint"}
+                          {pendingTailscaleServeBaseUrl ?? "等待 MagicDNS 地址"}
                         </p>
                       }
                     />

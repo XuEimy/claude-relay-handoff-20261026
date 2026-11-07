@@ -206,7 +206,7 @@ export const make = Effect.gen(function* () {
     Effect.provideService(FileSystem.FileSystem, fs),
     Effect.flatMap(
       Option.match({
-        onNone: () => Effect.fail(fail(`Could not set up the kelaodeyun launcher at ${launcher}.`)),
+        onNone: () => Effect.fail(fail(`无法在 ${launcher} 设置 kelaodeyun 启动器。`)),
         onSome: () => Effect.void,
       }),
     ),
@@ -214,7 +214,7 @@ export const make = Effect.gen(function* () {
 
   const install: DesktopCliCommand["Service"]["install"] = Effect.gen(function* () {
     if (!environment.isPackaged)
-      return yield* fail("The kelaodeyun command needs an installed app.");
+      return yield* fail("kelaodeyun 命令需要已安装的应用。");
     yield* ensureLauncher;
     if (windows) {
       const entries = pathEntries(yield* readUserPath, ";");
@@ -223,7 +223,7 @@ export const make = Effect.gen(function* () {
         yield* fs
           .writeFileString(ownedPathMarker, `${binDirectory}\n`)
           .pipe(
-            Effect.mapError(() => fail("Added kelaodeyun to your PATH but could not record it.")),
+            Effect.mapError(() => fail("已将 kelaodeyun 添加到 PATH，但无法记录此更改。")),
           );
       }
       return yield* state;
@@ -234,12 +234,12 @@ export const make = Effect.gen(function* () {
       if (Option.getOrUndefined(target) === launcher) return yield* state;
       yield* fs
         .remove(existing.value)
-        .pipe(Effect.mapError(() => fail(`Could not replace ${existing.value}.`)));
+        .pipe(Effect.mapError(() => fail(`无法替换 ${existing.value}。`)));
     }
     const shadowedBy = yield* foreignFirstOnPath;
     if (Option.isSome(shadowedBy)) {
       return yield* fail(
-        `Another kelaodeyun at ${shadowedBy.value} runs first in a new terminal. Remove it, or run the launcher directly at ${launcher}.`,
+        `另一个位于 ${shadowedBy.value} 的 kelaodeyun 会在新终端中优先运行。请移除它，或直接运行 ${launcher}。`,
       );
     }
     const onPath = pathEntries(process.env.PATH, ":");
@@ -263,7 +263,7 @@ export const make = Effect.gen(function* () {
       if (linked) return yield* state;
     }
     return yield* fail(
-      `Another kelaodeyun command is already installed, or no folder on your PATH is writable. Run the launcher directly at ${launcher}.`,
+      `已安装另一个 kelaodeyun 命令，或 PATH 中没有可写目录。请直接运行 ${launcher}。`,
     );
   }).pipe(Effect.withSpan("desktop.cliCommand.install"));
 
@@ -280,7 +280,7 @@ export const make = Effect.gen(function* () {
     for (const directory of unixCandidates(environment.homeDirectory, environment.platform)) {
       const link = path.join(directory, "kelaodeyun");
       if (yield* isOurLink(link)) {
-        yield* fs.remove(link).pipe(Effect.mapError(() => fail(`Could not remove ${link}.`)));
+        yield* fs.remove(link).pipe(Effect.mapError(() => fail(`无法移除 ${link}。`)));
       }
     }
     return yield* state;

@@ -269,19 +269,7 @@ export const make = Effect.gen(function* () {
         environment.savedEnvironmentRegistryPath,
         encoded.value,
       );
-      return Option.some(
-        yield* safeStorage.decryptString(secretBytes).pipe(
-          Effect.mapError(
-            (cause) =>
-              new DesktopSavedEnvironmentSecretProtectionError({
-                operation: "decrypt-secret",
-                environmentId,
-                registryPath: environment.savedEnvironmentRegistryPath,
-                cause,
-              }),
-          ),
-        ),
-      );
+      return yield* safeStorage.decryptString(secretBytes).pipe(Effect.option);
     }),
   });
 });

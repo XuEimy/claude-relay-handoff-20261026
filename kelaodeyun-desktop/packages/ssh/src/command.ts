@@ -49,7 +49,18 @@ export interface RunSshCommandOptions extends SshAuthOptions {
   /** Keep the end of long failed-command stdout, where the final cause usually is. */
   readonly keepErrorOutputTail?: boolean;
   readonly sensitiveStdin?: boolean;
+  /** Share one persistent connection per host across commands. */
+  readonly multiplex?: boolean;
 }
+
+export const SSH_MULTIPLEX_ARGS = [
+  "-o",
+  "ControlMaster=auto",
+  "-o",
+  "ControlPath=~/.ssh/kelaodeyun-%C",
+  "-o",
+  "ControlPersist=600",
+] as const;
 
 export function parseSshResolveOutput(alias: string, stdout: string): DesktopSshEnvironmentTarget {
   const values = new Map<string, string>();
@@ -220,6 +231,7 @@ const runSshCommandInScope = Effect.fn("ssh/command.runSshCommand.inScope")(func
     "ServerAliveInterval=15",
     "-o",
     "ServerAliveCountMax=3",
+    ...(input.multiplex ? SSH_MULTIPLEX_ARGS : []),
     ...(input.preHostArgs ?? []),
     "--",
     hostSpec,
@@ -238,6 +250,9 @@ const runSshCommandInScope = Effect.fn("ssh/command.runSshCommand.inScope")(func
       ChildProcess.make(sshCommand, args, {
         env: environment,
         extendEnv: true,
+        // The backgrounded ControlMaster keeps the ProxyJump child of the first
+        // client's process group; group cleanup would sever every shared session.
+        ...(input.multiplex ? { detached: false } : {}),
         stdin: {
           stream: input.inputStream ?? stdinStream(input.stdin),
           endOnDone: true,

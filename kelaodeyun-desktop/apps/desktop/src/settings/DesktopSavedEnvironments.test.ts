@@ -217,4 +217,18 @@ describe("DesktopSavedEnvironments", () => {
       { availableSecretStorage: false },
     ),
   );
+
+  it.effect("returns no secret when the saved value cannot be decrypted", () =>
+    withSavedEnvironments(
+      Effect.gen(function* () {
+        const savedEnvironments = yield* DesktopSavedEnvironments.DesktopSavedEnvironments;
+        yield* seedSavedEnvironmentRegistry(Base64.encode(textEncoder.encode("enc:bearer-token")));
+        assert.deepEqual(
+          yield* savedEnvironments.getSecret(savedRegistryRecord.environmentId),
+          Option.none(),
+        );
+      }),
+      { decryptError: new Error("old keychain entry") },
+    ),
+  );
 });

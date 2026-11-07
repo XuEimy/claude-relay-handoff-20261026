@@ -9,6 +9,7 @@ import * as Semaphore from "effect/Semaphore";
 import * as NetService from "@t3tools/shared/Net";
 
 import * as DesktopObservability from "../app/DesktopObservability.ts";
+import { APP_BASE_NAME } from "../app/DesktopBranding.ts";
 import * as DesktopBackendConfiguration from "../backend/DesktopBackendConfiguration.ts";
 import * as DesktopBackendPool from "../backend/DesktopBackendPool.ts";
 import * as DesktopServerExposure from "../backend/DesktopServerExposure.ts";
@@ -128,7 +129,7 @@ export const layer = Layer.effect(
                 Ref.set(
                   preflightErrorRef,
                   Option.some(
-                    "Another kelaodeyun server is using this distro's T3 home, or an older background service is set up for it. Stop that server or pair with it, or try `t3 update` in the distro. If the older launcher cannot update, run `t3 service uninstall` and optionally reinstall with `t3 service install` from a current CLI in the distro. Use `npx t3@latest` if `t3` is missing or outdated, and pass `--base-dir` with the service's T3 home to each command.",
+                    `Another ${APP_BASE_NAME} server is using this distro's T3 home, or an older background service is set up for it. Stop that server or pair with it, or try \`t3 update\` in the distro. If the older launcher cannot update, run \`t3 service uninstall\` and optionally reinstall with \`t3 service install\` from a current CLI in the distro. Use \`npx t3@latest\` if \`t3\` is missing or outdated, and pass \`--base-dir\` with the service's T3 home to each command.`,
                   ),
                 ),
               ),

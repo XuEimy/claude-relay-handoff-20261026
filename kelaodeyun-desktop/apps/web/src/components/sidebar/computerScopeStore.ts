@@ -7,10 +7,14 @@ import { defaultComputerScope, type ComputerScope } from "./computerPicker";
 export const useComputerScopeStore = create<{
   byEnvironmentId: Record<string, ComputerScope>;
   update: (environmentId: EnvironmentId, change: Partial<ComputerScope>) => void;
+  addProjectEnvironmentId: EnvironmentId | null;
+  requestAddProject: (environmentId: EnvironmentId | null) => void;
 }>()(
   persist(
     (set) => ({
       byEnvironmentId: {},
+      addProjectEnvironmentId: null,
+      requestAddProject: (environmentId) => set({ addProjectEnvironmentId: environmentId }),
       update: (environmentId, change) =>
         set((state) => ({
           byEnvironmentId: {
@@ -27,6 +31,7 @@ export const useComputerScopeStore = create<{
       storage: createJSONStorage(() =>
         resolveStorage(typeof window !== "undefined" ? window.localStorage : undefined),
       ),
+      partialize: (state) => ({ byEnvironmentId: state.byEnvironmentId }),
     },
   ),
 );

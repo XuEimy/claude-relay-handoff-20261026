@@ -1,4 +1,5 @@
 import type { RelayClientDeviceRecord } from "@t3tools/contracts/relay";
+import { APP_BASE_NAME } from "~/branding";
 import { SmartphoneIcon } from "lucide-react";
 
 import { useManagedRelayDevices } from "../../cloud/managedRelayState";
@@ -92,10 +93,9 @@ function EmptyMobileClients() {
         <SmartphoneIcon />
       </EmptyMedia>
       <EmptyHeader>
-        <EmptyTitle>No mobile clients</EmptyTitle>
+        <EmptyTitle>没有移动客户端</EmptyTitle>
         <EmptyDescription>
-          Install kelaodeyun on your phone and sign in to T3 Connect to get push notifications and
-          Live Activities.
+          在手机上安装 {APP_BASE_NAME} 并登录云中继，即可接收推送通知和实时活动。
         </EmptyDescription>
       </EmptyHeader>
     </Empty>
@@ -111,8 +111,8 @@ export function MobileClientsUserProfilePage() {
 
   return (
     <ClerkUserProfilePage
-      title="Mobile clients"
-      description="Mobile devices that get notifications from your environments."
+      title="移动客户端"
+      description="接收环境通知的移动设备。"
       action={
         <ClerkUserProfileRefreshButton
           isPending={devicesState.isPending}

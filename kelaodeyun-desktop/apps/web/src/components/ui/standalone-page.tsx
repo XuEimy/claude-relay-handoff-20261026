@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { BrandMark } from "../BrandMark";
+import { APP_BASE_NAME } from "../../branding";
 
 export function StandalonePage({ children }: { readonly children: ReactNode }) {
   return (
@@ -23,9 +24,9 @@ export function StandalonePageHeader({
   return (
     <>
       <div className="flex items-baseline justify-between gap-3 text-muted-foreground">
-        <span className="flex items-baseline gap-1.5" role="img" aria-label="kelaodeyun">
+        <span className="flex items-baseline gap-1.5" role="img" aria-label={APP_BASE_NAME}>
           <BrandMark className="h-3 w-auto shrink-0 text-foreground" aria-hidden />
-          <span className="text-lg font-medium tracking-tight">kelaodeyun</span>
+          <span className="text-lg font-medium tracking-tight">{APP_BASE_NAME}</span>
         </span>
         {context ? <span className="text-sm">{context}</span> : null}
       </div>

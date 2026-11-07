@@ -97,7 +97,7 @@ function GuestShareDialog({
     const error = squashAtomCommandFailure(result);
     setState({
       status: "failed",
-      message: error instanceof Error ? error.message : "Could not create a guest link.",
+      message: error instanceof Error ? error.message : "无法创建访客链接。",
     });
   };
 
@@ -133,7 +133,7 @@ function GuestShareDialog({
             <p className="text-muted-foreground text-sm">
               {activeShare !== null
                 ? "A new link ends the current one."
-                : "The link works once and expires in 24 hours."}
+                : "链接只能使用一次，并将在 24 小时后失效。"}
             </p>
           )}
           {state.status === "failed" ? (

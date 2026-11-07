@@ -76,14 +76,14 @@ export class Store extends DurableObject {
   }
   async appAuthorize(request, user) {
     const url = new URL(request.url), challenge = url.searchParams.get("challenge"), scheme = url.searchParams.get("scheme");
-    if (!/^[A-Za-z0-9_-]{43}$/.test(challenge || "") || !["kelaodeyun", "kelaodeyun-dev"].includes(scheme)) fail(400, "登录参数无效");
+    if (!/^[A-Za-z0-9_-]{43}$/.test(challenge || "") || !["agentcloudos", "agentcloudos-dev", "kelaodeyun", "kelaodeyun-dev"].includes(scheme)) fail(400, "登录参数无效");
     if (!user) return redirect("/api/auth/google/start?return=" + encodeURIComponent(url.pathname + url.search));
     const code = randomHex();
     this.run("DELETE FROM app_codes WHERE expires<=?", Date.now());
     this.run("INSERT INTO app_codes VALUES(?,?,?,?)", await shaHex(code), user.id, challenge, Date.now() + 120000);
     const link = `${scheme}://app/account/callback?code=${code}`;
     const escaped = link.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    return new Response(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>返回 App</title><p>已登录，正在返回 kelaodeyun App…</p><a href="${escaped}">返回 App</a><script>location.href = ${JSON.stringify(link)}</script></html>`, { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" } });
+    return new Response(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>返回 Agent Cloud OS</title><p>已登录，正在返回 Agent Cloud OS…</p><a href="${escaped}">返回 Agent Cloud OS</a><script>location.href = ${JSON.stringify(link)}</script></html>`, { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" } });
   }
   async appToken(request, input) {
     if (typeof input.code !== "string" || !/^[a-f0-9]{64}$/.test(input.code)) fail(400, "登录码无效或已过期");

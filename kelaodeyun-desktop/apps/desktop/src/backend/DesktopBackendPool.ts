@@ -1,4 +1,5 @@
 import * as Context from "effect/Context";
+import { APP_BASE_NAME } from "../app/DesktopBranding.ts";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
@@ -124,7 +125,7 @@ export const layer = Layer.effect(
           );
           yield* electronDialog.showErrorBox(
             "WSL backend is still unavailable",
-            `${reason}\n\nkelaodeyun will use the Windows backend for this launch and retry WSL the next time the app starts.`,
+            `${reason}\n\n${APP_BASE_NAME} will use the Windows backend for this launch and retry WSL the next time the app starts.`,
           );
           yield* appSettings.applyWslWindowsFallbackInMemory;
           return true;
@@ -135,7 +136,7 @@ export const layer = Layer.effect(
         });
         yield* electronDialog.showErrorBox(
           "WSL backend couldn't start",
-          `${reason}\n\nFalling back to the Windows backend so kelaodeyun can open. Re-enable the WSL backend from Settings > Sharing & access once the WSL distro is fixed.`,
+          `${reason}\n\nFalling back to the Windows backend so ${APP_BASE_NAME} can open. Re-enable the WSL backend from Settings > Sharing & access once the WSL distro is fixed.`,
         );
         // Clear wslOnly too so enabling WSL cannot restore a failed mode.
         // Keep the in-memory fallback if persistence fails.
@@ -176,8 +177,8 @@ export const layer = Layer.effect(
       onStateDirOwned: () =>
         electronDialog
           .showErrorBox(
-            "This T3 home is unavailable",
-            "Another kelaodeyun server, such as the background service, is using this data directory, or an older background service is set up for it. Stop that server or try `t3 update`. If the older launcher cannot update, run `t3 service uninstall` and optionally reinstall with `t3 service install` from a current CLI. Use `npx t3@latest` if `t3` is missing or outdated, and pass `--base-dir` with the service's T3 home to each command. Then reopen kelaodeyun. You can also set a separate T3CODE_HOME and pair with the running server.",
+            "此 T3 主目录不可用",
+            `另一个 ${APP_BASE_NAME} 服务器（例如后台服务）正在使用此数据目录，或已为它设置旧版后台服务。请停止该服务器或尝试运行 \`t3 update\`。如果旧版启动器无法更新，请使用当前 CLI 运行 \`t3 service uninstall\`，也可运行 \`t3 service install\` 重新安装。如果 \`t3\` 缺失或过旧，请使用 \`npx t3@latest\`，并为每条命令传入 \`--base-dir\` 和服务的 T3 主目录。然后重新打开 ${APP_BASE_NAME}。你也可以设置单独的 T3CODE_HOME 并与运行中的服务器配对。`,
           )
           .pipe(Effect.andThen(electronApp.quit)),
     });

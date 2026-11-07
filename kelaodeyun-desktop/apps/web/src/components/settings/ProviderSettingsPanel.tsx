@@ -208,11 +208,11 @@ function ProviderLastChecked({ environmentId }: { environmentId: EnvironmentId }
 }
 
 function providerEnvironmentDetail(environment: EnvironmentPresentation): string {
-  if (environment.entry.target._tag === "PrimaryConnectionTarget") return "Primary device";
-  if (environment.relayManaged) return "T3 Connect";
+  if (environment.entry.target._tag === "PrimaryConnectionTarget") return "主设备";
+  if (environment.relayManaged) return "云中继";
   if (environment.entry.target._tag === "SshConnectionTarget") return "SSH";
-  if (isDesktopLocalConnectionTarget(environment.entry.target)) return "Local device";
-  return environment.displayUrl ?? "Remote device";
+  if (isDesktopLocalConnectionTarget(environment.entry.target)) return "本地设备";
+  return environment.displayUrl ?? "远程设备";
 }
 
 const providerCardHeightClassName =
@@ -267,14 +267,14 @@ function EnvironmentUnavailablePlaceholder({
 }) {
   const isLoading = access.kind === "loading";
   const title = isLoading
-    ? "Loading provider settings"
+    ? "正在加载服务设置"
     : access.kind === "error"
-      ? "Could not connect to this device"
-      : "Provider settings are unavailable";
+      ? "无法连接此设备"
+      : "服务设置不可用";
   const description = isLoading
     ? access.reason === "permissions"
-      ? "Checking what this session is allowed to change."
-      : `Waiting for ${environment.label}'s configuration.`
+      ? "正在检查此会话允许更改的设置。"
+      : `正在等待 ${environment.label} 的配置。`
     : connectionStatusTitle(environment.connection);
   const error = isLoading ? null : environment.connection.error;
   // Wedged devices can remain here indefinitely; a spinner would continuously repaint.
@@ -450,11 +450,11 @@ function ProviderSettingsPanelContent(target: ProviderSettingsTarget) {
       {options.length === 0 && !targetEnvironmentMissing ? (
         <ProviderSettingsPlaceholder
           icon={<EnvironmentMachineIcon kind={resolveEnvironmentMachineKind(null)} />}
-          title={isReady ? "No connected devices" : "Loading devices"}
+          title={isReady ? "没有已连接的设备" : "正在加载设备"}
           description={
             isReady
-              ? "Connect an execution environment before configuring providers."
-              : "Reading connected execution environments."
+              ? "请先连接执行环境，再配置服务。"
+              : "正在读取已连接的执行环境。"
           }
         />
       ) : null}
@@ -623,7 +623,7 @@ export function EnvironmentProviderSettings({
             type: "error",
             title: "无法继续身份验证",
             description:
-              error instanceof Error ? error.message : "The authentication request expired.",
+              error instanceof Error ? error.message : "身份验证请求已过期。",
           });
         }
       });
@@ -695,11 +695,11 @@ export function EnvironmentProviderSettings({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: `Could not update ${PROVIDER_DISPLAY_NAMES[candidate.driver] ?? candidate.driver}`,
+            title: `无法更新 ${PROVIDER_DISPLAY_NAMES[candidate.driver] ?? candidate.driver}`,
             description:
               error instanceof Error
                 ? error.message
-                : "The provider update command could not be started.",
+                : "无法启动服务更新命令。",
           }),
         );
       }
@@ -820,7 +820,7 @@ export function EnvironmentProviderSettings({
       toastManager.add({
         type: "error",
         title: "无法更新服务实例",
-        description: error instanceof Error ? error.message : "The settings update failed.",
+        description: error instanceof Error ? error.message : "更新设置失败。",
       });
     }
   };
@@ -852,7 +852,7 @@ export function EnvironmentProviderSettings({
   const deleteInstance = useStableCallback(
     async (instanceId: ProviderInstanceId, instance: ProviderInstanceConfig) => {
       const confirmed = await confirmProviderInstanceRemoval(
-        `Remove the ${providerInstanceName(instance)} provider instance?`,
+        `删除 ${providerInstanceName(instance)} 服务实例？`,
       );
       if (!confirmed) return;
       const updateResult = await persistProviderInstance({
@@ -864,7 +864,7 @@ export function EnvironmentProviderSettings({
         toastManager.add({
           type: "error",
           title: "无法删除服务实例",
-          description: error instanceof Error ? error.message : "The settings update failed.",
+          description: error instanceof Error ? error.message : "更新设置失败。",
         });
         return;
       }
@@ -884,7 +884,7 @@ export function EnvironmentProviderSettings({
         toastManager.add({
           type: "warning",
           title: "服务已删除，但托管文件仍保留",
-          description: error instanceof Error ? error.message : "Managed binary cleanup failed.",
+          description: error instanceof Error ? error.message : "清理托管文件失败。",
         });
       }
     },
@@ -897,8 +897,8 @@ export function EnvironmentProviderSettings({
       resolveProviderInstanceEnabled(instance) &&
       !resolveProviderInstanceEnabled({ driver: driverKind });
     const confirmed = await confirmProviderInstanceRemoval(
-      `Reset the ${providerInstanceName(instance)} provider to its defaults?`,
-      turnsOff ? " It will also be turned off." : "",
+      `将 ${providerInstanceName(instance)} 服务恢复默认设置？`,
+      turnsOff ? "该服务也会被关闭。" : "",
     );
     if (!confirmed) return;
     const result = await persistProviderInstance({ operation: "remove", instanceId });
@@ -907,7 +907,7 @@ export function EnvironmentProviderSettings({
       toastManager.add({
         type: "error",
         title: "无法重置服务实例",
-        description: error instanceof Error ? error.message : "The settings update failed.",
+        description: error instanceof Error ? error.message : "更新设置失败。",
       });
     }
   });
@@ -1092,8 +1092,8 @@ export function EnvironmentProviderSettings({
             ) : (
               <div className="p-6 text-sm text-muted-foreground">
                 {targetInstanceMissing
-                  ? "This provider instance is no longer available on this device."
-                  : "No providers configured."}
+                  ? "此设备上的服务实例已不可用。"
+                  : "尚未配置服务。"}
               </div>
             )}
           </div>
@@ -1396,7 +1396,7 @@ function ProviderInstanceRow({
       headerAction={
         mode === "editor" && isDefault && isDirty ? (
           <SettingResetButton
-            label={`${resetLabel} provider settings`}
+            label={`${resetLabel} 服务设置`}
             onClick={() => actions.resetDefaultInstance(driver)}
           />
         ) : null

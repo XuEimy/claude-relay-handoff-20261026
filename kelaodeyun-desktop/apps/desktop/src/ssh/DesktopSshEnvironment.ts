@@ -1,3 +1,4 @@
+import { APP_BASE_NAME } from "../app/DesktopBranding.ts";
 import type {
   DesktopSshFileOperation,
   DesktopDiscoveredSshHost,
@@ -106,7 +107,7 @@ function toSshPasswordPromptError(
       break;
     case "DesktopSshPromptWindowUnavailableError":
     case "DesktopSshPromptPresentationError":
-      message = "kelaodeyun window is not available for SSH authentication.";
+      message = `${APP_BASE_NAME} window is not available for SSH authentication.`;
       break;
     case "DesktopSshPromptTimedOutError":
       message = `SSH authentication timed out for ${cause.destination}.`;

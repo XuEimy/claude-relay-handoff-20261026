@@ -69,14 +69,14 @@ export function WorktreesDirectoryRow() {
     <SettingsRow
       {...searchableSetting("storage-worktrees-location")}
       description={
-        "Folder where new worktrees are created, on any drive, such as D:\\worktrees or ~/worktrees. Existing worktrees stay where they are. Leave empty to use the T3 home folder."
+        "新工作树的创建目录，可以位于任意磁盘，例如 D:\\worktrees 或 ~/worktrees。现有工作树不会移动。留空则使用 T3 主目录。"
       }
       serverScoped
       settingKeys={["worktreesDirectory"]}
       resetAction={
         mixed || settings.worktreesDirectory !== "" ? (
           <SettingResetButton
-            label="worktree location"
+            label="工作树位置"
             onClick={() => updateSettings({ worktreesDirectory: "" })}
           />
         ) : null
@@ -87,7 +87,7 @@ export function WorktreesDirectoryRow() {
           aria-label="工作树位置"
           autoCapitalize="none"
           spellCheck={false}
-          placeholder={mixed ? "Mixed" : "默认"}
+          placeholder={mixed ? "不一致" : "默认"}
           defaultValue={mixed ? "" : settings.worktreesDirectory}
           onFocus={(event) => {
             draft.current = event.target.value;
@@ -148,16 +148,16 @@ function RetentionControl({
           }}
         >
           <NumberFieldGroup>
-            <NumberFieldDecrement aria-label={`Decrease ${label}`} />
+            <NumberFieldDecrement aria-label={`减少${label}`} />
             <NumberFieldInput
-              aria-label={`${label} in days`}
+              aria-label={`${label}天数`}
               size={5}
               className="w-auto grow-0 text-right"
             />
             <span aria-hidden="true" className="self-center pr-2 text-xs">
-              days
+              天
             </span>
-            <NumberFieldIncrement aria-label={`Increase ${label}`} />
+            <NumberFieldIncrement aria-label={`增加${label}`} />
           </NumberFieldGroup>
         </NumberField>
       ) : (
@@ -173,9 +173,9 @@ function RetentionControl({
 }
 
 const KEEP_WHEN_LABELS = {
-  "any-local-files": "Any local files",
-  "uncommitted-changes": "Uncommitted changes",
-  "tracked-changes": "Edited tracked files",
+  "any-local-files": "任何本地文件",
+  "uncommitted-changes": "未提交的更改",
+  "tracked-changes": "已修改的跟踪文件",
 } as const;
 
 function lastRunSummary(
@@ -207,8 +207,8 @@ function CleanupResults({
                 ? entry.path
                 : entry.path?.split(/[\\/]/).findLast(Boolean)) ?? "工作树")
             : entry.kind === "logs"
-              ? "Rotated logs"
-              : "Browser artifacts";
+              ? "轮转日志"
+              : "浏览器产物";
         return (
           <SettingsRow
             key={`${entry.path ?? entry.kind}:${entry.threadId ?? index}`}
@@ -229,13 +229,13 @@ function CleanupResults({
                   )}
                   {entry.path && (
                     <>
-                      <span>Folder</span>
+                      <span>文件夹</span>
                       <code className="text-foreground/80">{entry.path}</code>
                     </>
                   )}
                   {entry.threadTitle && (
                     <>
-                      <span>Thread</span>
+                      <span>会话</span>
                       <span>{entry.threadTitle}</span>
                     </>
                   )}
@@ -248,7 +248,7 @@ function CleanupResults({
                 <span className="text-xs text-muted-foreground">
                   {[
                     entry.kind !== "worktree" && entry.files !== null
-                      ? `${entry.files.toLocaleString()} ${entry.files === 1 ? "file" : "files"}`
+                      ? `${entry.files.toLocaleString()} 个文件`
                       : null,
                     entry.bytes !== null ? formatBytes(entry.bytes) : null,
                   ]
@@ -262,12 +262,12 @@ function CleanupResults({
       })}
       {report.omittedCount > 0 && (
         <p className="px-3 py-2.5 text-xs text-muted-foreground sm:px-4">
-          {environmentLabel}: {report.omittedCount.toLocaleString()} more results.
+          {environmentLabel}：另有 {report.omittedCount.toLocaleString()} 条结果。
         </p>
       )}
       {report.entries.length === 0 && report.omittedCount === 0 && (
         <p className="px-3 py-2.5 text-xs text-muted-foreground sm:px-4">
-          {environmentLabel}: Nothing needed cleanup.
+          {environmentLabel}：没有需要清理的内容。
         </p>
       )}
     </>
@@ -333,15 +333,15 @@ function CleanupSection() {
       report,
       label: settingsScopeEnvironmentLabel(environment, connectedEnvironments),
       counts: report
-        ? `${report.counts.removed} removed, ${report.counts.kept} kept${report.counts.failed > 0 ? `, ${report.counts.failed} failed` : ""}`
+        ? `已删除 ${report.counts.removed} 项，保留 ${report.counts.kept} 项${report.counts.failed > 0 ? `，失败 ${report.counts.failed} 项` : ""}`
         : "",
       description: report
-        ? `Last run ${formatRelativeTimeLabel(report.finishedAt, nowMs)}. ${formatBytes(report.bytesFreed)} recovered.${report.counts.failed > 0 ? ` ${report.counts.failed} ${report.counts.failed === 1 ? "item" : "items"} couldn't be removed.` : ""}`
+        ? `上次运行于 ${formatRelativeTimeLabel(report.finishedAt, nowMs)}，已释放 ${formatBytes(report.bytesFreed)}。${report.counts.failed > 0 ? ` ${report.counts.failed} 项无法删除。` : ""}`
         : query?.failed
-          ? "Could not load the last run."
+          ? "无法加载上次运行记录。"
           : query?.loading
-            ? "Loading last run…"
-            : "Cleanup hasn't run yet.",
+            ? "正在加载上次运行记录…"
+            : "尚未执行清理。",
     };
   });
   const deleteNow = async () => {
@@ -359,13 +359,13 @@ function CleanupSection() {
             if (failures.length > 0)
               toastManager.add({
                 type: "error",
-                title: `Cleanup failed on ${environment.label}`,
+                title: `${environment.label} 上的清理失败`,
                 description: failures[0]!.reason,
               });
           } else if (!isAtomCommandInterrupted(result)) {
             toastManager.add({
               type: "error",
-              title: `Could not run cleanup on ${environment.label}`,
+              title: `无法在 ${environment.label} 上运行清理`,
               description: String(squashAtomCommandFailure(result)),
             });
           }
@@ -380,7 +380,7 @@ function CleanupSection() {
           description={
             <span>
               {!hasRules
-                ? "Turn on a cleanup rule to use this."
+                ? "请先启用清理规则。"
                 : summaries.map(({ environment, label, description }) => (
                     <span key={environment.environmentId} className="block">
                       {supported.length > 1 ? `${label}: ` : ""}
@@ -396,7 +396,7 @@ function CleanupSection() {
               disabled={pending || !hasRules || !state.some((entry) => entry.allowed)}
               onClick={() => void deleteNow()}
             >
-              {pending ? "Deleting…" : "立即删除"}
+              {pending ? "正在删除…" : "立即删除"}
             </Button>
           }
         />
@@ -404,7 +404,7 @@ function CleanupSection() {
       {summaries.some(({ report }) => report !== null) && (
         <FoldedSettingsSection
           id="storage-cleanup-last-run"
-          title="Last run"
+          title="上次运行"
           headerPlacement="inside"
           summary={lastRunSummary(
             summaries.filter(({ report }) => report !== null),
@@ -481,7 +481,7 @@ export function WorktreeCleanupSection() {
           key
         ] !== settings[key],
     )
-      ? "Mixed across selected machines"
+      ? "所选设备的设置不一致"
       : undefined;
   // A policy locks these through worktreeCleanup, which also reaches each project's own rules.
   const lockablePath = (key: keyof WorktreeCleanupRules) =>
@@ -503,7 +503,7 @@ export function WorktreeCleanupSection() {
     return (
       <SettingsSection id="storage-worktrees" title="清理" variant="plain">
         <SettingsScopeNotice inline target="all">
-          Update the selected machines to configure project worktree cleanup.
+          请更新所选设备，以配置项目工作树清理。
         </SettingsScopeNotice>
       </SettingsSection>
     );
@@ -521,13 +521,13 @@ export function WorktreeCleanupSection() {
       <>
         {isProjectScope && (
           <SettingsRow
-            title="Automatic worktree cleanup"
+            title="自动清理工作树"
             description={
               mode === "off"
-                ? "Keep this project's worktrees until you delete them manually."
+                ? "保留此项目的工作树，直到手动删除。"
                 : mode === "custom"
-                  ? "Use these rules for this project."
-                  : "Use each machine's worktree cleanup settings."
+                  ? "在此项目中使用这些规则。"
+                  : "使用各设备的工作树清理设置。"
             }
             serverScoped
             settingKeys={["worktreeCleanup"]}
@@ -542,19 +542,19 @@ export function WorktreeCleanupSection() {
                     updateSettings({ worktreeCleanup: { mode: "custom", rules: {} } });
                 }}
               >
-                <SelectTrigger size="sm" aria-label="Automatic worktree cleanup">
+                <SelectTrigger size="sm" aria-label="自动清理工作树">
                   <SelectValue>
                     {mixedModes
-                      ? "Mixed"
+                      ? "不一致"
                       : mode === "inherit"
-                        ? "Inherit"
+                        ? "继承"
                         : mode === "off"
                           ? "关闭"
                           : "自定义"}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectPopup align="end" alignItemWithTrigger={false}>
-                  <SelectItem value="inherit">Inherit</SelectItem>
+                  <SelectItem value="inherit">继承</SelectItem>
                   <SelectItem value="off">关闭</SelectItem>
                   <SelectItem value="custom">自定义</SelectItem>
                 </SelectPopup>
@@ -565,42 +565,42 @@ export function WorktreeCleanupSection() {
         {(!isProjectScope || (!mixedModes && mode === "custom")) && (
           <>
             <SettingsRow
-              title="Delete worktrees with deleted threads"
+              title="删除会话时删除工作树"
               status={ruleStatus("worktreeOnDelete")}
               managedPaths={lockablePath("worktreeOnDelete")}
-              description="Remove unused worktrees when active or archived threads are deleted. Worktrees with local changes are kept."
+              description="删除活跃或已归档会话时移除未使用的工作树。有本地更改的工作树会保留。"
               serverScoped={!isProjectScope}
               control={
                 <Switch
-                  aria-label="Delete worktrees with deleted threads"
+                  aria-label="删除会话时删除工作树"
                   checked={settings.worktreeOnDelete}
                   onCheckedChange={(worktreeOnDelete) => updateWorktree({ worktreeOnDelete })}
                 />
               }
             />
             <SettingsRow
-              title="Delete merged worktrees"
+              title="删除已合并的工作树"
               status={ruleStatus("worktreeOnMerge")}
               managedPaths={lockablePath("worktreeOnMerge")}
-              description="Remove worktrees whose pull request is merged and whose commits are included in the default branch."
+              description="移除拉取请求已合并且提交已包含在默认分支中的工作树。"
               serverScoped={!isProjectScope}
               control={
                 <Switch
-                  aria-label="Delete merged worktrees"
+                  aria-label="删除已合并的工作树"
                   checked={settings.worktreeOnMerge}
                   onCheckedChange={(worktreeOnMerge) => updateWorktree({ worktreeOnMerge })}
                 />
               }
             />
             <SettingsRow
-              title="Delete inactive worktrees"
+              title="删除不活跃的工作树"
               status={ruleStatus("worktreeAfterDays")}
               managedPaths={lockablePath("worktreeAfterDays")}
-              description="Remove worktrees after their threads have been inactive for this many days. Branches and thread history are kept."
+              description="会话不活跃达到指定天数后移除工作树，分支和会话历史会保留。"
               serverScoped={!isProjectScope}
               control={
                 <RetentionControl
-                  label="Delete inactive worktrees"
+                  label="删除不活跃的工作树"
                   value={settings.worktreeAfterDays}
                   onChange={(worktreeAfterDays) => updateWorktree({ worktreeAfterDays })}
                 />
@@ -617,21 +617,21 @@ export function WorktreeCleanupSection() {
                     true,
                 ) && (
                   <SettingsRow
-                    title="Delete settled worktrees"
+                    title="删除已归结的工作树"
                     managedPaths={lockablePath("worktreeSettledAfterDays")}
                     status={[
                       ruleStatus("worktreeSettledAfterDays"),
                       environments.length > connectedEnvironments.length
-                        ? "Offline machines will not get this setting"
+                        ? "离线设备不会收到此设置"
                         : undefined,
                     ]
                       .filter(Boolean)
                       .join(". ")}
-                    description="Remove worktrees this many days after their thread settles. Set 0 days to remove them at the next cleanup. Branches and thread history are kept."
+                    description="会话归结达到指定天数后移除工作树。设为 0 天则在下次清理时移除。分支和会话历史会保留。"
                     serverScoped={!isProjectScope}
                     control={
                       <RetentionControl
-                        label="Delete settled worktrees"
+                        label="删除已归结的工作树"
                         value={settings.worktreeSettledAfterDays}
                         minimum={0}
                         onChange={(worktreeSettledAfterDays) =>
@@ -642,14 +642,14 @@ export function WorktreeCleanupSection() {
                   />
                 )}
               <SettingsRow
-                title="Delete unchanged worktrees"
+                title="删除无变更的工作树"
                 status={ruleStatus("worktreeUnchanged")}
                 managedPaths={lockablePath("worktreeUnchanged")}
-                description="Remove worktrees with no commits beyond the default branch."
+                description="移除没有超出默认分支提交的工作树。"
                 serverScoped={!isProjectScope}
                 control={
                   <Switch
-                    aria-label="Delete unchanged worktrees"
+                    aria-label="删除无变更的工作树"
                     checked={settings.worktreeUnchanged}
                     onCheckedChange={(worktreeUnchanged) => updateWorktree({ worktreeUnchanged })}
                   />
@@ -665,10 +665,10 @@ export function WorktreeCleanupSection() {
                   managedPaths={lockablePath("worktreeKeepWhen")}
                   description={
                     settings.worktreeKeepWhen === "any-local-files"
-                      ? "Includes ignored files, except node_modules."
+                      ? "包括被忽略的文件，但不包括 node_modules。"
                       : settings.worktreeKeepWhen === "tracked-changes"
-                        ? "Deletes untracked and ignored files, including .env."
-                        : "Keeps edits and untracked files. Deletes ignored files, including .env."
+                        ? "删除未跟踪和被忽略的文件，包括 .env。"
+                        : "保留编辑内容和未跟踪文件，删除被忽略的文件，包括 .env。"
                   }
                   serverScoped={!isProjectScope}
                   control={
@@ -686,14 +686,14 @@ export function WorktreeCleanupSection() {
                       <SelectTrigger size="sm" aria-label="保留有本地变更的工作树">
                         <SelectValue>
                           {ruleStatus("worktreeKeepWhen")
-                            ? "Mixed"
+                            ? "不一致"
                             : KEEP_WHEN_LABELS[settings.worktreeKeepWhen]}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectPopup align="end" alignItemWithTrigger={false}>
-                        <SelectItem value="any-local-files">Any local files</SelectItem>
-                        <SelectItem value="uncommitted-changes">Uncommitted changes</SelectItem>
-                        <SelectItem value="tracked-changes">Edited tracked files</SelectItem>
+                        <SelectItem value="any-local-files">任何本地文件</SelectItem>
+                        <SelectItem value="uncommitted-changes">未提交的更改</SelectItem>
+                        <SelectItem value="tracked-changes">已修改的跟踪文件</SelectItem>
                       </SelectPopup>
                     </Select>
                   }
@@ -730,11 +730,11 @@ export function StorageCleanupSections() {
   const settledLogsStatus = useDebouncedValue(`${targetIdsKey}:${logsMixed}`, 300);
   const artifactsStatus =
     targets.length > 1 && settledArtifactsStatus === `${targetIdsKey}:true`
-      ? "Mixed across selected machines"
+      ? "所选设备的设置不一致"
       : undefined;
   const logsStatus =
     targets.length > 1 && settledLogsStatus === `${targetIdsKey}:true`
-      ? "Mixed across selected machines"
+      ? "所选设备的设置不一致"
       : undefined;
   if (scope.kind === "project" || scope.kind === "checkout") return null;
   const update = (patch: Partial<StorageCleanupSettings>) =>
@@ -764,14 +764,14 @@ export function StorageCleanupSections() {
       <SettingsSection id="storage-artifacts" title="产物与日志">
         <AnimatedHeight>
           <SettingsRow
-            title="Delete old browser artifacts"
+            title="删除旧浏览器产物"
             status={artifactsStatus}
             managedPaths={["storageCleanup.browserArtifactsAfterDays"]}
-            description="Delete saved browser captures after this many days. Older capture links will no longer open."
+            description="经过指定天数后删除已保存的浏览器截图，旧截图链接将无法再打开。"
             serverScoped
             control={
               <RetentionControl
-                label="Delete old browser artifacts"
+                label="删除旧浏览器产物"
                 value={settings.browserArtifactsAfterDays}
                 onChange={(browserArtifactsAfterDays) => update({ browserArtifactsAfterDays })}
               />
@@ -780,14 +780,14 @@ export function StorageCleanupSections() {
         </AnimatedHeight>
         <AnimatedHeight>
           <SettingsRow
-            title="Delete old rotated logs"
+            title="删除旧轮转日志"
             status={logsStatus}
             managedPaths={["storageCleanup.logsAfterDays"]}
-            description="Delete inactive rotated log files after this many days. Current logs are kept."
+            description="经过指定天数后删除不活跃的轮转日志文件，当前日志会保留。"
             serverScoped
             control={
               <RetentionControl
-                label="Delete old rotated logs"
+                label="删除旧轮转日志"
                 value={settings.logsAfterDays}
                 onChange={(logsAfterDays) => update({ logsAfterDays })}
               />

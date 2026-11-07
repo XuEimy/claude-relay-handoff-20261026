@@ -178,6 +178,30 @@ describe("ssh command", () => {
     }).pipe(Effect.provide(NodeServices.layer)),
   );
 
+  // Group cleanup of a detached client would kill the shared master's ProxyJump child.
+  it.effect("keeps multiplexed SSH clients in the parent process group", () => {
+    const commands: Array<ChildProcess.StandardCommand> = [];
+    const spawner = ChildProcessSpawner.make((command) => {
+      if (command._tag === "StandardCommand") commands.push(command);
+      return Effect.succeed(makeFailedProcess({ stdout: "" }));
+    });
+    const layer = Layer.mergeAll(
+      NodeServices.layer,
+      NodeCrypto.layer,
+      Layer.succeed(ChildProcessSpawner.ChildProcessSpawner, spawner),
+    );
+    const target = { alias: "devbox", hostname: "devbox", username: null, port: null };
+    return Effect.gen(function* () {
+      yield* Effect.result(runSshCommand(target, { multiplex: true }));
+      yield* Effect.result(runSshCommand(target));
+      const [multiplexed, plain] = commands;
+      assert.isTrue(multiplexed?.args.includes("ControlMaster=auto"));
+      assert.equal(multiplexed?.options.detached, false);
+      assert.isFalse(plain?.args.includes("ControlMaster=auto"));
+      assert.isUndefined(plain?.options.detached);
+    }).pipe(Effect.provide(layer));
+  });
+
   it.effect("redacts credentials from stdout in non-zero command failures", () => {
     const spawner = ChildProcessSpawner.make(() =>
       Effect.succeed(makeFailedProcess({ stdout: '{"credential":"pairing-secret"}\n' })),

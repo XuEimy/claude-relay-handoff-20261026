@@ -9,7 +9,7 @@ import { useLocation } from "@tanstack/react-router";
 import * as Schema from "effect/Schema";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
-import { DESKTOP_DOWNLOAD_URL } from "~/branding";
+import { APP_BASE_NAME, DESKTOP_DOWNLOAD_URL } from "~/branding";
 import { useLocalStorage } from "~/hooks/useLocalStorage";
 import { isHostedStaticApp } from "~/hostedPairing";
 import { useEnvironments } from "~/state/environments";
@@ -47,7 +47,7 @@ function summarize(
         prompt.value === null
           ? {
               title: "Open this thread",
-              description: "It opens in kelaodeyun if you're connected to the machine it runs on.",
+              description: `It opens in ${APP_BASE_NAME} if you're connected to the machine it runs on.`,
               prompt: null,
               details: [],
             }
@@ -149,7 +149,7 @@ function HostedPromptLinkLanding({
         <Alert className="mt-5" variant="error">
           <AlertTitle>This prompt had hidden characters, it may be malicious</AlertTitle>
           <AlertDescription>
-            kelaodeyun removed {prompt.hiddenCharacters} hidden character
+            {APP_BASE_NAME} removed {prompt.hiddenCharacters} hidden character
             {prompt.hiddenCharacters === 1 ? "" : "s"}. Read the prompt before you send it.
           </AlertDescription>
         </Alert>
@@ -173,7 +173,7 @@ function HostedPromptLinkLanding({
         ) : null}
         {DESKTOP_DOWNLOAD_URL ? (
           <Button variant="ghost" render={<a href={DESKTOP_DOWNLOAD_URL} />}>
-            Get kelaodeyun
+            Get {APP_BASE_NAME}
           </Button>
         ) : null}
       </div>

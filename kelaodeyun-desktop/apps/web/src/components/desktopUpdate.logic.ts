@@ -1,4 +1,5 @@
 import type { DesktopUpdateActionResult, DesktopUpdateState } from "@t3tools/contracts";
+import { APP_BASE_NAME } from "../branding";
 
 export type DesktopUpdateButtonAction = "download" | "install" | "none";
 
@@ -73,17 +74,17 @@ export function isDesktopUpdateButtonDisabled(state: DesktopUpdateState | null):
 
 export function getArm64IntelBuildWarningDescription(state: DesktopUpdateState): string {
   if (!shouldShowArm64IntelBuildWarning(state)) {
-    return "This install is using the correct architecture.";
+    return "当前安装使用的是正确的架构。";
   }
 
   const action = resolveDesktopUpdateButtonAction(state);
   if (action === "download") {
-    return "This Mac has Apple Silicon, but kelaodeyun is still running the Intel build under Rosetta. Download the available update to switch to the native Apple Silicon build.";
+    return `此 Mac 使用 Apple Silicon，但 ${APP_BASE_NAME} 仍通过 Rosetta 运行 Intel 版本。下载可用更新以切换到原生 Apple Silicon 版本。`;
   }
   if (action === "install") {
-    return "This Mac has Apple Silicon, but kelaodeyun is still running the Intel build under Rosetta. Restart to install the downloaded Apple Silicon build.";
+    return `此 Mac 使用 Apple Silicon，但 ${APP_BASE_NAME} 仍通过 Rosetta 运行 Intel 版本。重启以安装已下载的 Apple Silicon 版本。`;
   }
-  return "This Mac has Apple Silicon, but kelaodeyun is still running the Intel build under Rosetta. The next app update will replace it with the native Apple Silicon build.";
+  return `此 Mac 使用 Apple Silicon，但 ${APP_BASE_NAME} 仍通过 Rosetta 运行 Intel 版本。下次更新将替换为原生 Apple Silicon 版本。`;
 }
 
 export function getDesktopUpdateButtonTooltip(state: DesktopUpdateState): string {
@@ -92,30 +93,30 @@ export function getDesktopUpdateButtonTooltip(state: DesktopUpdateState): string
     (state.status === "available" || state.status === "downloaded") &&
     getDesktopUpdateDownloadedVersion(state) === state.notAppliedVersion
   ) {
-    return `Update ${state.notAppliedVersion} did not apply. Click to retry.`;
+    return `更新 ${state.notAppliedVersion} 未生效。点击重试。`;
   }
   if (state.status === "available") {
-    return `Update ${state.availableVersion ?? "available"} ready to download`;
+    return `更新 ${state.availableVersion ?? "已就绪"}可供下载`;
   }
   if (state.status === "downloading") {
     const progress =
       typeof state.downloadPercent === "number" ? ` (${Math.floor(state.downloadPercent)}%)` : "";
-    return `Downloading update${progress}`;
+    return `正在下载更新${progress}`;
   }
   if (state.status === "downloaded") {
-    return `Update ${state.downloadedVersion ?? state.availableVersion ?? "ready"} downloaded. Click to restart and install.`;
+    return `更新 ${state.downloadedVersion ?? state.availableVersion ?? "已就绪"}已下载。点击重启并安装。`;
   }
   if (state.status === "error") {
     if (state.errorContext === "download" && state.availableVersion) {
-      return `Download failed for ${state.availableVersion}. Click to retry.`;
+      return `下载 ${state.availableVersion} 失败。点击重试。`;
     }
     if (state.errorContext === "install" && state.downloadedVersion) {
-      return `Install failed for ${state.downloadedVersion}. Click to retry.`;
+      return `安装 ${state.downloadedVersion} 失败。点击重试。`;
     }
     if (state.downloadedVersion) {
-      return `Update ${state.downloadedVersion} downloaded. Click to restart and install.`;
+      return `更新 ${state.downloadedVersion} 已下载。点击重启并安装。`;
     }
-    return state.message ?? "Update failed";
+    return state.message ?? "更新失败";
   }
   return "已是最新版本";
 }
@@ -124,7 +125,7 @@ export function getDesktopUpdateInstallConfirmationMessage(
   state: Pick<DesktopUpdateState, "availableVersion" | "downloadedVersion">,
 ): string {
   const version = state.downloadedVersion ?? state.availableVersion;
-  return `Install update${version ? ` ${version}` : ""} and restart kelaodeyun?\n\nAny running tasks will be interrupted. Make sure you're ready before continuing.`;
+  return `安装更新${version ? ` ${version}` : ""}并重启 ${APP_BASE_NAME}？\n\n正在运行的任务将被中断，请确认准备就绪后继续。`;
 }
 
 export function getDesktopUpdateActionError(result: DesktopUpdateActionResult): string | null {
@@ -152,7 +153,7 @@ export function getDesktopUpdateDisabledReason(
 ): string | null {
   if (managedDenial !== undefined) return managedDenial;
   if (!state || (state.enabled && state.status !== "disabled")) return null;
-  return state.message?.trim() || "Automatic updates are not available in this build.";
+  return state.message?.trim() || "此版本不支持自动更新。";
 }
 
 export function getDesktopUpdateIdleTooltip(

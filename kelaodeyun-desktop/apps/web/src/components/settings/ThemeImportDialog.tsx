@@ -1,4 +1,5 @@
 import { DownloadIcon, PlusIcon } from "lucide-react";
+import { APP_BASE_NAME } from "~/branding";
 import type { ChangeEvent, DragEvent, UIEvent } from "react";
 import { settlePromise } from "@t3tools/client-runtime/state/runtime";
 import { useRef, useState } from "react";
@@ -511,7 +512,7 @@ function ThemeImportBody({
               <div className="min-w-0">
                 <p className="text-sm font-medium">主题文件</p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {fileName ?? "Drop kelaodeyun or VS Code .json files"}
+                  {fileName ?? `Drop ${APP_BASE_NAME} or VS Code .json files`}
                 </p>
               </div>
               {chooseButton()}

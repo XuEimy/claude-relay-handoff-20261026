@@ -137,7 +137,7 @@ const handleFatalStartupError = Effect.fn("desktop.startup.handleFatalStartupErr
   const wasQuitting = yield* Ref.getAndSet(state.quitting, true);
   if (!wasQuitting) {
     yield* electronDialog.showErrorBox(
-      "kelaodeyun failed to start",
+      `${DesktopEnvironment.APP_BASE_NAME} 启动失败`,
       `Stage: ${stage}\n${message}${detail}`,
     );
   }

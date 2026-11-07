@@ -1,5 +1,6 @@
 import { useCopyToClipboard } from "~/hooks/useCopyToClipboard";
 import { TRIAGE_CLI_COMMAND } from "~/hooks/useStartTriage";
+import { APP_BASE_NAME } from "~/branding";
 
 import { InlineButton } from "../ui/button";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
@@ -31,7 +32,7 @@ export function TriageDraftHero(props: {
             )}
           </TooltipTrigger>
           <TooltipPopup side="bottom">
-            智能体会读取本地 kelaodeyun 日志和源码。应用修复或提交反馈前，会先征求你的同意。
+            智能体会读取本地 {APP_BASE_NAME} 日志和源码。应用修复或提交反馈前，会先征求你的同意。
           </TooltipPopup>
         </Tooltip>
         <span aria-hidden className="text-muted-foreground">

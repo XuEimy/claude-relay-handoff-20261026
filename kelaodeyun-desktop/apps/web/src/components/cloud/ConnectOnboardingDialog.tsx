@@ -188,10 +188,10 @@ function ConfiguredConnectOnboardingDialog() {
     if (!ok) return;
     toastManager.add({
       type: "success",
-      title: "T3 Connect enabled",
+      title: "云中继已启用",
       description: exposeEnvironment
-        ? "This environment is available to your other devices through T3 Connect."
-        : "This environment publishes agent activity to your mobile clients.",
+        ? "其他设备可通过云中继访问此环境。"
+        : "此环境会向移动客户端发布智能体活动。",
     });
     setStep("devices");
   };
@@ -214,11 +214,10 @@ function ConfiguredConnectOnboardingDialog() {
     >
       <WizardPopup>
         <WizardHeader
-          title="Set up T3 Connect"
+          title="设置云中继"
           description={
             <>
-              Mesh your devices together. Publish this environment and connect the rest, all in one
-              place.
+              将设备连接起来，在同一处发布此环境并连接其他设备。
             </>
           }
         >
@@ -335,15 +334,15 @@ function PublishStep({
     <div className="space-y-3">
       <div className="rounded-lg border">
         <OnboardingToggleRow
-          title="Publish this environment"
-          description="Make this environment available to your other devices through T3 Connect."
+          title="发布此环境"
+          description="让其他设备通过云中继访问此环境。"
           checked={exposeEnvironment}
           disabled={disabled}
           onCheckedChange={onExposeEnvironmentChange}
         />
         <OnboardingToggleRow
           title="公开智能体活动"
-          description="Send activity from this environment to your mobile clients for push notifications and Live Activities."
+          description="将此环境的活动发送到移动客户端，用于推送通知和实时活动。"
           checked={publishAgentActivity}
           disabled={disabled}
           onCheckedChange={onPublishAgentActivityChange}

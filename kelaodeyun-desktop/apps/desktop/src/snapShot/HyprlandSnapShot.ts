@@ -1,4 +1,5 @@
 // @effect-diagnostics nodeBuiltinImport:off -- Bundled Wayland helper installed only by explicit setup.
+import { APP_BASE_NAME } from "../app/DesktopBranding.ts";
 import * as NodeChildProcess from "node:child_process";
 import * as NodeFSP from "node:fs/promises";
 import * as NodeOS from "node:os";
@@ -19,7 +20,7 @@ export function hyprlandCaptureExecutable(paths: HyprlandCapturePaths) {
 }
 
 function hyprlandCaptureBinding(appId: string, lua: boolean): string {
-  if (!/^[A-Za-z0-9_.-]+$/.test(appId)) throw new Error("Invalid capture application ID.");
+  if (!/^[A-Za-z0-9_.-]+$/.test(appId)) throw new Error("截图应用 ID 无效。");
   const action = `${appId}:${HYPRLAND_CAPTURE_ACTION}`;
   return lua
     ? `hl.bind("CTRL + SHIFT + 2", hl.dsp.global("${action}"))`
@@ -58,7 +59,7 @@ function run(executable: string, args: string[], signal?: AbortSignal): Promise<
           reject(
             new Error(
               stderr.trim() ||
-                "Hyprland capture did not respond. Check capture setup and try again.",
+                "Hyprland 截图未响应，请检查截图设置后重试。",
             ),
           );
         else resolve(stdout);
@@ -73,7 +74,7 @@ async function regularFile(path: string): Promise<Buffer | undefined> {
   });
   if (!stat) return undefined;
   if (!stat.isFile() || stat.isSymbolicLink())
-    throw new Error("The capture helper must be a regular file, not a link.");
+    throw new Error("截图助手必须是普通文件，不能是链接。");
   return NodeFSP.readFile(path);
 }
 const decodeCapabilities = Schema.decodeUnknownSync(
@@ -91,28 +92,28 @@ export class HyprlandCaptureSetup {
       if (!installed)
         return {
           status: "not-installed",
-          message: "Install the bundled helper to capture the window you're using.",
+          message: "安装内置助手以截取当前使用的窗口。",
         };
       const bundle = await regularFile(this.paths.bundle);
       if (!bundle)
         throw new Error(
-          "The Hyprland capture helper is missing from this build. Update or reinstall kelaodeyun.",
+          `此版本缺少 Hyprland 截图助手，请更新或重新安装 ${APP_BASE_NAME}。`,
         );
       if (!installed.equals(bundle))
         return {
           status: "update-required",
-          message: "Update the bundled capture helper to continue.",
+          message: "请更新内置截图助手后继续。",
         };
       return {
         status: "ready",
         message:
-          "Helper ready. Hyprland may ask for screen-sharing permission on your first capture.",
+          "助手已就绪。首次截图时，Hyprland 可能会请求屏幕共享权限。",
         ...decodeCapabilities(await run(hyprlandCaptureExecutable(this.paths), ["check"])),
       };
     } catch (error) {
       return {
         status: "error",
-        message: error instanceof Error ? error.message : "Couldn't check Hyprland capture access.",
+        message: error instanceof Error ? error.message : "无法检查 Hyprland 截图权限。",
       };
     }
   }
@@ -124,14 +125,14 @@ export class HyprlandCaptureSetup {
       return undefined;
     });
     if (stat && (!stat.isDirectory() || stat.isSymbolicLink()))
-      throw new Error("The capture helper directory must not be a link.");
+      throw new Error("截图助手目录不能是链接。");
     await regularFile(executable);
     if (action === "remove-hyprland-helper") {
       await NodeFSP.rm(executable, { force: true });
       return;
     }
     const bundle = await regularFile(this.paths.bundle);
-    if (!bundle) throw new Error("The Hyprland capture helper is missing from this build.");
+    if (!bundle) throw new Error("此版本缺少 Hyprland 截图助手。");
     await NodeFSP.mkdir(directory, { recursive: true });
     const staging = await NodeFSP.mkdtemp(NodePath.join(directory, ".install-"));
     try {
