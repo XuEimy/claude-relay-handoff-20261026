@@ -1,8 +1,10 @@
 import { SSH_CLAUDE_SESSIONS_SCRIPT } from "./claudeSessions.ts";
+import { SSH_COMPUTER_LINK_SCRIPT } from "./computerLink.ts";
 import { SSH_FILE_OPERATION_SCRIPT } from "./fileTransfer.ts";
 import type {
   DesktopSshFileOperation,
   DesktopSshEnvironmentBootstrap,
+  DesktopSshEnvironmentProgressStep,
   DesktopSshEnvironmentTarget,
 } from "@t3tools/contracts";
 import { waitForHttpReady as waitForHttpReadyShared } from "@t3tools/shared/httpReadiness";
@@ -18,6 +20,7 @@ import * as Exit from "effect/Exit";
 import * as Fiber from "effect/Fiber";
 import * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";
+import * as Option from "effect/Option";
 import * as Path from "effect/Path";
 import * as Schema from "effect/Schema";
 import * as Scope from "effect/Scope";
@@ -132,15 +135,20 @@ interface SshAuthOperationInput<T> {
 interface SshAuthAttemptInput<T> extends SshAuthOperationInput<T> {
   readonly promptCount: number;
   readonly authSecret: string | null;
+  readonly identityFile?: string;
 }
 
 export interface SshEnvironmentManagerShape {
+  readonly clearAuthSecrets: Effect.Effect<void>;
   readonly fileOperation: (
     input: DesktopSshFileOperation,
   ) => Effect.Effect<string, SshEnvironmentEffectError, SshEnvironmentEffectContext>;
   readonly ensureEnvironment: (
     target: DesktopSshEnvironmentTarget,
-    options?: { readonly issuePairingToken?: boolean },
+    options?: {
+      readonly issuePairingToken?: boolean;
+      readonly onProgress?: (step: DesktopSshEnvironmentProgressStep) => Effect.Effect<void>;
+    },
   ) => Effect.Effect<
     DesktopSshEnvironmentBootstrap,
     SshEnvironmentEffectError,
@@ -902,6 +910,7 @@ export const launchOrReuseRemoteServer = Effect.fn("ssh/tunnel.launchOrReuseRemo
       ...(input?.authSecret === undefined ? {} : { authSecret: input.authSecret }),
       ...(input?.batchMode === undefined ? {} : { batchMode: input.batchMode }),
       ...(input?.interactiveAuth === undefined ? {} : { interactiveAuth: input.interactiveAuth }),
+      ...(input?.identityFile === undefined ? {} : { identityFile: input.identityFile }),
     });
     if (!getLastNonEmptyOutputLine(result.stdout)) {
       return yield* new SshLaunchError({
@@ -961,6 +970,7 @@ export const issueRemotePairingToken = Effect.fn("ssh/tunnel.issueRemotePairingT
     ...(input?.authSecret === undefined ? {} : { authSecret: input.authSecret }),
     ...(input?.batchMode === undefined ? {} : { batchMode: input.batchMode }),
     ...(input?.interactiveAuth === undefined ? {} : { interactiveAuth: input.interactiveAuth }),
+    ...(input?.identityFile === undefined ? {} : { identityFile: input.identityFile }),
   });
   if (!getLastNonEmptyOutputLine(result.stdout)) {
     return yield* new SshPairingError({
@@ -1012,6 +1022,7 @@ const stopRemoteServer = Effect.fn("ssh/tunnel.stopRemoteServer")(function* (
     ...(input?.authSecret === undefined ? {} : { authSecret: input.authSecret }),
     ...(input?.batchMode === undefined ? {} : { batchMode: input.batchMode }),
     ...(input?.interactiveAuth === undefined ? {} : { interactiveAuth: input.interactiveAuth }),
+    ...(input?.identityFile === undefined ? {} : { identityFile: input.identityFile }),
   });
   yield* Effect.logInfo("ssh.remoteServer.stop.succeeded", {
     ...sshTargetLogFields(target),
@@ -1034,6 +1045,7 @@ const readRemoteServerLogTail = Effect.fn("ssh/tunnel.readRemoteServerLogTail")(
     ...(input?.authSecret === undefined ? {} : { authSecret: input.authSecret }),
     ...(input?.batchMode === undefined ? {} : { batchMode: input.batchMode }),
     ...(input?.interactiveAuth === undefined ? {} : { interactiveAuth: input.interactiveAuth }),
+    ...(input?.identityFile === undefined ? {} : { identityFile: input.identityFile }),
   });
   return result.stdout.trim();
 });
@@ -1157,6 +1169,9 @@ const startSshTunnel = Effect.fn("ssh/tunnel.startSshTunnel")(function* (input: 
   const args = [
     ...baseSshArgs(input.resolvedTarget, {
       batchMode: input.authOptions.batchMode ?? "no",
+      ...(input.authOptions.identityFile === undefined
+        ? {}
+        : { identityFile: input.authOptions.identityFile }),
     }),
     "-o",
     "ExitOnForwardFailure=yes",
@@ -1504,17 +1519,26 @@ const makeSshEnvironmentManager = Effect.fn("ssh/tunnel.SshEnvironmentManager.ma
           };
 
     return yield* input
-      .operation(authOptions)
+      .operation({
+        ...authOptions,
+        ...(input.identityFile === undefined ? {} : { identityFile: input.identityFile }),
+      })
       .pipe(Effect.catch((error) => handleSshAuthFailure({ ...input, error })));
   });
 
   const runWithSshAuth = Effect.fn("ssh/tunnel.runWithSshAuth")(function* <T>(
     input: SshAuthOperationInput<T>,
   ): Effect.fn.Return<T, SshEnvironmentEffectError, SshEnvironmentEffectContext> {
+    const service = yield* Effect.serviceOption(SshAuth.SshAccountCredentials);
+    const credential = Option.isSome(service)
+      ? yield* service.value.resolve(input.target)
+      : Option.none();
+    const account = Option.getOrUndefined(credential);
     return yield* runWithSshAuthAttempt({
       ...input,
       promptCount: 0,
-      authSecret: authSecrets.get(input.key) ?? null,
+      authSecret: authSecrets.get(input.key) ?? account?.password ?? null,
+      ...(account?.identityFile === undefined ? {} : { identityFile: account.identityFile }),
     });
   });
 
@@ -1522,17 +1546,24 @@ const makeSshEnvironmentManager = Effect.fn("ssh/tunnel.SshEnvironmentManager.ma
     readonly key: string;
     readonly resolvedTarget: DesktopSshEnvironmentTarget;
     readonly runner?: RemoteT3RunnerOptions;
+    readonly onProgress: (step: DesktopSshEnvironmentProgressStep) => Effect.Effect<void>;
   }): Effect.fn.Return<SshTunnelEntry, SshEnvironmentEffectError, SshEnvironmentEffectContext> {
+    const accountCredentials = yield* Effect.serviceOption(SshAuth.SshAccountCredentials);
     yield* Effect.logDebug("ssh.environment.tunnel.create.start", {
       ...sshTargetLogFields(input.resolvedTarget),
       ...sshRunnerLogFields(input.runner),
       key: input.key,
     });
+    yield* input.onProgress({ step: "starting-server" });
     const remoteLaunch = yield* runWithSshAuth({
       key: input.key,
       target: input.resolvedTarget,
       operation: (authOptions) =>
         launchOrReuseRemoteServer(input.resolvedTarget, authOptions, input.runner),
+    });
+    yield* input.onProgress({
+      step: "server-ready",
+      remoteServerKind: remoteLaunch.remoteServerKind,
     });
     const remotePort = remoteLaunch.remotePort;
     yield* Effect.logDebug("ssh.environment.remotePort.ready", {
@@ -1551,6 +1582,7 @@ const makeSshEnvironmentManager = Effect.fn("ssh/tunnel.SshEnvironmentManager.ma
       remotePort,
     });
     const entryScope = yield* Scope.make("sequential");
+    yield* input.onProgress({ step: "opening-tunnel" });
     const tunnelEntry = yield* runWithSshAuth({
       key: input.key,
       target: input.resolvedTarget,
@@ -1598,18 +1630,28 @@ const makeSshEnvironmentManager = Effect.fn("ssh/tunnel.SshEnvironmentManager.ma
           localPort: tunnelEntry.localPort,
           remotePort: tunnelEntry.remotePort,
         });
-        const authSecret = authSecrets.get(tunnelEntry.key) ?? null;
+        const account = Option.isSome(accountCredentials)
+          ? yield* accountCredentials.value.resolve(tunnelEntry.target)
+          : Option.none();
+        const credential = Option.getOrUndefined(account);
+        const authSecret = authSecrets.get(tunnelEntry.key) ?? credential?.password ?? null;
         yield* stopRemoteServer(
           tunnelEntry.target,
           authSecret === null
             ? {
                 batchMode: "yes",
                 interactiveAuth: false,
+                ...(credential?.identityFile === undefined
+                  ? {}
+                  : { identityFile: credential.identityFile }),
               }
             : {
                 authSecret,
                 batchMode: "no",
                 interactiveAuth: true,
+                ...(credential?.identityFile === undefined
+                  ? {}
+                  : { identityFile: credential.identityFile }),
               },
         ).pipe(
           Effect.provideService(ChildProcessSpawner.ChildProcessSpawner, spawnerService),
@@ -1637,6 +1679,7 @@ const makeSshEnvironmentManager = Effect.fn("ssh/tunnel.SshEnvironmentManager.ma
   const ensureTunnelEntry = Effect.fn("ssh/tunnel.ensureTunnelEntry")(function* (
     key: string,
     resolvedTarget: DesktopSshEnvironmentTarget,
+    onProgress: (step: DesktopSshEnvironmentProgressStep) => Effect.Effect<void>,
     runner?: RemoteT3RunnerOptions,
   ): Effect.fn.Return<SshTunnelEntry, SshEnvironmentEffectError, SshEnvironmentEffectContext> {
     const entry = tunnels.get(key) ?? null;
@@ -1652,6 +1695,7 @@ const makeSshEnvironmentManager = Effect.fn("ssh/tunnel.SshEnvironmentManager.ma
         waitForHttpReady({ baseUrl: entry.httpBaseUrl, timeoutMs: 2_000 }),
       );
       if (Exit.isSuccess(readinessExit)) {
+        yield* onProgress({ step: "reusing-tunnel" });
         yield* Effect.logDebug("ssh.environment.tunnel.reused", {
           ...sshTargetLogFields(resolvedTarget),
           key,
@@ -1675,6 +1719,7 @@ const makeSshEnvironmentManager = Effect.fn("ssh/tunnel.SshEnvironmentManager.ma
     return yield* createTunnelEntry({
       key,
       resolvedTarget,
+      onProgress,
       ...(runner === undefined ? {} : { runner }),
     }).pipe(
       Effect.tapError((cause) =>
@@ -1689,7 +1734,10 @@ const makeSshEnvironmentManager = Effect.fn("ssh/tunnel.SshEnvironmentManager.ma
 
   const ensureEnvironment = Effect.fn("ssh/tunnel.ensureEnvironment")(function* (
     target: DesktopSshEnvironmentTarget,
-    requestOptions?: { readonly issuePairingToken?: boolean },
+    requestOptions?: {
+      readonly issuePairingToken?: boolean;
+      readonly onProgress?: (step: DesktopSshEnvironmentProgressStep) => Effect.Effect<void>;
+    },
   ): Effect.fn.Return<
     DesktopSshEnvironmentBootstrap,
     SshEnvironmentEffectError,
@@ -1699,6 +1747,8 @@ const makeSshEnvironmentManager = Effect.fn("ssh/tunnel.SshEnvironmentManager.ma
       ...sshTargetLogFields(target),
       issuePairingToken: requestOptions?.issuePairingToken === true,
     });
+    const onProgress = requestOptions?.onProgress ?? (() => Effect.void);
+    yield* onProgress({ step: "resolving" });
     const baseResolved = yield* resolveSshTarget(target.alias || target.hostname);
     const resolvedTarget: DesktopSshEnvironmentTarget = {
       ...baseResolved,
@@ -1740,6 +1790,7 @@ const makeSshEnvironmentManager = Effect.fn("ssh/tunnel.SshEnvironmentManager.ma
             key,
             target: resolvedTarget,
             operation: Effect.fn("ssh.uploadBundledRuntime")(function* (authOptions) {
+              yield* onProgress({ step: "checking-runtime" });
               const probe = yield* runSshCommand(resolvedTarget, {
                 ...authOptions,
                 remoteCommandArgs: [
@@ -1750,11 +1801,30 @@ const makeSshEnvironmentManager = Effect.fn("ssh/tunnel.SshEnvironmentManager.ma
                   ),
                 ],
               });
-              if (probe.stdout.trim() === "ready") return;
+              if (probe.stdout.trim() === "ready") {
+                yield* onProgress({ step: "runtime-current" });
+                return;
+              }
+              let sentBytes = 0;
+              let lastPercent = 0;
+              yield* onProgress({ step: "uploading-runtime", sentBytes, totalBytes: bytes.length });
               yield* runSshCommand(resolvedTarget, {
                 ...authOptions,
                 timeoutMs: REMOTE_ARCHIVE_LAUNCH_TIMEOUT_MS,
-                inputStream: fs.stream(executable),
+                inputStream: fs.stream(executable).pipe(
+                  Stream.tap((chunk) => {
+                    sentBytes += chunk.length;
+                    const percent =
+                      bytes.length === 0 ? 100 : Math.floor((sentBytes / bytes.length) * 100);
+                    if (percent === lastPercent) return Effect.void;
+                    lastPercent = percent;
+                    return onProgress({
+                      step: "uploading-runtime",
+                      sentBytes,
+                      totalBytes: bytes.length,
+                    });
+                  }),
+                ),
                 remoteCommandArgs: [
                   "sh",
                   "-c",
@@ -1763,11 +1833,19 @@ const makeSshEnvironmentManager = Effect.fn("ssh/tunnel.SshEnvironmentManager.ma
                   ),
                 ],
               });
+              if (lastPercent !== 100) {
+                yield* onProgress({
+                  step: "uploading-runtime",
+                  sentBytes,
+                  totalBytes: bytes.length,
+                });
+              }
             }),
           });
         }
-        const entry = yield* ensureTunnelEntry(key, resolvedTarget, runner);
+        const entry = yield* ensureTunnelEntry(key, resolvedTarget, onProgress, runner);
 
+        if (requestOptions?.issuePairingToken) yield* onProgress({ step: "issuing-pairing" });
         const pairingResult = requestOptions?.issuePairingToken
           ? yield* runWithSshAuth({
               key,
@@ -1786,6 +1864,7 @@ const makeSshEnvironmentManager = Effect.fn("ssh/tunnel.SshEnvironmentManager.ma
           remoteServerKind: entry.remoteServerKind,
           issuedPairingToken: pairingToken !== null,
         });
+        yield* onProgress({ step: "ready" });
         return {
           target: entry.target,
           httpBaseUrl: entry.httpBaseUrl,
@@ -1859,7 +1938,9 @@ const makeSshEnvironmentManager = Effect.fn("ssh/tunnel.SshEnvironmentManager.ma
             shellSingleQuote(
               input.operation.startsWith("claude-")
                 ? SSH_CLAUDE_SESSIONS_SCRIPT
-                : SSH_FILE_OPERATION_SCRIPT,
+                : input.operation.startsWith("computer-")
+                  ? SSH_COMPUTER_LINK_SCRIPT
+                  : SSH_FILE_OPERATION_SCRIPT,
             ),
           ],
           stdin: JSON.stringify({
@@ -1867,13 +1948,20 @@ const makeSshEnvironmentManager = Effect.fn("ssh/tunnel.SshEnvironmentManager.ma
             relativePath: input.relativePath,
             operation: input.operation,
             contentsBase64: input.contentsBase64,
+            computer: input.computer,
           }),
+          sensitiveStdin: input.computer?.password !== undefined,
           timeoutMs: 300_000,
         }),
     });
     return result.stdout;
   });
-  return SshEnvironmentManager.of({ ensureEnvironment, disconnectEnvironment, fileOperation });
+  return SshEnvironmentManager.of({
+    ensureEnvironment,
+    disconnectEnvironment,
+    fileOperation,
+    clearAuthSecrets: Effect.sync(() => authSecrets.clear()),
+  });
 });
 
 /**

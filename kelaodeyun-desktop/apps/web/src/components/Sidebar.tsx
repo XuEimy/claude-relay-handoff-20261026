@@ -1,4 +1,5 @@
 import { CloudProjectSidebar } from "./sidebar/CloudProjectSidebar";
+import { resolveCloudSidebarTarget } from "./sidebar/cloudSidebarState";
 import { CloudAddProjectDialog } from "./sidebar/CloudAddProjectDialog";
 import { useEnvironmentPresentation } from "../state/presentation";
 import { useRightPanelStore } from "../rightPanelStore";
@@ -217,6 +218,7 @@ import {
   sortThreadsForSidebar,
   sortWorkingThreadsBySend,
   useSnoozeWakeClock,
+  useRetainedValue,
   useThreadJumpHintsVisible,
   type SidebarListItem,
   type SidebarSection,
@@ -1039,6 +1041,26 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
     fileEnvironment != null &&
     (fileEnvironment.entry.target._tag === "SshConnectionTarget" ||
       Option.getOrNull(fileEnvironment.entry.profile)?._tag === "SshConnectionProfile");
+  const nextCloudSidebarTarget =
+    fileThread == null ? null : cloudTextOnly && fileProject ? fileProject : ("non-cloud" as const);
+  const retainedCloudSidebarTarget = useRetainedValue(
+    "cloud-sidebar-target",
+    nextCloudSidebarTarget,
+  );
+  const cloudSidebarProject = resolveCloudSidebarTarget(
+    retainedCloudSidebarTarget === "non-cloud" ? null : retainedCloudSidebarTarget,
+    nextCloudSidebarTarget === null
+      ? null
+      : nextCloudSidebarTarget === "non-cloud"
+        ? { kind: "non-cloud" }
+        : { kind: "cloud", target: nextCloudSidebarTarget },
+  );
+  const retainedCloudDraftProjectId = useRetainedValue(
+    "cloud-sidebar-draft",
+    fileThread == null
+      ? null
+      : (newThreadContext.activeDraftThread?.projectId ?? ("no-draft" as const)),
+  );
   const primaryEnvironmentId = usePrimaryEnvironmentId();
   const clearSelection = useThreadSelectionStore((s) => s.clearSelection);
   const setSelectionAnchor = useThreadSelectionStore((s) => s.setAnchor);
@@ -1113,10 +1135,10 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
     cwd: string;
   } | null>(null);
   const openAddProjectCommandPalette = () => {
-    if (cloudTextOnly && fileProject) {
+    if (cloudSidebarProject) {
       setCloudProjectRequest({
-        environmentId: fileProject.environmentId,
-        cwd: fileThread?.worktreePath ?? fileProject.workspaceRoot,
+        environmentId: cloudSidebarProject.environmentId,
+        cwd: fileThread?.worktreePath ?? cloudSidebarProject.workspaceRoot,
       });
     } else openCommandPalette({ open: "add-project" });
   };
@@ -2615,6 +2637,31 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
     },
   );
 
+  const archiveThreadFromSidebar = async (threadRef: ScopedThreadRef, title: string) => {
+    if (confirmThreadArchive) {
+      const api = readLocalApi();
+      if (!api) return;
+      const confirmed = await settlePromise(() => api.dialogs.confirm(`归档会话「${title}」？`));
+      if (confirmed._tag === "Failure" || !confirmed.value) return;
+    }
+    let didArchive = false;
+    const result = await archiveThread(threadRef, {
+      onArchived: () => {
+        didArchive = true;
+      },
+    });
+    if (result._tag === "Failure" && !isAtomCommandInterrupted(result)) {
+      const error = squashAtomCommandFailure(result);
+      toastManager.add(
+        stackedThreadToast({
+          type: "error",
+          title: didArchive ? "会话已归档，但跳转失败" : "归档会话失败",
+          description: error instanceof Error ? error.message : "An error occurred.",
+        }),
+      );
+    }
+  };
+
   const handleThreadContextMenu = useStableCallback(
     (threadRef: ScopedThreadRef, position: { x: number; y: number }) => {
       void (async () => {
@@ -2852,31 +2899,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
             copyThreadIdToClipboard(thread.id, { threadId: thread.id });
             return;
           case "archive": {
-            if (confirmThreadArchive) {
-              const confirmed = await settlePromise(() =>
-                api.dialogs.confirm(`Archive thread "${thread.title}"?`),
-              );
-              if (confirmed._tag === "Failure" || !confirmed.value) return;
-            }
-            let didArchive = false;
-            const result = await archiveThread(threadRef, {
-              onArchived: () => {
-                didArchive = true;
-              },
-            });
-            if (result._tag === "Failure" && !isAtomCommandInterrupted(result)) {
-              const error = squashAtomCommandFailure(result);
-              toastManager.add(
-                stackedThreadToast({
-                  type: "error",
-                  title: didArchive
-                    ? "Thread archived, but navigation failed"
-                    : "Failed to archive thread",
-                  description: error instanceof Error ? error.message : "An error occurred.",
-                }),
-              );
-              return;
-            }
+            await archiveThreadFromSidebar(threadRef, thread.title);
             return;
           }
           case "delete": {
@@ -3293,20 +3316,28 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
           }
         >
           <SidebarGroup className="flex-1" role="presentation">
-            {cloudTextOnly && fileProject ? (
+            {cloudSidebarProject ? (
               <CloudProjectSidebar
-                environmentId={fileProject.environmentId}
-                currentProjectId={fileProject.id}
-                draftProjectId={newThreadContext.activeDraftThread?.projectId}
+                environmentId={cloudSidebarProject.environmentId}
+                currentProjectId={cloudSidebarProject.id}
+                draftProjectId={
+                  retainedCloudDraftProjectId === "no-draft"
+                    ? undefined
+                    : (retainedCloudDraftProjectId ?? undefined)
+                }
                 currentThreadRef={fileThreadRef}
                 projectIds={scopedProjectGroups.flatMap((group) =>
                   group.memberProjects
-                    .filter((project) => project.environmentId === fileProject.environmentId)
+                    .filter(
+                      (project) => project.environmentId === cloudSidebarProject.environmentId,
+                    )
                     .map((project) => project.id),
                 )}
                 query={threadSearchQuery}
                 onAddProject={openAddProjectCommandPalette}
                 onNewThread={handleNewThread}
+                onRenameThread={commitThreadRename}
+                onArchiveThread={archiveThreadFromSidebar}
                 onTogglePin={(threadRef, pinned) =>
                   pinned ? attemptUnpin(threadRef) : attemptPin(threadRef)
                 }
@@ -3319,9 +3350,11 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                 environmentId={fileProject?.environmentId}
                 projectId={fileProject?.id}
                 cwd={fileThread?.worktreePath ?? fileProject?.workspaceRoot}
+                onRenameThread={commitThreadRename}
+                onArchiveThread={archiveThreadFromSidebar}
               />
             )}
-            {!cloudTextOnly ? (
+            {!cloudSidebarProject && !cloudTextOnly ? (
               <>
                 {isSearchingThreads ? (
                   threadSearchResults.length > 0 ? (

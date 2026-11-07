@@ -1,11 +1,13 @@
 import { useSystemAudioBackdrop } from "./useSystemAudioBackdrop";
-import { useThreadRouteTarget } from "../../hooks/useThreadRouteTarget";
-import { useComposerDraftStore } from "../../composerDraftStore";
 import { SshConnectionDialog } from "./SshConnectionDialog";
+import { ComputerPickerDialog } from "./ComputerPickerDialog";
+import { useActiveSshEnvironment } from "./useActiveSshEnvironment";
+import { useComputerScopeStore } from "./computerScopeStore";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
   ChartNoAxesColumnIcon,
+  MonitorIcon,
   SettingsIcon,
   UserRoundIcon,
 } from "lucide-react";
@@ -23,7 +25,6 @@ import {
 } from "../../navigationHistory";
 import { primaryServerKeybindingsAtom } from "../../state/server";
 import { cn } from "../../lib/utils";
-import { useEnvironments, usePullRequestsSupported } from "../../state/environments";
 import {
   resolveEnvironmentIdentificationPillLabel,
   resolveSidebarStageBackdropVariant,
@@ -32,6 +33,8 @@ import {
 import { SshConnectionBackdrop } from "./SshConnectionBackdrop";
 import "./sshConnection.css";
 import { useMockProfile } from "../../hooks/useMockProfile";
+import { useDesktopAccount } from "../../hooks/useDesktopAccount";
+import { Menu, MenuItem, MenuPopup, MenuTrigger } from "../ui/menu";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import {
@@ -43,12 +46,10 @@ import {
   useSidebar,
 } from "../ui/sidebar";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
-import { readPullRequestListPreferences } from "../pullRequest/pullRequestListPreferences";
 import { isSidebarUtilityPage, useNavigateToMainApp } from "./mainAppLocation";
 import { SidebarThreadUndoNotice } from "./SidebarThreadUndoNotice";
 import { SidebarProviderUpdatePill } from "./SidebarProviderUpdatePill";
 import { SidebarUpdateArchitectureWarning, SidebarUpdatePill } from "./SidebarUpdatePill";
-import { PullRequestGlyph } from "~/components/pullRequest/pullRequestIcons";
 import { observeResize } from "~/lib/observeResize";
 
 export const SidebarChromeHeader = memo(function SidebarChromeHeader({
@@ -57,22 +58,7 @@ export const SidebarChromeHeader = memo(function SidebarChromeHeader({
   isElectron: boolean;
 }) {
   const [connectionOpen, setConnectionOpen] = useState(false);
-  const { environments } = useEnvironments();
-  const sshEnvironments = environments.filter(
-    (environment) => environment.entry.target._tag === "SshConnectionTarget",
-  );
-  const routeTarget = useThreadRouteTarget();
-  const routeDraft = useComposerDraftStore((store) =>
-    routeTarget?.kind === "draft" ? store.getDraftSession(routeTarget.draftId) : null,
-  );
-  const activeEnvironmentId =
-    routeTarget?.kind === "server"
-      ? routeTarget.threadRef.environmentId
-      : routeDraft?.environmentId;
-  const ssh =
-    sshEnvironments.find((environment) => environment.environmentId === activeEnvironmentId) ??
-    sshEnvironments.find((environment) => environment.connection.phase === "connected") ??
-    sshEnvironments[0];
+  const ssh = useActiveSshEnvironment();
   const connected = ssh?.connection.phase === "connected";
   const statusLabel = connected
     ? "Connected"
@@ -301,24 +287,45 @@ function SidebarUtilityItem({
 
 const SidebarUtilityMenu = memo(function SidebarUtilityMenu() {
   const profile = useMockProfile();
+  const account = useDesktopAccount();
+  const [accountPending, setAccountPending] = useState(false);
+  const [accountError, setAccountError] = useState<string | null>(null);
+  const [computerOpen, setComputerOpen] = useState(false);
+  const activeSsh = useActiveSshEnvironment();
+  const selectedComputer = useComputerScopeStore((state) =>
+    activeSsh ? state.byEnvironmentId[activeSsh.environmentId]?.selected : null,
+  );
+  const bridge = window.desktopBridge;
+  const signIn = async () => {
+    if (!bridge) return;
+    setAccountPending(true);
+    setAccountError(null);
+    try {
+      await bridge.signInAccount();
+    } catch (cause) {
+      setAccountError(cause instanceof Error ? cause.message : "登录失败");
+    } finally {
+      setAccountPending(false);
+    }
+  };
+  const signOut = async () => {
+    if (!bridge) return;
+    try {
+      await bridge.signOutAccount();
+    } catch (cause) {
+      setAccountError(cause instanceof Error ? cause.message : "退出登录失败");
+    }
+  };
   const navigate = useNavigate();
   const navigateToMainApp = useNavigateToMainApp();
   const { isMobile, setOpenMobile } = useSidebar();
   const isOnUtilityPage = useLocation({
     select: (location) => isSidebarUtilityPage(location.pathname),
   });
-  const pullRequestsSupported = usePullRequestsSupported();
   const closeMobileSidebar = () => {
     if (isMobile) {
       setOpenMobile(false);
     }
-  };
-  const handlePullRequestsClick = () => {
-    closeMobileSidebar();
-    void navigate({
-      to: "/pull-requests",
-      search: readPullRequestListPreferences(),
-    });
   };
   const handleSettingsClick = () => {
     closeMobileSidebar();
@@ -340,18 +347,48 @@ const SidebarUtilityMenu = memo(function SidebarUtilityMenu() {
   return (
     <SidebarMenu className="flex-row items-center">
       <SidebarMenuItem className="min-w-0 flex-1">
-        <SidebarMenuButton
-          aria-label="个人资料"
-          onClick={() => {
-            closeMobileSidebar();
-            void navigate({ to: "/settings/profile" });
-          }}
-        >
-          <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
-            <UserRoundIcon className="size-3.5" />
-          </span>
-          <span className="truncate">{profile.name}</span>
-        </SidebarMenuButton>
+        {bridge && account.status === "signed-in" ? (
+          <Menu>
+            <MenuTrigger render={<SidebarMenuButton aria-label="账户" />}>
+              {account.user.avatar ? (
+                <img className="size-6 shrink-0 rounded-full" src={account.user.avatar} alt="" />
+              ) : (
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                  <UserRoundIcon className="size-3.5" />
+                </span>
+              )}
+              <span className="truncate">{account.user.name || account.user.email}</span>
+            </MenuTrigger>
+            <MenuPopup side="top" align="start">
+              <div className="px-2 py-1 text-xs text-muted-foreground">{account.user.email}</div>
+              <MenuItem onClick={() => void signOut()}>退出登录</MenuItem>
+              {accountError ? (
+                <div className="px-2 py-1 text-xs text-destructive">{accountError}</div>
+              ) : null}
+            </MenuPopup>
+          </Menu>
+        ) : (
+          <SidebarMenuButton
+            aria-label="个人资料"
+            onClick={() => {
+              if (bridge) {
+                void signIn();
+                return;
+              }
+              closeMobileSidebar();
+              void navigate({ to: "/settings/profile" });
+            }}
+            disabled={accountPending}
+            title={accountError ?? undefined}
+          >
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+              <UserRoundIcon className="size-3.5" />
+            </span>
+            <span className="truncate">
+              {bridge ? (accountPending ? "登录中…" : accountError || "登录") : profile.name}
+            </span>
+          </SidebarMenuButton>
+        )}
       </SidebarMenuItem>
       {isOnUtilityPage ? (
         <SidebarMenuItem className="min-w-0 flex-1">
@@ -363,11 +400,11 @@ const SidebarUtilityMenu = memo(function SidebarUtilityMenu() {
       ) : (
         <>
           <SidebarUtilityItem icon={<SettingsIcon />} label="设置" onClick={handleSettingsClick} />
-          {pullRequestsSupported ? (
+          {bridge ? (
             <SidebarUtilityItem
-              icon={<PullRequestGlyph.pullRequest />}
-              label="拉取请求"
-              onClick={handlePullRequestsClick}
+              icon={<MonitorIcon />}
+              label={activeSsh ? `电脑：${selectedComputer?.label ?? activeSsh.label}` : "选择电脑"}
+              onClick={() => setComputerOpen(true)}
             />
           ) : null}
           <SidebarUtilityItem
@@ -379,6 +416,7 @@ const SidebarUtilityMenu = memo(function SidebarUtilityMenu() {
       )}
       <SidebarThreadUndoNotice />
       <SidebarUpdatePill />
+      {bridge ? <ComputerPickerDialog open={computerOpen} onOpenChange={setComputerOpen} /> : null}
     </SidebarMenu>
   );
 });

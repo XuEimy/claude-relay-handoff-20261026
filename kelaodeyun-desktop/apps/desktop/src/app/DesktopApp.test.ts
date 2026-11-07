@@ -23,6 +23,7 @@ vi.mock("../updates/DesktopRemoteUpdates.ts", () => ({ listen: Effect.void }));
 vi.mock("./DesktopStartupRecovery.ts", () => ({ listen: Effect.void }));
 
 import * as DesktopApp from "./DesktopApp.ts";
+import * as DesktopAccount from "../account/DesktopAccount.ts";
 import * as DesktopAppActivation from "./DesktopAppActivation.ts";
 import * as DesktopAppIdentity from "./DesktopAppIdentity.ts";
 import * as DesktopClerk from "./DesktopClerk.ts";
@@ -189,6 +190,10 @@ it.effect(
         Effect.provide(
           Layer.mergeAll(
             Layer.mock(BrowserImport.BrowserImport, {}),
+            Layer.mock(DesktopAccount.DesktopAccount, {
+              receiveCallback: () => false,
+              onChange: () => () => undefined,
+            }),
             Layer.mock(DesktopBackendConfiguration.DesktopBackendConfiguration, {}),
             Layer.mock(DesktopCliCommand.DesktopCliCommand, {}),
             Layer.mock(DesktopClientSettings.DesktopClientSettings, {}),

@@ -1,6 +1,7 @@
 import * as HostProcess from "@t3tools/shared/HostProcess";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
+import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import * as ChildProcess from "effect/process/ChildProcess";
 import * as ChildProcessSpawner from "effect/process/ChildProcessSpawner";
@@ -16,8 +17,10 @@ export const sandboxDisabled = (env: Readonly<Record<string, string | undefined>
 const USERNS_RESTRICTION = "/proc/sys/kernel/apparmor_restrict_unprivileged_userns";
 export const APPARMOR_PROFILE_PATH = "/etc/apparmor.d/t3-chrome-headless-shell";
 
+const DESKTOP_APPARMOR_PROFILE = "t3-desktop-chrome";
+
 /** Match Ubuntu's Chrome profile; unconfined adds nothing beyond userns. */
-export const APPARMOR_PROFILE = `# Written by \`t3 browser setup\`: lets T3 Code's headless browser use Chrome's sandbox.
+export const APPARMOR_PROFILE = `# Written by \`t3 browser setup\`: lets T3 Code's browsers use Chrome's sandbox.
 abi <abi/4.0>,
 include <tunables/global>
 
@@ -25,6 +28,12 @@ profile t3-chrome-headless-shell /**/tools/chrome-headless-shell/*/*/chrome-head
   userns,
 
   include if exists <local/t3-chrome-headless-shell>
+}
+
+profile ${DESKTOP_APPARMOR_PROFILE} /**/tools/chrome/*/*/chrome flags=(unconfined) {
+  userns,
+
+  include if exists <local/${DESKTOP_APPARMOR_PROFILE}>
 }
 `;
 
@@ -48,6 +57,29 @@ export const DEBIAN_PACKAGES: ReadonlyArray<ReadonlyArray<string>> = [
   ["libasound2t64", "libasound2"],
   ["libexpat1"],
 ];
+
+/** Headful Chrome, for the server desktop, also links these. */
+export const DESKTOP_DEBIAN_PACKAGES: ReadonlyArray<ReadonlyArray<string>> = [
+  ...DEBIAN_PACKAGES,
+  ["libcups2t64", "libcups2"],
+  ["libpango-1.0-0"],
+  ["libcairo2"],
+];
+
+const aptOffers = Effect.fn("PreviewBrowserHost.aptOffers")(function* (name: string) {
+  const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;
+  const policy = yield* spawner
+    .string(ChildProcess.make("apt-cache", ["policy", name], { stdin: "ignore", stderr: "ignore" }))
+    .pipe(Effect.orElseSucceed(() => ""));
+  const candidate = /Candidate:\s*(\S+)/.exec(policy)?.[1];
+  return candidate !== undefined && candidate !== "(none)";
+});
+
+/** The first name of each alternative group that apt can install. */
+export const aptPackages = (groups: ReadonlyArray<ReadonlyArray<string>>) =>
+  Effect.forEach(groups, (names) =>
+    Effect.findFirst(names, aptOffers).pipe(Effect.map(Option.getOrElse(() => names[0]!))),
+  );
 
 export class PreviewBrowserSandboxError extends Schema.TaggedError<PreviewBrowserSandboxError>()(
   "PreviewBrowserSandboxError",
@@ -126,13 +158,27 @@ export const missingLibraries = Effect.fn("PreviewBrowserHost.missingLibraries")
   return listed.length > 0 ? listed : [loaderError];
 });
 
-export const sandboxBlocked = Effect.gen(function* () {
+const usernsRestricted = Effect.gen(function* () {
   if ((yield* HostProcess.Platform) !== "linux") return false;
   const fs = yield* FileSystem.FileSystem;
-  const restricted = yield* fs.readFileString(USERNS_RESTRICTION).pipe(
+  return yield* fs.readFileString(USERNS_RESTRICTION).pipe(
     Effect.map((value) => value.trim() === "1"),
     Effect.orElseSucceed(() => false),
   );
-  if (!restricted) return false;
+});
+
+export const sandboxBlocked = Effect.gen(function* () {
+  if (!(yield* usernsRestricted)) return false;
+  const fs = yield* FileSystem.FileSystem;
   return !(yield* fs.exists(APPARMOR_PROFILE_PATH).pipe(Effect.orElseSucceed(() => false)));
 }).pipe(Effect.withSpan("PreviewBrowserHost.sandboxBlocked"));
+
+/** Profiles written before the server desktop existed only cover the headless shell. */
+export const desktopSandboxBlocked = Effect.gen(function* () {
+  if (!(yield* usernsRestricted)) return false;
+  const fs = yield* FileSystem.FileSystem;
+  return !(yield* fs.readFileString(APPARMOR_PROFILE_PATH).pipe(
+    Effect.map((profile) => profile.includes(`profile ${DESKTOP_APPARMOR_PROFILE} `)),
+    Effect.orElseSucceed(() => false),
+  ));
+}).pipe(Effect.withSpan("PreviewBrowserHost.desktopSandboxBlocked"));

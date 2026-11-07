@@ -16,41 +16,40 @@ export const redirect = (location, cookies = []) => {
   return new Response(null, { status: 302, headers });
 };
 export const storeFor = env => env.STORE.get(env.STORE.idFromName("main"));
-export const hostingerSimulated = env => env.HOSTINGER_MODE !== "live" || /^(sk|rk)_test_/.test(env.STRIPE_SECRET_KEY || "");
 export const stripeFor = env => {
   if (!env.STRIPE_SECRET_KEY) fail(503, "Stripe 尚未配置");
-  return new Stripe(env.STRIPE_SECRET_KEY, { httpClient: Stripe.createFetchHttpClient() });
+  return new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: "2026-09-30.endive", httpClient: Stripe.createFetchHttpClient() });
 };
 export const periodEnd = subscription => subscription?.current_period_end ?? subscription?.items?.data?.[0]?.current_period_end ?? null;
+export const paidInvoiceEnd = invoice => {
+  if (invoice?.status !== "paid") return null;
+  const ends = (invoice.lines?.data || []).filter(line => {
+    const detail = line.parent?.subscription_item_details;
+    return (line.type === "subscription" || line.parent?.type === "subscription_item_details") && !line.proration && !detail?.proration;
+  }).map(line => line.period?.end).filter(end => Number.isSafeInteger(end) && end > 0);
+  return ends.length ? Math.max(...ends) : null;
+};
 export const validText = (value, max) => typeof value === "string" && value.trim().length > 0 && value.length <= max;
 
-export function validPublicKey(value) {
-  if (typeof value !== "string" || new TextEncoder().encode(value).length > 8192 || /[\r\n]/.test(value)) return false;
-  const parts = value.trim().match(/^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp(?:256|384|521))[ \t]+([A-Za-z0-9+/]+={0,2})(?:[ \t]+[^\r\n]*)?$/);
-  if (!parts || parts[2].length % 4 === 1) return false;
+async function credentialsKey(env) {
   try {
-    const blob = atob(parts[2]);
-    if (btoa(blob).replace(/=+$/, "") !== parts[2].replace(/=+$/, "") || blob.length < 5) return false;
-    const n = blob.charCodeAt(0) * 0x1000000 + (blob.charCodeAt(1) << 16) + (blob.charCodeAt(2) << 8) + blob.charCodeAt(3);
-    return n > 0 && n <= blob.length - 4 && blob.slice(4, 4 + n) === parts[1];
-  } catch { return false; }
+    if (typeof env.CREDENTIALS_KEY !== "string" || !/^[A-Za-z0-9+/]{43}=$/.test(env.CREDENTIALS_KEY)) throw Error();
+    const raw = atob(env.CREDENTIALS_KEY);
+    if (raw.length !== 32 || btoa(raw) !== env.CREDENTIALS_KEY) throw Error();
+    return await crypto.subtle.importKey("raw", Uint8Array.from(raw, c => c.charCodeAt(0)), "AES-GCM", false, ["encrypt", "decrypt"]);
+  } catch { throw Error("凭据加密密钥尚未配置"); }
 }
-
-export async function hostinger(env, path, options = {}) {
-  if (!env.HOSTINGER_API_TOKEN) throw Error("Hostinger 尚未配置");
-  if (!options.reserved) {
-    const store = storeFor(env);
-    let delay;
-    while ((delay = await store.reserveHostinger()) > 0) await new Promise(resolve => setTimeout(resolve, delay));
-  }
-  const response = await fetch("https://developers.hostinger.com" + path, {
-    method: options.method || "GET",
-    headers: { Authorization: `Bearer ${env.HOSTINGER_API_TOKEN}`, ...(options.body ? { "Content-Type": "application/json" } : {}) },
-    ...(options.body ? { body: JSON.stringify(options.body) } : {}),
-  });
-  if (!response.ok) throw Object.assign(Error(`Hostinger 请求失败 (${response.status})`), { status: response.status });
-  try { return { status: response.status, data: response.status === 204 ? null : await response.json() }; }
-  catch { throw Object.assign(Error("Hostinger 响应格式无效"), { status: response.status }); }
+export async function encryptText(env, text) {
+  const key = await credentialsKey(env), iv = crypto.getRandomValues(new Uint8Array(12));
+  const encrypted = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(text)));
+  const bytes = new Uint8Array(iv.length + encrypted.length);
+  bytes.set(iv); bytes.set(encrypted, iv.length);
+  return btoa(String.fromCharCode(...bytes));
+}
+export async function decryptText(env, value) {
+  const key = await credentialsKey(env), bytes = Uint8Array.from(atob(value), c => c.charCodeAt(0));
+  const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv: bytes.slice(0, 12) }, key, bytes.slice(12));
+  return new TextDecoder().decode(decrypted);
 }
 
 export async function startWorkflow(binding, id, instanceId = id) {

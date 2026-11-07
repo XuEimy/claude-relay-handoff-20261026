@@ -8,6 +8,7 @@ import * as Option from "effect/Option";
 import * as Path from "effect/Path";
 import * as PlatformError from "effect/PlatformError";
 import * as Semaphore from "effect/Semaphore";
+import type { DesktopSshEnvironmentTarget } from "@t3tools/contracts";
 
 import { SshPasswordPromptError } from "./errors.ts";
 
@@ -33,7 +34,19 @@ export interface SshAuthOptions {
   readonly authSecret?: string | null;
   readonly batchMode?: "yes" | "no";
   readonly interactiveAuth?: boolean;
+  readonly identityFile?: string;
 }
+
+export class SshAccountCredentials extends Context.Service<
+  SshAccountCredentials,
+  {
+    readonly resolve: (
+      target: DesktopSshEnvironmentTarget,
+    ) => Effect.Effect<
+      Option.Option<{ readonly identityFile?: string; readonly password?: string }>
+    >;
+  }
+>()("@t3tools/ssh/auth/SshAccountCredentials") {}
 
 export interface SshPasswordPromptShape {
   readonly isAvailable: boolean;

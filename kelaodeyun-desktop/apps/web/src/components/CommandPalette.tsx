@@ -42,6 +42,7 @@ import {
 } from "@t3tools/client-runtime/state/runtime";
 import {
   AuthOrchestrationOperateScope,
+  AuthPreviewOperateScope,
   AuthSourceControlWriteScope,
   AuthFilesystemReadScope,
   type DesktopWslState,
@@ -476,6 +477,10 @@ function OpenCommandPaletteDialog(props: {
   const openPanelPullRequestUrl = useOpenPanelPullRequestUrl(referenceThreadRef);
   const activeThreadServerConfig = useServerConfigs().get(
     activeThread?.environmentId ?? ("" as EnvironmentId),
+  );
+  const canOperateActivePreview = useEnvironmentScope(
+    activeThread?.environmentId ?? null,
+    AuthPreviewOperateScope,
   );
   const canShareActiveThreadWithGuest = useAtomValue(
     canShareWithGuestAtom(activeThread?.environmentId ?? ("" as EnvironmentId)),
@@ -1398,6 +1403,20 @@ function OpenCommandPaletteDialog(props: {
       icon: <PullRequestGlyph.link className={ITEM_ICON_CLASS} />,
       run: async () => {
         useRightPanelStore.getState().open(threadRef, "pull-requests");
+      },
+    });
+  }
+
+  if (activeThread !== null && canOperateActivePreview) {
+    const threadRef = scopeThreadRef(activeThread.environmentId, activeThread.id);
+    actionItems.push({
+      kind: "action",
+      value: "action:open-server-desktop",
+      searchTerms: ["desktop", "remote", "vnc", "chrome", "login", "桌面"],
+      title: "打开服务器桌面",
+      icon: <MonitorIcon className={ITEM_ICON_CLASS} />,
+      run: async () => {
+        useRightPanelStore.getState().open(threadRef, "server-desktop");
       },
     });
   }

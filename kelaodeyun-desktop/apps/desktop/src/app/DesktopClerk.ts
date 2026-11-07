@@ -23,6 +23,7 @@ import * as DesktopUserData from "./DesktopUserData.ts";
 import * as DesktopEnvironment from "./DesktopEnvironment.ts";
 import { openClerkTokenStorage } from "./ClerkTokenStore.ts";
 import * as DesktopWebLinks from "./DesktopWebLinks.ts";
+import * as DesktopAccount from "../account/DesktopAccount.ts";
 
 declare const __T3CODE_BUILD_CLERK_PUBLISHABLE_KEY__: string | undefined;
 
@@ -61,6 +62,7 @@ export class DesktopClerk extends Context.Service<
       | ElectronApp.ElectronApp
       | ElectronWindow.ElectronWindow
       | DesktopWebLinks.DesktopWebLinks
+      | DesktopAccount.DesktopAccount
       | Scope.Scope
     >;
   }
@@ -162,6 +164,7 @@ export const make = Effect.gen(function* () {
       const electronApp = yield* ElectronApp.ElectronApp;
       const electronWindow = yield* ElectronWindow.ElectronWindow;
       const webLinks = yield* DesktopWebLinks.DesktopWebLinks;
+      const account = yield* DesktopAccount.DesktopAccount;
       const context = yield* Effect.context<ElectronWindow.ElectronWindow>();
       const runPromise = Effect.runPromiseWith(context);
 
@@ -216,13 +219,19 @@ export const make = Effect.gen(function* () {
         return true;
       };
       const args = yield* HostProcess.Arguments;
-      args.some((value) => startProviderAuthHandoff(value) || openAppLink(value));
+      const receiveAccountCallback = (value: string | undefined) =>
+        value !== undefined && account.receiveCallback(value);
+      args.some(
+        (value) =>
+          receiveAccountCallback(value) || startProviderAuthHandoff(value) || openAppLink(value),
+      );
       const openWebLink = (url: string) => {
         if (!DesktopWebLinks.isWebLink(url)) return false;
         void runPromise(webLinks.receive(url));
         return true;
       };
       handleOpenUrl = (url) =>
+        receiveAccountCallback(url) ||
         startProviderAuthHandoff(url) ||
         resumeProviderAuth(url) ||
         openWebLink(url) ||
@@ -237,7 +246,10 @@ export const make = Effect.gen(function* () {
         if (
           argv?.some(
             (value) =>
-              startProviderAuthHandoff(value) || resumeProviderAuth(value) || openAppLink(value),
+              receiveAccountCallback(value) ||
+              startProviderAuthHandoff(value) ||
+              resumeProviderAuth(value) ||
+              openAppLink(value),
           )
         )
           return;

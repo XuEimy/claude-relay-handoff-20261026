@@ -38,6 +38,7 @@ import { CSS } from "@dnd-kit/utilities";
 import {
   Smartphone,
   ChevronDown,
+  Monitor,
   ChevronLeft,
   ChevronRight,
   FileDiff,
@@ -141,6 +142,7 @@ export interface RightPanelTabsProps {
   onAddPullRequest: () => void;
   onAddPullRequests: () => void;
   onAddDevice: () => void;
+  onAddServerDesktop: () => void;
   /** Absent where side chats are not offered. */
   onAddSideChat?: (() => void) | undefined;
   browserAvailable: boolean;
@@ -150,6 +152,7 @@ export interface RightPanelTabsProps {
   pullRequestAvailable: boolean;
   pullRequestsAvailable: boolean;
   deviceAvailable: boolean;
+  serverDesktopAvailable: boolean;
   sideChatAvailable?: boolean;
   /** Overrides the default reason while side chats are available but cannot start. */
   sideChatDisabledReason?: string | null;
@@ -179,6 +182,7 @@ const SURFACE_DISABLED_REASONS = {
   pullRequest: "This thread's branch has no pull request yet.",
   pullRequests: "No linked pull requests are available for this thread.",
   device: "Devices are only available from a thread.",
+  serverDesktop: "The desktop needs permission to operate this environment's browser.",
   sideChat: "Side chats start after the first message.",
 } as const;
 
@@ -204,6 +208,7 @@ const SURFACE_UNAVAILABLE_HINTS = {
   pullRequest: "No pull request on this branch yet.",
   pullRequests: "No linked pull requests available.",
   device: "Available from a thread.",
+  serverDesktop: "Needs browser control permission.",
   sideChat: "Available after the first message.",
 } as const;
 
@@ -322,6 +327,7 @@ function RightPanelEmptyState(props: {
   onAddPullRequest: () => void;
   onAddPullRequests: () => void;
   onAddDevice: () => void;
+  onAddServerDesktop: () => void;
   /** Absent where side chats are not offered. */
   onAddSideChat?: (() => void) | undefined;
   browserAvailable: boolean;
@@ -331,12 +337,22 @@ function RightPanelEmptyState(props: {
   pullRequestAvailable: boolean;
   pullRequestsAvailable: boolean;
   deviceAvailable: boolean;
+  serverDesktopAvailable: boolean;
   sideChatAvailable: boolean;
   sideChatDisabledReason: string | null;
 }) {
   const [highlight, setHighlight] = useState(-1);
 
   const actions = [
+    {
+      label: "桌面",
+      description: "Use a real browser on this environment's server, such as to sign in.",
+      icon: Monitor,
+      shortcut: "R",
+      available: props.serverDesktopAvailable,
+      disabledReason: SURFACE_UNAVAILABLE_HINTS.serverDesktop,
+      onClick: props.onAddServerDesktop,
+    },
     {
       label: "浏览器",
       icon: Globe2,
@@ -384,15 +400,6 @@ function RightPanelEmptyState(props: {
       available: props.pullRequestsAvailable,
       disabledReason: SURFACE_UNAVAILABLE_HINTS.pullRequests,
       onClick: props.onAddPullRequests,
-    },
-    {
-      label: "设备",
-      description: "Watch an iOS Simulator or Android Emulator.",
-      icon: Smartphone,
-      shortcut: "M",
-      available: props.deviceAvailable,
-      disabledReason: SURFACE_UNAVAILABLE_HINTS.device,
-      onClick: props.onAddDevice,
     },
     ...(props.onAddSideChat
       ? [
@@ -590,6 +597,8 @@ function surfaceTitle(
       return `#${surface.number}`;
     case "pull-requests":
       return "拉取请求";
+    case "server-desktop":
+      return "桌面";
     case "device":
       return surface.title ?? surface.target?.name ?? "设备";
     case "side-chat":
@@ -682,6 +691,8 @@ function SurfaceIcon({
       );
     case "pull-requests":
       return <PullRequestGlyph.link className="size-3 shrink-0" />;
+    case "server-desktop":
+      return <Monitor className="size-3 shrink-0" />;
     case "side-chat":
       return <SideChatTabIcon environmentId={environmentId} threadId={surface.threadId} />;
     case "device":
@@ -1092,6 +1103,14 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
 
   const addSurfaceActions = [
     {
+      label: "桌面",
+      icon: Monitor,
+      shortcut: "R",
+      available: props.serverDesktopAvailable,
+      disabledReason: SURFACE_DISABLED_REASONS.serverDesktop,
+      onClick: props.onAddServerDesktop,
+    },
+    {
       label: "浏览器",
       icon: Globe2,
       shortcut: "B",
@@ -1138,14 +1157,6 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
       available: props.pullRequestsAvailable,
       disabledReason: SURFACE_DISABLED_REASONS.pullRequests,
       onClick: props.onAddPullRequests,
-    },
-    {
-      label: "设备",
-      icon: Smartphone,
-      shortcut: "M",
-      available: props.deviceAvailable,
-      disabledReason: SURFACE_DISABLED_REASONS.device,
-      onClick: props.onAddDevice,
     },
     ...(props.onAddSideChat
       ? [
@@ -1533,6 +1544,7 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
             onAddPullRequest={props.onAddPullRequest}
             onAddPullRequests={props.onAddPullRequests}
             onAddDevice={props.onAddDevice}
+            onAddServerDesktop={props.onAddServerDesktop}
             onAddSideChat={props.onAddSideChat}
             browserAvailable={props.browserAvailable}
             terminalAvailable={props.terminalAvailable}
@@ -1541,6 +1553,7 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
             pullRequestAvailable={props.pullRequestAvailable}
             pullRequestsAvailable={props.pullRequestsAvailable}
             deviceAvailable={props.deviceAvailable}
+            serverDesktopAvailable={props.serverDesktopAvailable}
             sideChatAvailable={props.sideChatAvailable === true}
             sideChatDisabledReason={props.sideChatDisabledReason ?? null}
           />

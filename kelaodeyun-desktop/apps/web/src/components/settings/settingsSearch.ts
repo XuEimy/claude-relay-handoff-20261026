@@ -339,14 +339,6 @@ export const SETTINGS_SEARCH_ITEMS = [
     searchTerms: ["wide full width column layout messages composer monitor"],
   },
   {
-    id: "thread-details-items",
-    title: "会话详情",
-    to: "/settings/appearance",
-    searchTerms: [
-      "customize show hide panel card environment editor scripts branch pull request git changes servers automations lineage usage limits 5 hour weekly quota tokens context window",
-    ],
-  },
-  {
     id: "effort-display",
     title: "思考强度显示",
     to: "/settings/appearance",
@@ -1410,7 +1402,6 @@ const SETTINGS_ENGLISH_TITLES: Readonly<Record<string, string>> = {
   "setting-glass-opacity": "Glass opacity",
   "diff-color-scheme": "Diff colors",
   "chat-width": "Chat width",
-  "thread-details-items": "Thread details",
   "effort-display": "Effort display",
   "interactive-answers": "Interactive answers",
   "math-rendering": "Render math",

@@ -143,6 +143,19 @@ contextBridge.exposeInMainWorld("desktopBridge", {
   getConnectionCatalog: () => ipcRenderer.invoke(IpcChannels.GET_CONNECTION_CATALOG_CHANNEL),
   setConnectionCatalog: (catalog) =>
     ipcRenderer.invoke(IpcChannels.SET_CONNECTION_CATALOG_CHANNEL, catalog),
+  getAccountState: () => ipcRenderer.invoke(IpcChannels.GET_ACCOUNT_STATE_CHANNEL),
+  signInAccount: () => ipcRenderer.invoke(IpcChannels.SIGN_IN_ACCOUNT_CHANNEL),
+  signOutAccount: () => ipcRenderer.invoke(IpcChannels.SIGN_OUT_ACCOUNT_CHANNEL),
+  onAccountState: (listener) => {
+    const wrapped = (_event: Electron.IpcRendererEvent, state: Parameters<typeof listener>[0]) =>
+      listener(state);
+    ipcRenderer.on(IpcChannels.ACCOUNT_STATE_CHANNEL, wrapped);
+    return () => ipcRenderer.removeListener(IpcChannels.ACCOUNT_STATE_CHANNEL, wrapped);
+  },
+  listAccountHosts: () => ipcRenderer.invoke(IpcChannels.LIST_ACCOUNT_HOSTS_CHANNEL),
+  pickAccountPrivateKey: () => ipcRenderer.invoke(IpcChannels.PICK_ACCOUNT_PRIVATE_KEY_CHANNEL),
+  saveAccountHost: (input) => ipcRenderer.invoke(IpcChannels.SAVE_ACCOUNT_HOST_CHANNEL, input),
+  deleteAccountHost: (id) => ipcRenderer.invoke(IpcChannels.DELETE_ACCOUNT_HOST_CHANNEL, id),
   discoverSshHosts: () => ipcRenderer.invoke(IpcChannels.DISCOVER_SSH_HOSTS_CHANNEL),
   resolveSshHost: (alias) => ipcRenderer.invoke(IpcChannels.RESOLVE_SSH_HOST_CHANNEL, alias),
   ensureSshEnvironment: async (target, options) =>
@@ -152,6 +165,16 @@ contextBridge.exposeInMainWorld("desktopBridge", {
         ...(options === undefined ? {} : { options }),
       }),
     ),
+  onSshEnvironmentProgress: (listener) => {
+    const handler = (
+      _event: unknown,
+      progress: Parameters<
+        Parameters<NonNullable<DesktopBridge["onSshEnvironmentProgress"]>>[0]
+      >[0],
+    ) => listener(progress);
+    ipcRenderer.on(IpcChannels.SSH_ENVIRONMENT_PROGRESS_CHANNEL, handler);
+    return () => ipcRenderer.removeListener(IpcChannels.SSH_ENVIRONMENT_PROGRESS_CHANNEL, handler);
+  },
   registerCloudDownloadSource: (input) =>
     ipcRenderer.invoke(IpcChannels.REGISTER_CLOUD_DOWNLOAD_SOURCE_CHANNEL, input),
   releaseCloudDownloadSource: (url) =>

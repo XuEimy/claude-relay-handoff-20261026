@@ -6,10 +6,14 @@ import type {
   ScopedProjectRef,
   ScopedThreadRef,
 } from "@t3tools/contracts";
-import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/models";
+import type {
+  EnvironmentProject,
+  EnvironmentThreadShell,
+} from "@t3tools/client-runtime/state/models";
 import { scopeProjectRef } from "@t3tools/client-runtime/environment";
 import {
   ChevronRightIcon,
+  ArchiveIcon,
   FolderIcon,
   FolderOpenIcon,
   PlusIcon,
@@ -20,8 +24,174 @@ import {
 import { useProjects, useThreadShells } from "../../state/entities";
 import { SidebarInteractiveRow } from "./SidebarInteractiveRow";
 import { SidebarHeaderIconButton } from "./SidebarThreadHeader";
-import { CloudClaudeSessions } from "./CloudClaudeSessions";
+import {
+  CloudClaudeSessions,
+  NativeSessionRow,
+  useNativeClaudeSessions,
+  useNativeSessionActions,
+} from "./CloudClaudeSessions";
 import { SidebarErrorDialog } from "./SidebarErrorDialog";
+import { CloudSessionRow } from "./CloudSessionRow";
+import { useCloudClaudeStatusPolling } from "./cloudClaudeStatus";
+import { useSessionLight } from "./useSessionLight";
+import { WorkspaceLoadingPlaceholder } from "../WorkspaceLoadingPlaceholder";
+import { useArchivedThreadSnapshots } from "../../lib/archivedThreadsState";
+import {
+  paginateProjectSessions,
+  PROJECT_SESSION_INITIAL,
+  PROJECT_SESSION_PAGE,
+} from "./projectSessionPage";
+import { defaultCloudSidebarState, useCloudSidebarState } from "./cloudSidebarState";
+import { defaultComputerScope, projectInComputerScope } from "./computerPicker";
+import { useComputerScopeStore } from "./computerScopeStore";
+
+function AppThreadRow({
+  thread,
+  active,
+  onClick,
+  onRename,
+  onArchive,
+  actions,
+}: {
+  thread: EnvironmentThreadShell;
+  active: boolean;
+  onClick: () => void;
+  onRename: (title: string) => void;
+  onArchive: () => void;
+  actions: React.ReactNode;
+}) {
+  const light = useSessionLight(thread.environmentId, undefined, thread, active);
+  return (
+    <CloudSessionRow
+      className="pr-24"
+      title={thread.title || "新会话"}
+      light={light}
+      active={active}
+      aria-current={active ? "page" : undefined}
+      onClick={onClick}
+      onRename={onRename}
+      onArchive={onArchive}
+      actions={actions}
+    />
+  );
+}
+
+function ProjectFolder({
+  project,
+  threads,
+  currentThreadRef,
+  query,
+  open,
+  draft,
+  archivedThreadIds,
+  visibleCount,
+  onShowMore,
+  onRenameThread,
+  onArchiveThread,
+  renderThread,
+}: {
+  project: EnvironmentProject;
+  threads: readonly EnvironmentThreadShell[];
+  currentThreadRef: ScopedThreadRef | null;
+  query: string;
+  open: boolean;
+  draft: boolean;
+  archivedThreadIds: ReadonlySet<string>;
+  visibleCount: number;
+  onShowMore: () => void;
+  onRenameThread: (ref: ScopedThreadRef, title: string, originalTitle: string) => void;
+  onArchiveThread: (ref: ScopedThreadRef, title: string) => Promise<void>;
+  renderThread: (thread: EnvironmentThreadShell) => React.ReactNode;
+}) {
+  const { environmentId } = project;
+  const {
+    sessions,
+    loading,
+    connected,
+    error: listError,
+  } = useNativeClaudeSessions({
+    environmentId,
+    cwd: project.workspaceRoot,
+    enabled: true,
+  });
+  const { resume, rename, archive, importing, importingSessionId, error } = useNativeSessionActions(
+    {
+      environmentId,
+      projectId: project.id,
+      cwd: project.workspaceRoot,
+      currentThreadRef,
+      onRenameThread,
+      onArchiveThread,
+    },
+  );
+  const search = query.trim().toLowerCase();
+  const appItems = threads
+    .filter(
+      (thread) =>
+        thread.projectId === project.id &&
+        !thread.id.startsWith("cloud-claude-") &&
+        thread.title.toLowerCase().includes(search),
+    )
+    .map((thread) => ({ kind: "app" as const, thread, updatedAt: Date.parse(thread.updatedAt) }));
+  const nativeItems = sessions
+    .filter((session) => !archivedThreadIds.has(`cloud-claude-${session.id}`))
+    .map((session) => ({
+      kind: "native" as const,
+      session,
+      thread: threads.find((thread) => thread.id === `cloud-claude-${session.id}`) ?? null,
+      updatedAt: session.updatedAt * 1000,
+    }))
+    .filter(({ session, thread }) =>
+      (thread?.title || session.title).toLowerCase().includes(search),
+    );
+  const items = [...appItems, ...nativeItems].toSorted((a, b) => b.updatedAt - a.updatedAt);
+  const isActive = (id: string) =>
+    currentThreadRef?.environmentId === environmentId && currentThreadRef.threadId === id;
+  const { visible, remaining } = paginateProjectSessions(items, visibleCount, (item) =>
+    isActive(item.kind === "app" ? item.thread.id : `cloud-claude-${item.session.id}`),
+  );
+  return (
+    <div hidden={!open} className="mb-1 ml-5" role="group" aria-label={`${project.title} 的对话`}>
+      {draft ? (
+        <SidebarInteractiveRow active aria-current="page">
+          <span className="truncate">新会话</span>
+        </SidebarInteractiveRow>
+      ) : null}
+      {loading ? <WorkspaceLoadingPlaceholder compact /> : null}
+      {visible.map((item) =>
+        item.kind === "app" ? (
+          renderThread(item.thread)
+        ) : (
+          <NativeSessionRow
+            key={item.session.id}
+            session={item.session}
+            thread={item.thread}
+            environmentId={environmentId}
+            active={isActive(`cloud-claude-${item.session.id}`)}
+            pending={importingSessionId === item.session.id}
+            disabled={importing || !connected}
+            rowClassName={undefined}
+            actions={undefined}
+            onResume={() => void resume(item.session)}
+            onRename={(title) => void rename(item.session, item.thread, title)}
+            onArchive={() => void archive(item.session, item.thread)}
+          />
+        ),
+      )}
+      {remaining > 0 ? (
+        <button
+          type="button"
+          className="px-3 py-1 text-xs text-muted-foreground hover:text-sidebar-foreground"
+          onClick={onShowMore}
+        >
+          展示更多
+        </button>
+      ) : null}
+      {error ? <SidebarErrorDialog key={error} message={error} /> : null}
+      {listError ? <SidebarErrorDialog key={listError} message={listError} /> : null}
+    </div>
+  );
+}
 
 export function CloudProjectSidebar({
   environmentId,
@@ -33,6 +203,8 @@ export function CloudProjectSidebar({
   onAddProject,
   onNewThread,
   onTogglePin,
+  onRenameThread,
+  onArchiveThread,
 }: {
   environmentId: EnvironmentId;
   currentProjectId: ProjectId | undefined;
@@ -43,11 +215,22 @@ export function CloudProjectSidebar({
   onAddProject: () => void;
   onNewThread: (project: ScopedProjectRef) => Promise<unknown>;
   onTogglePin: (thread: ScopedThreadRef, pinned: boolean) => void;
+  onRenameThread: (thread: ScopedThreadRef, title: string, originalTitle: string) => void;
+  onArchiveThread: (thread: ScopedThreadRef, title: string) => Promise<void>;
 }) {
+  useCloudClaudeStatusPolling(environmentId);
+  const { snapshots } = useArchivedThreadSnapshots([environmentId]);
+  const archivedThreadIds = new Set(
+    snapshots.flatMap(({ snapshot }) => snapshot.threads.map((thread) => thread.id)),
+  );
+  const computerScope = useComputerScopeStore(
+    (state) => state.byEnvironmentId[environmentId] ?? defaultComputerScope,
+  );
   const projects = useProjects().filter(
     (project) =>
       project.environmentId === environmentId &&
       !project.archivedAt &&
+      projectInComputerScope(project.workspaceRoot, computerScope) &&
       (!projectIds.length || projectIds.includes(project.id)),
   );
   const threads = useThreadShells().filter(
@@ -56,10 +239,10 @@ export function CloudProjectSidebar({
       !thread.archivedAt &&
       projects.some((project) => project.id === thread.projectId),
   );
-  const [pinnedOpen, setPinnedOpen] = useState(true);
-  const [projectsOpen, setProjectsOpen] = useState(true);
-  const [recentOpen, setRecentOpen] = useState(true);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const { pinnedOpen, projectsOpen, recentOpen, expanded, visibleCounts } = useCloudSidebarState(
+    (state) => state.byEnvironmentId[environmentId] ?? defaultCloudSidebarState,
+  );
+  const updateSidebar = useCloudSidebarState((state) => state.update);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const search = query.trim().toLowerCase();
@@ -78,14 +261,24 @@ export function CloudProjectSidebar({
       setError(cause instanceof Error ? cause.message : "打开项目失败");
     }
   };
-  const rowContent = (thread: EnvironmentThreadShell) => {
+  const row = (thread: EnvironmentThreadShell) => {
     const project = projects.find((item) => item.id === thread.projectId);
+    const actions = (
+      <SidebarHeaderIconButton
+        label={`${thread.pinnedAt ? "取消置顶" : "置顶"}：${thread.title || "新会话"}`}
+        onClick={() =>
+          onTogglePin({ environmentId, threadId: thread.id }, Boolean(thread.pinnedAt))
+        }
+      >
+        {thread.pinnedAt ? <PinOffIcon /> : <PinIcon />}
+      </SidebarHeaderIconButton>
+    );
     if (thread.id.startsWith("cloud-claude-") && project)
       return (
         <CloudClaudeSessions
           key={thread.id}
           nested
-          rowClassName="pr-10"
+          rowClassName="pr-24"
           session={{
             id: thread.id.slice(13),
             title: thread.title,
@@ -96,42 +289,34 @@ export function CloudProjectSidebar({
           cwd={thread.worktreePath ?? project.workspaceRoot}
           currentThreadRef={currentThreadRef}
           query={query}
+          onRenameThread={onRenameThread}
+          onArchiveThread={onArchiveThread}
+          archivedThreadIds={archivedThreadIds}
+          actions={actions}
         />
       );
     return (
-      <SidebarInteractiveRow
-        className="pr-10"
+      <AppThreadRow
         key={thread.id}
+        thread={thread}
         active={
           currentThreadRef?.environmentId === environmentId &&
           currentThreadRef.threadId === thread.id
         }
+        onRename={(title) =>
+          onRenameThread({ environmentId, threadId: thread.id }, title, thread.title)
+        }
+        onArchive={() => void onArchiveThread({ environmentId, threadId: thread.id }, thread.title)}
+        actions={actions}
         onClick={() => {
           void navigate({
             to: "/$environmentId/$threadId",
             params: { environmentId, threadId: thread.id },
           });
         }}
-      >
-        <span className="min-w-0 flex-1 truncate">{thread.title || "新会话"}</span>
-      </SidebarInteractiveRow>
+      />
     );
   };
-  const row = (thread: EnvironmentThreadShell) => (
-    <div key={thread.id} className="group/conversation relative rounded-md">
-      {rowContent(thread)}
-      <span className="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/conversation:pointer-events-auto group-hover/conversation:opacity-100 group-has-[:focus-visible]/conversation:pointer-events-auto group-has-[:focus-visible]/conversation:opacity-100">
-        <SidebarHeaderIconButton
-          label={`${thread.pinnedAt ? "取消置顶" : "置顶"}：${thread.title || "新会话"}`}
-          onClick={() =>
-            onTogglePin({ environmentId, threadId: thread.id }, Boolean(thread.pinnedAt))
-          }
-        >
-          {thread.pinnedAt ? <PinOffIcon /> : <PinIcon />}
-        </SidebarHeaderIconButton>
-      </span>
-    </div>
-  );
   return (
     <div className="px-2 py-3">
       <section aria-label="置顶对话" className="mb-5">
@@ -139,7 +324,9 @@ export function CloudProjectSidebar({
           <button
             type="button"
             aria-expanded={pinnedOpen}
-            onClick={() => setPinnedOpen((open) => !open)}
+            onClick={() =>
+              updateSidebar(environmentId, (state) => ({ ...state, pinnedOpen: !state.pinnedOpen }))
+            }
             className="flex cursor-pointer items-center gap-1.5 rounded-sm py-1 text-xs font-black text-sidebar-foreground/80 transition-colors hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring"
           >
             置顶
@@ -157,7 +344,12 @@ export function CloudProjectSidebar({
             <button
               type="button"
               aria-expanded={projectsOpen}
-              onClick={() => setProjectsOpen((open) => !open)}
+              onClick={() =>
+                updateSidebar(environmentId, (state) => ({
+                  ...state,
+                  projectsOpen: !state.projectsOpen,
+                }))
+              }
               className="flex cursor-pointer items-center gap-1.5 rounded-sm py-1 text-xs font-black text-sidebar-foreground/80 transition-colors hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring"
             >
               项目
@@ -175,13 +367,9 @@ export function CloudProjectSidebar({
         </div>
         <div hidden={!projectsOpen}>
           {projects.map((project) => {
-            const open = expanded[project.id] ?? draftProjectId === project.id;
-            const nativeThreads = threads.filter(
-              (thread) =>
-                thread.projectId === project.id &&
-                !thread.id.startsWith("cloud-claude-") &&
-                thread.title.toLowerCase().includes(search),
-            );
+            const open =
+              expanded[project.id] ??
+              (draftProjectId === project.id || currentProjectId === project.id);
             const Folder = open ? FolderOpenIcon : FolderIcon;
             return (
               <div key={project.id}>
@@ -190,7 +378,10 @@ export function CloudProjectSidebar({
                     className="pr-9"
                     aria-expanded={open}
                     onClick={() =>
-                      setExpanded((previous) => ({ ...previous, [project.id]: !open }))
+                      updateSidebar(environmentId, (state) => ({
+                        ...state,
+                        expanded: { ...state.expanded, [project.id]: !open },
+                      }))
                     }
                   >
                     <Folder
@@ -209,29 +400,33 @@ export function CloudProjectSidebar({
                     </SidebarHeaderIconButton>
                   </span>
                 </div>
-                {expanded[project.id] !== undefined || draftProjectId === project.id ? (
-                  <div
-                    hidden={!open}
-                    className="mb-1 ml-5"
-                    role="group"
-                    aria-label={`${project.title} 的对话`}
-                  >
-                    {draftProjectId === project.id ? (
-                      <SidebarInteractiveRow active aria-current="page">
-                        <span className="truncate">新会话</span>
-                      </SidebarInteractiveRow>
-                    ) : null}
-                    {nativeThreads.map(row)}
-                    <CloudClaudeSessions
-                      nested
-                      showEmpty={false}
-                      environmentId={environmentId}
-                      projectId={project.id}
-                      cwd={project.workspaceRoot}
-                      currentThreadRef={currentThreadRef}
-                      query={query}
-                    />
-                  </div>
+                {expanded[project.id] !== undefined ||
+                draftProjectId === project.id ||
+                currentProjectId === project.id ? (
+                  <ProjectFolder
+                    project={project}
+                    threads={threads}
+                    currentThreadRef={currentThreadRef}
+                    query={query}
+                    open={open}
+                    draft={draftProjectId === project.id}
+                    archivedThreadIds={archivedThreadIds}
+                    visibleCount={visibleCounts[project.id] ?? PROJECT_SESSION_INITIAL}
+                    onShowMore={() =>
+                      updateSidebar(environmentId, (state) => ({
+                        ...state,
+                        visibleCounts: {
+                          ...state.visibleCounts,
+                          [project.id]:
+                            (state.visibleCounts[project.id] ?? PROJECT_SESSION_INITIAL) +
+                            PROJECT_SESSION_PAGE,
+                        },
+                      }))
+                    }
+                    onRenameThread={onRenameThread}
+                    onArchiveThread={onArchiveThread}
+                    renderThread={row}
+                  />
                 ) : null}
               </div>
             );
@@ -244,7 +439,12 @@ export function CloudProjectSidebar({
             <button
               type="button"
               aria-expanded={recentOpen}
-              onClick={() => setRecentOpen((open) => !open)}
+              onClick={() =>
+                updateSidebar(environmentId, (state) => ({
+                  ...state,
+                  recentOpen: !state.recentOpen,
+                }))
+              }
               className="flex cursor-pointer items-center gap-1.5 rounded-sm py-1 text-xs font-black text-sidebar-foreground/80 transition-colors hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring"
             >
               最近
@@ -275,6 +475,14 @@ export function CloudProjectSidebar({
           ) : null}
         </div>
       </section>
+      <button
+        type="button"
+        className="mt-5 flex items-center gap-2 px-3 py-1 text-xs text-muted-foreground hover:text-sidebar-foreground"
+        onClick={() => void navigate({ to: "/settings/archived" })}
+      >
+        <ArchiveIcon aria-hidden="true" className="size-3.5" />
+        已归档会话
+      </button>
       {error ? <SidebarErrorDialog key={error} message={error} /> : null}
     </div>
   );

@@ -1103,14 +1103,9 @@ export function PullRequestsPage() {
   const panelToggleControls = (
     <PanelLayoutControls
       showTerminalControl={false}
-      showThreadPanelControl={false}
       terminalAvailable={false}
       terminalOpen={false}
       terminalShortcutLabel={null}
-      threadPanelOpen={false}
-      threadPanelPresentation="inline"
-      threadPanelShortcutLabel={null}
-      onToggleThreadPanel={() => undefined}
       rightPanelAvailable={rightPanelAvailable}
       rightPanelOpen={rightPanelState.isOpen}
       rightPanelShortcutLabel={shortcutLabelForCommand(keybindings, "rightPanel.toggle")}
@@ -1496,6 +1491,7 @@ export function PullRequestsPage() {
             onAddPullRequest={() => undefined}
             onAddPullRequests={() => undefined}
             onAddDevice={() => undefined}
+            onAddServerDesktop={() => undefined}
             browserAvailable={false}
             terminalAvailable={false}
             diffAvailable={false}
@@ -1503,6 +1499,7 @@ export function PullRequestsPage() {
             pullRequestAvailable={false}
             pullRequestsAvailable={false}
             deviceAvailable={false}
+            serverDesktopAvailable={false}
             pullRequestStatusSeeds={listedPullRequestTabStatuses}
           >
             <PullRequestDetailPanel

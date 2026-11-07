@@ -1,4 +1,5 @@
 import { claimFirstClaudeTerminal, releaseFailedClaudeTerminal } from "./firstClaudeTerminal";
+import { claudeSettingsArgument } from "../sidebar/cloudClaudeStatus";
 import * as Option from "effect/Option";
 import { useEnvironments } from "../../state/environments";
 import {
@@ -136,17 +137,19 @@ export function useThreadTerminalActions(threadRef: ScopedThreadRef | null) {
         return opened;
       }
       if (!shouldStartClaude) return opened;
+      let settingsArgument = "";
       if (cloudProfile?._tag === "SshConnectionProfile" && window.desktopBridge?.sshFileOperation) {
-        await window.desktopBridge.sshFileOperation({
+        const output = await window.desktopBridge.sshFileOperation({
           target: cloudProfile.target,
           cwd: location.cwd,
           relativePath: ".",
           operation: "claude-trust",
         });
+        settingsArgument = claudeSettingsArgument(output);
       }
       return writeTerminal({
         environmentId: threadRef.environmentId,
-        input: { threadId: threadRef.threadId, terminalId, data: "claude\n" },
+        input: { threadId: threadRef.threadId, terminalId, data: `claude${settingsArgument}\n` },
       });
     });
     return { terminalId, result };

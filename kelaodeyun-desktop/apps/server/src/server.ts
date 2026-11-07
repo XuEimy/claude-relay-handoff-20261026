@@ -86,6 +86,8 @@ import * as ServerBrowser from "./preview/ServerBrowser.ts";
 import * as PreviewAgentActivity from "./preview/PreviewAgentActivity.ts";
 import * as DesktopBrowserChannel from "./preview/DesktopBrowserChannel.ts";
 import * as ServerBrowserStream from "./preview/ServerBrowserStream.ts";
+import * as ServerDesktop from "./preview/ServerDesktop.ts";
+import * as ServerDesktopStream from "./preview/ServerDesktopStream.ts";
 import * as PreviewBrowser from "./preview/PreviewBrowser.ts";
 import * as ProcessRunner from "./processRunner.ts";
 import * as GitManager from "./git/GitManager.ts";
@@ -773,6 +775,7 @@ const layerMakeRoutes = Layer.mergeAll(
     GuestHttp.layer,
     DeviceHubProxy.layer,
     ServerBrowserStream.routeLayer,
+    ServerDesktopStream.routeLayer,
     ServerHttp.layerStaticAndDevRoute,
     Ws.layer,
   ),
@@ -801,6 +804,7 @@ const layerMakeRoutes = Layer.mergeAll(
     ),
   ),
   Layer.provide(PreviewBrowser.layer),
+  Layer.provide(ServerDesktop.layer),
   // Links to other environments, shared by Settings (WebSocket) and agents (/mcp).
   Layer.provide(
     PeerForwarding.layer.pipe(

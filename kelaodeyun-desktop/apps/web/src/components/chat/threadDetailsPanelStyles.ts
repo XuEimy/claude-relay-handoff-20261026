@@ -10,7 +10,7 @@ const THREAD_DETAILS_PANEL_ROW_SURFACE_CLASS = `${THREAD_DETAILS_PANEL_RESTING_B
 const THREAD_DETAILS_PANEL_SPLIT_BUTTON_SURFACE_CLASS = `${THREAD_DETAILS_PANEL_ROW_SURFACE_CLASS} data-popup-open:!bg-black/[0.035] dark:data-popup-open:!bg-white/[0.08]`;
 const THREAD_DETAILS_PANEL_SPLIT_GROUP_SURFACE_CLASS = `${THREAD_DETAILS_PANEL_HOVER_SURFACE_CLASS} has-[[data-popup-open]]:bg-black/[0.035] dark:has-[[data-popup-open]]:bg-white/[0.08]`;
 
-export const THREAD_DETAILS_PANEL_ROW_CONTENT_CLASS = "gap-2.5 px-2.5 text-left";
+const THREAD_DETAILS_PANEL_ROW_CONTENT_CLASS = "gap-2.5 px-2.5 text-left";
 
 export const THREAD_DETAILS_PANEL_LABEL_CLASS =
   "[text-box:trim-both_cap_alphabetic] overflow-x-clip overflow-y-visible";

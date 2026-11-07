@@ -131,19 +131,30 @@ export const ensureSshEnvironment = DesktopIpc.makeIpcMethod({
   channel: IpcChannels.ENSURE_SSH_ENVIRONMENT_CHANNEL,
   payload: DesktopSshEnvironmentEnsureInputSchema,
   result: DesktopSshEnvironmentEnsureResultSchema,
-  handler: Effect.fn("desktop.ipc.sshEnvironment.ensureEnvironment")(function* ({
-    target,
-    options,
-  }) {
+  handler: Effect.fn("desktop.ipc.sshEnvironment.ensureEnvironment")(function* (
+    { target, options },
+    event,
+  ) {
     const sshEnvironment = yield* DesktopSshEnvironment.DesktopSshEnvironment;
-    return yield* sshEnvironment.ensureEnvironment(target, options).pipe(
-      Effect.catchIf(DesktopSshEnvironment.isDesktopSshPasswordPromptCancellation, (error) =>
-        Effect.succeed({
-          type: DesktopSshPasswordPromptCancelledType,
-          message: error.message,
-        }),
-      ),
-    );
+    return yield* sshEnvironment
+      .ensureEnvironment(target, {
+        ...options,
+        onProgress: (step) =>
+          Effect.sync(() => {
+            const sender = event?.sender;
+            if (sender?.isDestroyed && sender.send && !sender.isDestroyed()) {
+              sender.send(IpcChannels.SSH_ENVIRONMENT_PROGRESS_CHANNEL, { ...step, target });
+            }
+          }),
+      })
+      .pipe(
+        Effect.catchIf(DesktopSshEnvironment.isDesktopSshPasswordPromptCancellation, (error) =>
+          Effect.succeed({
+            type: DesktopSshPasswordPromptCancelledType,
+            message: error.message,
+          }),
+        ),
+      );
   }),
 });
 

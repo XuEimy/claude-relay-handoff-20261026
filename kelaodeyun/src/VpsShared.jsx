@@ -13,7 +13,7 @@ export const labels = { pending_payment: "等待付款", provisioning: "正在�
 export function StatusPill({ status, simulated }) {
   return <span className="vps-status-group"><span className={`vps-status vps-status-${status}`}><span aria-hidden="true" />{labels[status] || status}</span>{simulated && <span className="vps-simulated">测试</span>}</span>;
 }
-export function CopyButton({ value, label = "复制" }) {
+export function CopyButton({ value, label = "复制", sensitive = false }) {
   const [copied, setCopied] = useState(false), [error, setError] = useState(false), timer = useRef();
   useEffect(() => () => clearTimeout(timer.current), []);
   async function copy() {
@@ -23,7 +23,7 @@ export function CopyButton({ value, label = "复制" }) {
       timer.current = setTimeout(() => setCopied(false), 2000);
     } catch { setError(true); }
   }
-  return <button type="button" className="vps-copy" onClick={copy} aria-label={`${label}${value}`}><span aria-live="polite">{copied ? <><Check size={15} /> 已复制</> : error ? "请手动复制" : <><Copy size={15} /> {label}</>}</span></button>;
+  return <button type="button" className="vps-copy" onClick={copy} aria-label={sensitive ? label : `${label}${value}`}><span aria-live="polite">{copied ? <><Check size={15} /> 已复制</> : error ? "请手动复制" : <><Copy size={15} /> {label}</>}</span></button>;
 }
 export function Skeleton({ className = "" }) {
   return <div className={`vps-skeleton ${className}`} aria-hidden="true"><span /><span /><span /></div>;
@@ -41,19 +41,4 @@ export function ConfirmDialog({ action, busy, onClose, onConfirm }) {
 }
 export function Avatar({ user }) {
   return user.avatar ? <img className="vps-avatar" src={user.avatar} alt="" referrerPolicy="no-referrer" /> : <span className="vps-avatar vps-avatar-fallback" aria-hidden="true">{(user.name || user.email || "用").slice(0, 1).toUpperCase()}</span>;
-}
-export function validateKey(value) {
-  if (!value) return { valid: false, error: "" };
-  if (/PRIVATE KEY/i.test(value)) return { valid: false, error: "这是私钥，请勿粘贴。请粘贴以 .pub 结尾的公钥文件内容" };
-  if (/[\r\n]/.test(value)) return { valid: false, error: "公钥应为单行，请检查是否包含换行。" };
-  if (new TextEncoder().encode(value).length > 8192) return { valid: false, error: "公钥不能超过 8 KB。" };
-  const match = value.trim().match(/^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp(?:256|384|521))[ \t]+([A-Za-z0-9+/]+={0,2})(?:[ \t]+([^\r\n]*))?$/);
-  if (!match) return { valid: false, error: "请粘贴有效的 SSH 公钥，支持 ed25519、RSA 和 ECDSA。" };
-  try {
-    const blob = atob(match[2]);
-    if (btoa(blob).replace(/=+$/, "") !== match[2].replace(/=+$/, "") || blob.length < 5) throw Error();
-    const n = blob.charCodeAt(0) * 0x1000000 + (blob.charCodeAt(1) << 16) + (blob.charCodeAt(2) << 8) + blob.charCodeAt(3);
-    if (n <= 0 || n > blob.length - 4 || blob.slice(4, 4 + n) !== match[1]) throw Error();
-  } catch { return { valid: false, error: "公钥内容无效，或公钥类型与内容不匹配。" }; }
-  return { valid: true, type: match[1], comment: match[3] || "" };
 }

@@ -21,7 +21,7 @@ import * as NodeCrypto from "node:crypto";
 import * as ServerConfig from "../config.ts";
 import { openZipArchive } from "../zipArchive.ts";
 
-// Update the version, sizes and hashes from each chrome-headless-shell zip listed at
+// Update the version, sizes and hashes from the chrome-headless-shell and chrome zips listed at
 // https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json
 // Never pin below 156.0.8078.70: the shell has no CRLSet and older SPKI blocklists trust
 // compromised eMudhra intermediates (crrev.com/c/8627687).
@@ -53,6 +53,34 @@ const ARCHIVES = {
   },
 } as const;
 
+interface PinnedArchive {
+  readonly bytes: number;
+  readonly sha256: string;
+}
+
+/** A Chrome for Testing download: `<name>-<platform>.zip` unpacking to `<name>-<platform>/<executable>`. */
+interface BrowserProduct {
+  readonly name: string;
+  readonly archives: Partial<Record<keyof typeof ARCHIVES, PinnedArchive>>;
+}
+
+const HEADLESS_SHELL: BrowserProduct = { name: "chrome-headless-shell", archives: ARCHIVES };
+
+/** Headful Chrome for the server desktop; Linux only, the desktop needs X11. */
+export const DESKTOP_CHROME: BrowserProduct = {
+  name: "chrome",
+  archives: {
+    linux64: {
+      bytes: 201_329_937,
+      sha256: "b711c720f774be355197f32edf37e0651418ba036d92446ee2da19ac017540a7",
+    },
+    "linux-arm64": {
+      bytes: 200_722_708,
+      sha256: "1f496a826c9ba4d6a5f5bf2de686145fe718528c2cc3dbeb96b5893b89653724",
+    },
+  },
+};
+
 const chromePlatform = (platform: NodeJS.Platform, arch: NodeJS.Architecture) => {
   switch (platform) {
     case "linux":
@@ -76,17 +104,19 @@ export interface PreviewBrowserRelease {
 }
 
 const previewBrowserRelease = (
+  product: BrowserProduct,
   platform: NodeJS.Platform,
   arch: NodeJS.Architecture,
 ): PreviewBrowserRelease | null => {
   const chrome = chromePlatform(platform, arch);
-  return chrome === null
+  const archive = chrome === null ? undefined : product.archives[chrome];
+  return chrome === null || archive === undefined
     ? null
     : {
         version: VERSION,
         platform: chrome,
-        url: `https://storage.googleapis.com/chrome-for-testing-public/${VERSION}/${chrome}/chrome-headless-shell-${chrome}.zip`,
-        ...ARCHIVES[chrome],
+        url: `https://storage.googleapis.com/chrome-for-testing-public/${VERSION}/${chrome}/${product.name}-${chrome}.zip`,
+        ...archive,
       };
 };
 
@@ -137,6 +167,8 @@ export class PreviewBrowser extends Context.Service<
 
 export interface PreviewBrowserOptions {
   readonly baseDir: string;
+  /** Defaults to the headless shell. */
+  readonly product?: BrowserProduct;
   readonly release?: PreviewBrowserRelease | null;
   /** How long a caller waits on an install in progress. Provider tool calls time out near 60s. */
   readonly wait?: Duration.Input;
@@ -167,17 +199,19 @@ export const makePreviewBrowser = Effect.fn("PreviewBrowser.make")(function* (
   const serviceScope = yield* Effect.scope;
   const platform = yield* HostProcess.Platform;
   const arch = yield* HostProcess.Architecture;
+  const product = options.product ?? HEADLESS_SHELL;
   const release =
-    options.release === undefined ? previewBrowserRelease(platform, arch) : options.release;
+    options.release === undefined
+      ? previewBrowserRelease(product, platform, arch)
+      : options.release;
   const wait = options.wait ?? "45 seconds";
   const installRoot = path.join(
     options.baseDir,
     "tools",
-    "chrome-headless-shell",
+    product.name,
     release?.platform ?? `${platform}-${arch}`,
   );
-  const executableName =
-    platform === "win32" ? "chrome-headless-shell.exe" : "chrome-headless-shell";
+  const executableName = platform === "win32" ? `${product.name}.exe` : product.name;
   const gate = yield* Semaphore.make(1);
   let state: InstallState = { _tag: "idle" };
   const progress = { downloadedBytes: 0, unpacking: false };
@@ -251,7 +285,7 @@ export const makePreviewBrowser = Effect.fn("PreviewBrowser.make")(function* (
       const unsafe = new PreviewBrowserInstallError({
         detail: "The archive contains an unexpected or unsafe entry.",
       });
-      const root = `chrome-headless-shell-${release.platform}/`;
+      const root = `${product.name}-${release.platform}/`;
       yield* fs.makeDirectory(destination);
       let foundExecutable = false;
       for (;;) {
@@ -293,7 +327,7 @@ export const makePreviewBrowser = Effect.fn("PreviewBrowser.make")(function* (
       }
       if (!foundExecutable) {
         return yield* new PreviewBrowserInstallError({
-          detail: "The archive does not contain chrome-headless-shell.",
+          detail: `The archive does not contain ${product.name}.`,
         });
       }
     },

@@ -55,24 +55,18 @@ const setupBaseDir = Effect.fn("browserSetup.baseDir")(function* (explicit: Opti
   return home ? path.join(home, ".t3") : yield* resolveBaseDir(undefined);
 });
 
-const aptOffers = Effect.fn("browserSetup.aptOffers")(function* (name: string) {
-  const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;
-  const policy = yield* spawner
-    .string(ChildProcess.make("apt-cache", ["policy", name], { stdin: "ignore", stderr: "ignore" }))
-    .pipe(Effect.orElseSucceed(() => ""));
-  const candidate = /Candidate:\s*(\S+)/.exec(policy)?.[1];
-  return candidate !== undefined && candidate !== "(none)";
-});
-
-const installedBrowser = Effect.fn("browserSetup.installedBrowser")(function* (baseDir: string) {
+const installedBrowser = Effect.fn("browserSetup.installedBrowser")(function* (
+  baseDir: string,
+  name: string,
+) {
   const fs = yield* FileSystem.FileSystem;
   const path = yield* Path.Path;
-  const root = path.join(baseDir, "tools", "chrome-headless-shell");
+  const root = path.join(baseDir, "tools", name);
   for (const platform of yield* fs.readDirectory(root).pipe(Effect.orElseSucceed(() => []))) {
     for (const version of yield* fs
       .readDirectory(path.join(root, platform))
       .pipe(Effect.orElseSucceed(() => []))) {
-      const executable = path.join(root, platform, version, "chrome-headless-shell");
+      const executable = path.join(root, platform, version, name);
       if (yield* fs.exists(executable).pipe(Effect.orElseSucceed(() => false))) {
         return Option.some(executable);
       }
@@ -127,11 +121,21 @@ const browserSetupCommand = Command.make("setup", { baseDir: baseDirFlag }).pipe
           ? new PreviewBrowserHost.PreviewBrowserRootError().message
           : undefined;
 
-      const needsProfile = yield* PreviewBrowserHost.sandboxBlocked;
-      const browser = yield* installedBrowser(baseDirPath);
-      const missing = Option.isSome(browser)
-        ? yield* PreviewBrowserHost.missingLibraries(browser.value)
-        : [];
+      const needsProfile =
+        (yield* PreviewBrowserHost.sandboxBlocked) ||
+        (yield* PreviewBrowserHost.desktopSandboxBlocked);
+      const browser = yield* installedBrowser(baseDirPath, "chrome-headless-shell");
+      const desktopBrowser = yield* installedBrowser(baseDirPath, "chrome");
+      const missing = [
+        ...new Set([
+          ...(Option.isSome(browser)
+            ? yield* PreviewBrowserHost.missingLibraries(browser.value)
+            : []),
+          ...(Option.isSome(desktopBrowser)
+            ? yield* PreviewBrowserHost.missingLibraries(desktopBrowser.value)
+            : []),
+        ]),
+      ];
       const needsFonts = !(yield* fontAvailable);
       const hasApt = yield* fs.exists("/usr/bin/apt-get").pipe(Effect.orElseSucceed(() => false));
 
@@ -201,8 +205,10 @@ const browserSetupCommand = Command.make("setup", { baseDir: baseDirFlag }).pipe
       }
 
       if (missing.length > 0) {
-        const packages = yield* Effect.forEach(PreviewBrowserHost.DEBIAN_PACKAGES, (names) =>
-          Effect.findFirst(names, aptOffers).pipe(Effect.map(Option.getOrElse(() => names[0]!))),
+        const packages = yield* PreviewBrowserHost.aptPackages(
+          Option.isSome(desktopBrowser)
+            ? PreviewBrowserHost.DESKTOP_DEBIAN_PACKAGES
+            : PreviewBrowserHost.DEBIAN_PACKAGES,
         );
         yield* runStep("install the browser's libraries", "apt-get", [
           "install",

@@ -43,9 +43,7 @@ export type GitActionRequestInput = Pick<
   "action" | "commitMessage" | "featureBranch" | "filePaths"
 >;
 
-export function changeRequestTerminologyFor(
-  gitStatus: VcsStatusResult | null,
-): ChangeRequestTerminology {
+function changeRequestTerminologyFor(gitStatus: VcsStatusResult | null): ChangeRequestTerminology {
   return sourceControlClients.get(gitStatus?.sourceControlProvider?.kind).changeRequest;
 }
 

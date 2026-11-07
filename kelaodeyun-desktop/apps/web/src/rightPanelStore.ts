@@ -21,6 +21,7 @@ const RIGHT_PANEL_KINDS = [
   "terminal",
   "pull-request",
   "pull-requests",
+  "server-desktop",
   "side-chat",
 ] as const;
 export type RightPanelKind = (typeof RIGHT_PANEL_KINDS)[number];
@@ -76,6 +77,8 @@ export type RightPanelSurface =
       detailTab?: PullRequestDetailTab;
     }
   | { id: "pull-requests"; kind: "pull-requests" }
+  /** A remote desktop of the environment's host, one per environment. */
+  | { id: "server-desktop"; kind: "server-desktop" }
   | { id: `side-chat:${string}`; kind: "side-chat"; threadId: ThreadId };
 
 const RIGHT_PANEL_STORAGE_KEY = "t3code:right-panel-state:v2";
@@ -219,6 +222,8 @@ const singletonSurface = (
       return { id: "pull-requests", kind };
     case "device":
       return { id: "device", kind };
+    case "server-desktop":
+      return { id: "server-desktop", kind };
   }
 };
 
@@ -1220,15 +1225,6 @@ export function selectThreadPanelVisibility(
 ): ThreadPanelVisibility {
   if (!ref) return DEFAULT_THREAD_PANEL_VISIBILITY;
   return byThreadKey[scopedThreadKey(ref)] ?? DEFAULT_THREAD_PANEL_VISIBILITY;
-}
-
-export function selectThreadPanelOpen(
-  byThreadKey: Record<string, ThreadPanelVisibility>,
-  ref: ScopedThreadRef | null | undefined,
-  presentation: ThreadPanelPresentation,
-): boolean {
-  const visibility = selectThreadPanelVisibility(byThreadKey, ref);
-  return presentation === "inline" ? visibility.inlineOpen : visibility.popoverOpen;
 }
 
 export function selectActiveRightPanel(

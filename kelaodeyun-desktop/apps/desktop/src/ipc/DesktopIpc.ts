@@ -5,7 +5,11 @@ import * as Schema from "effect/Schema";
 import * as Scope from "effect/Scope";
 
 export interface DesktopIpcInvokeEvent {
-  readonly sender: { readonly id: number };
+  readonly sender: {
+    readonly id: number;
+    readonly isDestroyed?: () => boolean;
+    readonly send?: (channel: string, payload: unknown) => void;
+  };
 }
 
 export interface DesktopIpcSyncEvent {

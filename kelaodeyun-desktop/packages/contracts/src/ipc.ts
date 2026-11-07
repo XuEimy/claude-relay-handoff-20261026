@@ -391,6 +391,22 @@ export const DesktopSshEnvironmentTargetSchema = Schema.Struct({
 });
 export type DesktopSshEnvironmentTarget = typeof DesktopSshEnvironmentTargetSchema.Type;
 
+export type DesktopSshEnvironmentProgressStep =
+  | { readonly step: "resolving" }
+  | { readonly step: "checking-runtime" }
+  | { readonly step: "runtime-current" }
+  | { readonly step: "uploading-runtime"; readonly sentBytes: number; readonly totalBytes: number }
+  | { readonly step: "starting-server" }
+  | { readonly step: "server-ready"; readonly remoteServerKind: "external" | "managed" | null }
+  | { readonly step: "reusing-tunnel" }
+  | { readonly step: "opening-tunnel" }
+  | { readonly step: "issuing-pairing" }
+  | { readonly step: "ready" };
+
+export type DesktopSshEnvironmentProgress = DesktopSshEnvironmentProgressStep & {
+  readonly target: DesktopSshEnvironmentTarget;
+};
+
 export const DesktopSshFileOperationSchema = Schema.Struct({
   target: DesktopSshEnvironmentTargetSchema,
   cwd: Schema.String,
@@ -401,11 +417,24 @@ export const DesktopSshFileOperationSchema = Schema.Struct({
     "download",
     "download-directory",
     "claude-list",
+    "claude-status",
     "claude-read",
     "claude-trust",
     "claude-info",
+    "computer-list",
+    "computer-peers",
+    "computer-probe",
+    "computer-install-key",
+    "computer-prepare",
   ]),
   contentsBase64: Schema.optional(Schema.String.check(Schema.isMaxLength(44739244))),
+  computer: Schema.optional(Schema.Struct({
+    host: Schema.String,
+    username: Schema.String,
+    label: Schema.String,
+    os: Schema.String,
+    password: Schema.optional(Schema.String),
+  })),
 });
 export type DesktopSshFileOperation = typeof DesktopSshFileOperationSchema.Type;
 
@@ -449,6 +478,63 @@ export interface DesktopSshPasswordPromptRequest {
   prompt: string;
   expiresAt: string;
 }
+
+export const DesktopAccountUserSchema = Schema.Struct({
+  email: Schema.String,
+  name: Schema.NullOr(Schema.String),
+  avatar: Schema.NullOr(Schema.String),
+});
+export type DesktopAccountUser = typeof DesktopAccountUserSchema.Type;
+
+export const DesktopAccountStateSchema = Schema.Union([
+  Schema.Struct({ status: Schema.Literal("signed-out") }),
+  Schema.Struct({ status: Schema.Literal("signed-in"), user: DesktopAccountUserSchema }),
+]);
+export type DesktopAccountState = typeof DesktopAccountStateSchema.Type;
+
+export const DesktopAccountHostSchema = Schema.Struct({
+  id: Schema.String,
+  label: Schema.String,
+  hostname: Schema.String,
+  port: Schema.Number,
+  username: Schema.String,
+  authType: Schema.Literals(["key", "password"]),
+  source: Schema.Literals(["account", "purchased"]),
+});
+export type DesktopAccountHost = typeof DesktopAccountHostSchema.Type;
+
+export function accountHostSshTarget(host: DesktopAccountHost): DesktopSshEnvironmentTarget {
+  const bracketed = /^\[([^\]]+)\](?::\d+)?$/u.exec(host.hostname);
+  const segments = host.hostname.split(":");
+  const hostname =
+    bracketed?.[1] ??
+    (segments.length === 2 && /^\d+$/u.test(segments[1] ?? "") ? segments[0]! : host.hostname);
+  return { alias: hostname, hostname, username: host.username, port: host.port };
+}
+
+export function accountHostMatchesTarget(
+  host: DesktopAccountHost,
+  target: DesktopSshEnvironmentTarget,
+): boolean {
+  const normalized = accountHostSshTarget(host);
+  return (
+    normalized.hostname === target.hostname &&
+    normalized.username === target.username &&
+    normalized.port === (target.port ?? 22)
+  );
+}
+
+export const DesktopAccountHostInputSchema = Schema.Struct({
+  label: Schema.optionalKey(Schema.String),
+  hostname: Schema.String,
+  port: Schema.NullOr(Schema.Number),
+  username: Schema.String,
+  auth: Schema.Union([
+    Schema.Struct({ type: Schema.Literal("key"), privateKeyPath: Schema.String }),
+    Schema.Struct({ type: Schema.Literal("password"), password: Schema.String }),
+  ]),
+});
+export type DesktopAccountHostInput = typeof DesktopAccountHostInputSchema.Type;
 
 export const DesktopSshPasswordPromptCancelledType = "ssh-password-prompt-cancelled" as const;
 
@@ -1069,6 +1155,14 @@ export interface DesktopBridge {
   setClientSettings: (settings: ClientSettings) => Promise<void>;
   getConnectionCatalog: () => Promise<string | null>;
   setConnectionCatalog: (catalog: string) => Promise<boolean>;
+  getAccountState: () => Promise<DesktopAccountState>;
+  signInAccount: () => Promise<DesktopAccountState>;
+  signOutAccount: () => Promise<void>;
+  onAccountState: (listener: (state: DesktopAccountState) => void) => () => void;
+  listAccountHosts: () => Promise<readonly DesktopAccountHost[]>;
+  pickAccountPrivateKey: () => Promise<{ readonly path: string } | null>;
+  saveAccountHost: (input: DesktopAccountHostInput) => Promise<DesktopAccountHost>;
+  deleteAccountHost: (id: string) => Promise<void>;
   discoverSshHosts: () => Promise<readonly DesktopDiscoveredSshHost[]>;
   resolveSshHost: (alias: string) => Promise<DesktopSshEnvironmentTarget>;
   requestSnapShotPermissions: (includeAccessibility: boolean) => Promise<void>;
@@ -1093,6 +1187,9 @@ export interface DesktopBridge {
     target: DesktopSshEnvironmentTarget,
     options?: { issuePairingToken?: boolean },
   ) => Promise<DesktopSshEnvironmentBootstrap>;
+  onSshEnvironmentProgress?: (
+    listener: (event: DesktopSshEnvironmentProgress) => void,
+  ) => () => void;
   registerCloudDownloadSource?: (input: DesktopSshFileOperation) => Promise<string>;
   releaseCloudDownloadSource?: (url: string) => Promise<void>;
   onCloudDownloadStatus?: (

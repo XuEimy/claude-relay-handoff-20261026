@@ -42,6 +42,7 @@ import * as ElectronApp from "../electron/ElectronApp.ts";
 import * as ElectronShell from "../electron/ElectronShell.ts";
 import * as ElectronWindow from "../electron/ElectronWindow.ts";
 import * as DesktopClerk from "./DesktopClerk.ts";
+import * as DesktopAccount from "../account/DesktopAccount.ts";
 import * as DesktopWebLinks from "./DesktopWebLinks.ts";
 import * as DesktopEnvironment from "./DesktopEnvironment.ts";
 import * as DesktopPreReadyFileSystem from "./DesktopPreReadyFileSystem.ts";
@@ -64,6 +65,10 @@ const layerDesktopClerk = (
     copyText: () => Effect.void,
   },
   listeners = new Map<string, (...args: unknown[]) => void>(),
+  accountLayer = Layer.mock(DesktopAccount.DesktopAccount, {
+    receiveCallback: () => false,
+    onChange: () => () => undefined,
+  }),
 ) => {
   const environment = DesktopEnvironment.DesktopEnvironment.of({
     stateDir: clerkStateDir,
@@ -107,6 +112,7 @@ const layerDesktopClerk = (
         fileSystemLayer,
       ),
     ),
+    Layer.provideMerge(accountLayer),
   );
 };
 
@@ -262,6 +268,56 @@ describe("DesktopClerk", () => {
           setRendererReady: () => Effect.void,
         }),
       ),
+    );
+  });
+
+  it.effect("delivers account callbacks from launch arguments and both URL events", () => {
+    storageMock.mockReturnValue(storageAdapter);
+    createClerkBridgeMock.mockReturnValue({ cleanup: vi.fn(), isPrimaryInstance: true });
+    const listeners = new Map<string, (...args: unknown[]) => void>();
+    const received: string[] = [];
+    const launch = "kelaodeyun-dev://app/account/callback?code=launch";
+    const early = "kelaodeyun-dev://app/account/callback?code=early";
+    const later = "kelaodeyun-dev://app/account/callback?code=later";
+    const electronApp = {
+      on: (name: string, listener: (...args: unknown[]) => void) =>
+        Effect.sync(() => {
+          listeners.set(name, listener);
+        }),
+    } as unknown as ElectronApp.ElectronApp["Service"];
+    return Effect.gen(function* () {
+      const clerk = yield* DesktopClerk.DesktopClerk;
+      listeners.get("open-url")?.({ preventDefault: () => undefined }, early);
+      yield* clerk.configure;
+      listeners.get("second-instance")?.({}, ["t3", later]);
+      assert.deepEqual(received, [launch, early, later]);
+    }).pipe(
+      Effect.scoped,
+      Effect.provide(
+        layerDesktopClerk(
+          true,
+          [],
+          "darwin",
+          undefined,
+          undefined,
+          listeners,
+          Layer.mock(DesktopAccount.DesktopAccount, {
+            receiveCallback: (url: string) => {
+              if (!url.includes("/account/callback")) return false;
+              received.push(url);
+              return true;
+            },
+            onChange: () => () => undefined,
+          }),
+        ),
+      ),
+      Effect.provideService(HostProcess.Arguments, ["t3", launch]),
+      Effect.provideService(ElectronApp.ElectronApp, electronApp),
+      Effect.provideService(
+        ElectronWindow.ElectronWindow,
+        {} as ElectronWindow.ElectronWindow["Service"],
+      ),
+      Effect.provideService(DesktopWebLinks.DesktopWebLinks, ignoreWebLinks),
     );
   });
 

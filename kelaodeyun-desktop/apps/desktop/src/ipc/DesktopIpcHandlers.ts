@@ -1,4 +1,5 @@
 import * as Effect from "effect/Effect";
+import * as AccountIpc from "./methods/account.ts";
 
 import { receiveProviderAuthCallback, cancelProviderAuthCallback } from "./methods/providerAuth.ts";
 import * as DesktopIpc from "./DesktopIpc.ts";
@@ -119,6 +120,13 @@ export const installDesktopIpcHandlers = Effect.fn("desktop.ipc.installHandlers"
   yield* ipc.handle(dismissSnapShotAnimation);
   yield* ipc.handle(acknowledgeSnapShot);
   yield* ipc.handle(setConnectionCatalog);
+  yield* ipc.handle(AccountIpc.getAccountState);
+  yield* ipc.handle(AccountIpc.signInAccount);
+  yield* ipc.handle(AccountIpc.signOutAccount);
+  yield* ipc.handle(AccountIpc.listAccountHosts);
+  yield* ipc.handle(AccountIpc.pickAccountPrivateKey);
+  yield* ipc.handle(AccountIpc.saveAccountHost);
+  yield* ipc.handle(AccountIpc.deleteAccountHost);
 
   yield* ipc.handle(discoverSshHosts);
   yield* ipc.handle(resolveSshHost);

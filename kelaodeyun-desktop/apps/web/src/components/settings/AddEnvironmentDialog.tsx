@@ -19,6 +19,8 @@ import * as Option from "effect/Option";
 import { cn } from "../../lib/utils";
 import { formatDesktopSshTarget } from "./EnvironmentRow";
 import { Input } from "../ui/input";
+import { Checkbox } from "../ui/checkbox";
+import { useDesktopAccount } from "../../hooks/useDesktopAccount";
 import { CommandShortcut } from "../ui/command";
 import {
   Autocomplete,
@@ -83,6 +85,11 @@ export function AddEnvironmentDialog({
   readonly onErrorChange: (error: string | null) => void;
 }) {
   const desktopBridge = window.desktopBridge;
+  const account = useDesktopAccount();
+  const [saveToAccount, setSaveToAccount] = useState(false);
+  const [accountAuthType, setAccountAuthType] = useState<"key" | "password">("key");
+  const [privateKeyPath, setPrivateKeyPath] = useState("");
+  const [accountPassword, setAccountPassword] = useState("");
   const keybindings = useAtomValue(primaryServerKeybindingsAtom);
   const connectPairing = useAtomCommand(connectPairingAtom, { reportFailure: false });
   const connectSshEnvironment = useAtomCommand(connectSshEnvironmentAtom, {
@@ -156,6 +163,9 @@ export function AddEnvironmentDialog({
       setSavedBackendSshHost("");
       setSavedBackendSshUsername("");
       setSavedBackendSshPort("");
+      setSaveToAccount(false);
+      setPrivateKeyPath("");
+      setAccountPassword("");
     }
     onOpenChange(nextOpen);
   };
@@ -163,6 +173,25 @@ export function AddEnvironmentDialog({
     const session = savedBackendSessionRef.current;
     setIsAddingSavedBackend(true);
     onErrorChange(null);
+    if (saveToAccount && desktopBridge && account.status === "signed-in") {
+      try {
+        if (!target.username) throw new Error("请填写 SSH 用户名");
+        await desktopBridge.saveAccountHost({
+          hostname: target.hostname,
+          port: target.port,
+          username: target.username,
+          auth:
+            accountAuthType === "key"
+              ? { type: "key", privateKeyPath }
+              : { type: "password", password: accountPassword },
+        });
+      } catch (cause) {
+        if (session === savedBackendSessionRef.current)
+          onErrorChange(cause instanceof Error ? cause.message : "保存账户服务器失败");
+        setIsAddingSavedBackend(false);
+        return;
+      }
+    }
     const result = await connectSshEnvironment({
       target,
       label: "",
@@ -587,6 +616,66 @@ export function AddEnvironmentDialog({
             />
           </label>
         </div>
+        {desktopBridge && account.status === "signed-in" ? (
+          <div className="space-y-3">
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox checked={saveToAccount} onCheckedChange={setSaveToAccount} />
+              保存到账户
+            </label>
+            {saveToAccount ? (
+              <>
+                <div className="flex gap-4 text-sm">
+                  <label>
+                    <input
+                      type="radio"
+                      name="account-auth"
+                      checked={accountAuthType === "key"}
+                      onChange={() => setAccountAuthType("key")}
+                    />{" "}
+                    私钥
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="account-auth"
+                      checked={accountAuthType === "password"}
+                      onChange={() => setAccountAuthType("password")}
+                    />{" "}
+                    密码
+                  </label>
+                </div>
+                {accountAuthType === "key" ? (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        void desktopBridge
+                          .pickAccountPrivateKey()
+                          .then((file) => {
+                            if (file) setPrivateKeyPath(file.path);
+                          })
+                          .catch((cause) =>
+                            onErrorChange(cause instanceof Error ? cause.message : "无法选择私钥"),
+                          );
+                      }}
+                    >
+                      选择文件
+                    </Button>
+                    <span className="truncate text-xs">{privateKeyPath || "尚未选择私钥"}</span>
+                  </div>
+                ) : (
+                  <Input
+                    type="password"
+                    aria-label="SSH 密码"
+                    value={accountPassword}
+                    onChange={(event) => setAccountPassword(event.target.value)}
+                  />
+                )}
+              </>
+            ) : null}
+          </div>
+        ) : null}
         {error || discoveredSshHostsError ? (
           <Alert variant="error">
             <AlertDescription>{error ?? discoveredSshHostsError}</AlertDescription>

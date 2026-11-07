@@ -2,6 +2,7 @@ import type {
   DesktopSshFileOperation,
   DesktopDiscoveredSshHost,
   DesktopSshEnvironmentBootstrap,
+  DesktopSshEnvironmentProgressStep,
   DesktopSshEnvironmentTarget,
 } from "@t3tools/contracts";
 import * as NetService from "@t3tools/shared/Net";
@@ -28,6 +29,7 @@ import * as HttpClient from "effect/http/HttpClient";
 import * as ChildProcessSpawner from "effect/process/ChildProcessSpawner";
 
 import * as DesktopSshPasswordPrompts from "./DesktopSshPasswordPrompts.ts";
+import * as DesktopAccount from "../account/DesktopAccount.ts";
 
 export type DesktopSshEnvironmentRuntimeServices =
   | ChildProcessSpawner.ChildProcessSpawner
@@ -62,7 +64,10 @@ export class DesktopSshEnvironment extends Context.Service<
     ) => Effect.Effect<DesktopSshEnvironmentTarget, SshCommandError | SshInvalidTargetError>;
     readonly ensureEnvironment: (
       target: DesktopSshEnvironmentTarget,
-      options?: { readonly issuePairingToken?: boolean },
+      options?: {
+        readonly issuePairingToken?: boolean;
+        readonly onProgress?: (step: DesktopSshEnvironmentProgressStep) => Effect.Effect<void>;
+      },
     ) => Effect.Effect<DesktopSshEnvironmentBootstrap, DesktopSshEnvironmentOperationError>;
     readonly disconnectEnvironment: (
       target: DesktopSshEnvironmentTarget,
@@ -133,8 +138,24 @@ const makePasswordPrompt = (
 export const make = Effect.gen(function* () {
   const manager = yield* SshTunnel.SshEnvironmentManager;
   const prompts = yield* DesktopSshPasswordPrompts.DesktopSshPasswordPrompts;
+  const account = yield* DesktopAccount.DesktopAccount;
+  const context = yield* Effect.context<never>();
+  const runSync = Effect.runSyncWith(context);
+  yield* Effect.acquireRelease(
+    Effect.sync(() =>
+      account.onChange(() => {
+        runSync(manager.clearAuthSecrets);
+      }),
+    ),
+    (unsubscribe) => Effect.sync(unsubscribe),
+  );
   const runtimeContext = yield* Effect.context<DesktopSshEnvironmentRuntimeServices>();
   const passwordPrompt = SshAuth.SshPasswordPrompt.of(makePasswordPrompt(prompts));
+  const accountCredentials = SshAuth.SshAccountCredentials.of({
+    resolve: Effect.fn("SshAccountCredentials.resolve")((target: DesktopSshEnvironmentTarget) =>
+      account.credentialFor(target),
+    ),
+  });
 
   return DesktopSshEnvironment.of({
     fileOperation: Effect.fn("desktop.ssh.fileOperation")(
@@ -142,6 +163,7 @@ export const make = Effect.gen(function* () {
         return yield* manager.fileOperation(input);
       },
       Effect.provideService(SshAuth.SshPasswordPrompt, passwordPrompt),
+      Effect.provideService(SshAuth.SshAccountCredentials, accountCredentials),
       Effect.provide(runtimeContext),
     ),
     discoverHosts: Effect.fn("desktop.ssh.discoverHosts")(function* (input) {
@@ -155,6 +177,7 @@ export const make = Effect.gen(function* () {
         return yield* manager.ensureEnvironment(target, ensureOptions);
       },
       Effect.provideService(SshAuth.SshPasswordPrompt, passwordPrompt),
+      Effect.provideService(SshAuth.SshAccountCredentials, accountCredentials),
       Effect.provide(runtimeContext),
     ),
     disconnectEnvironment: Effect.fn("desktop.ssh.disconnectEnvironment")(
@@ -162,6 +185,7 @@ export const make = Effect.gen(function* () {
         return yield* manager.disconnectEnvironment(target);
       },
       Effect.provideService(SshAuth.SshPasswordPrompt, passwordPrompt),
+      Effect.provideService(SshAuth.SshAccountCredentials, accountCredentials),
       Effect.provide(runtimeContext),
     ),
   });

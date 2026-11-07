@@ -3,6 +3,9 @@ export { Store } from "./store.js";
 export { ProvisionServer, TeardownServer } from "./workflows.js";
 
 export default {
+  async scheduled(_event, env, ctx) {
+    ctx.waitUntil(storeFor(env).reconcileBilling());
+  },
   async fetch(request, env) {
     const response = new URL(request.url).pathname.startsWith("/api/") ? await storeFor(env).fetch(request) : await env.ASSETS.fetch(request);
     const headers = new Headers(response.headers);

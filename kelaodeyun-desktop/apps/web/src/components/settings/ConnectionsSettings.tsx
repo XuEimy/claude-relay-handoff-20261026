@@ -1,4 +1,5 @@
 import { SessionPermissions } from "./SessionPermissions";
+import { AccountServersSettings } from "./AccountServersSettings";
 import { ChevronRightIcon, EllipsisIcon } from "lucide-react";
 import { useAtomValue } from "@effect/atom-react";
 import { useState } from "react";
@@ -1532,6 +1533,7 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
           savedEnvironments={savedEnvironments}
         />
       </SettingsSection>
+      <AccountServersSettings />
       {hasCloudPublicConfig() ? (
         <RemoveT3ConnectEnvironmentDialog
           environmentLabel={pendingT3ConnectRemoval?.label ?? null}

@@ -3,52 +3,46 @@ import { useStore } from "zustand";
 import { ChatCanvasContext } from "./ChatCanvasContext";
 import type { ChatCanvasPreview } from "./chatCanvasLayout";
 import { resolveChatCanvasModel, type ChatCanvasStore } from "./canvasStore";
-import { selectThreadPanelOpen, useRightPanelStore } from "../../rightPanelStore";
 import { observeResize } from "../../lib/observeResize";
-import type { ScopedThreadRef } from "@t3tools/contracts";
 
 export function ChatCanvas({
   store,
-  threadRef,
   preview,
   composerOverlayElement,
-  detailsCardTopInset = 0,
+  findBarOpen = false,
   children,
   ...props
 }: Omit<ComponentProps<"div">, "className" | "style" | "ref"> & {
   store: ChatCanvasStore;
-  /** The thread whose details card sits on the canvas; other threads' measurements are stale. */
-  threadRef: ScopedThreadRef | null;
   /** The thread's mini player while it renders on this canvas. */
   preview: ChatCanvasPreview | null;
   composerOverlayElement: HTMLElement | null;
-  detailsCardTopInset?: number;
+  findBarOpen?: boolean;
 }) {
   const elementRef = useRef<HTMLDivElement | null>(null);
   const widthProbeRef = useRef<HTMLDivElement | null>(null);
   const [timelineElement, registerTimeline] = useState<HTMLElement | null>(null);
   const measurements = useStore(store, (state) => state.measurements);
-  const detailsCardMeasurement = useStore(store, (state) => state.detailsCardMeasurement);
   // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- observes canvas, find bar and timeline resizes and writes the measurements to the canvas store
   useLayoutEffect(() => {
     const element = elementRef.current;
     const probe = widthProbeRef.current;
     if (!element || !probe) return;
-    const findBar =
-      detailsCardTopInset > 0 ? element.querySelector<HTMLElement>("[data-thread-find-bar]") : null;
+    const findBar = findBarOpen
+      ? element.querySelector<HTMLElement>("[data-thread-find-bar]")
+      : null;
     const measure = () => {
       const canvasBounds = element.getBoundingClientRect();
       const findBarBounds = findBar?.getBoundingClientRect();
       const styles = getComputedStyle(probe);
       store.getState().setMeasurements({
-        findBar:
-          detailsCardTopInset > 0
-            ? {
-                left: findBarBounds ? findBarBounds.left - canvasBounds.left : 0,
-                right: findBarBounds ? findBarBounds.right - canvasBounds.left : 0,
-                bottom: findBarBounds ? findBarBounds.bottom - canvasBounds.top : 0,
-              }
-            : null,
+        findBar: findBarOpen
+          ? {
+              left: findBarBounds ? findBarBounds.left - canvasBounds.left : 0,
+              right: findBarBounds ? findBarBounds.right - canvasBounds.left : 0,
+              bottom: findBarBounds ? findBarBounds.bottom - canvasBounds.top : 0,
+            }
+          : null,
         width: element.clientWidth,
         height: element.clientHeight,
         padding: Number.parseFloat(styles.paddingLeft),
@@ -66,29 +60,16 @@ export function ChatCanvas({
     if (composerOverlayElement) observed.push(composerOverlayElement);
     if (timelineElement) observed.push(timelineElement);
     return observeResize(observed, measure);
-  }, [store, composerOverlayElement, timelineElement, detailsCardTopInset]);
-  const detailsCardInlineOpen = useRightPanelStore((state) =>
-    threadRef === null
-      ? false
-      : selectThreadPanelOpen(state.threadPanelVisibilityByThreadKey, threadRef, "inline"),
-  );
+  }, [store, composerOverlayElement, timelineElement, findBarOpen]);
   const model = resolveChatCanvasModel({
     measurements,
-    detailsCardMeasurement,
-    threadRef,
     preview,
-    detailsCardInlineOpen,
   });
   const context = {
     container: model.container,
-    lane: model.lane,
     layout: model.layout,
     previewKey: preview?.key ?? null,
     registerTimeline,
-    measureDetailsCard: store.getState().measureDetailsCard,
-    detailsCardTopInset: model.detailsCardTopInset,
-    preferredDetailsCard: model.preferredDetailsCard,
-    detailsCardPlacement: model.detailsCardPlacement,
   };
   const { layout } = context;
   return (

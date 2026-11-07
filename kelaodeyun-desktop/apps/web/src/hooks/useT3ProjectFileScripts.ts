@@ -36,10 +36,3 @@ export function useT3ProjectFileState(
   }
   return { status: "valid", file, scripts: file.scripts ?? NO_SCRIPTS } as const;
 }
-
-export function useT3ProjectFileScripts(
-  environmentId: EnvironmentId,
-  cwd: string | null,
-): ReadonlyArray<T3ProjectFileScript> {
-  return useT3ProjectFileState(environmentId, cwd).scripts;
-}

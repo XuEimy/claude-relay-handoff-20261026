@@ -3,13 +3,15 @@ import * as NodeCrypto from "@effect/platform-node/NodeCrypto";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as Logger from "effect/Logger";
 import * as Result from "effect/Result";
 import * as Sink from "effect/Sink";
 import * as Stream from "effect/Stream";
 import { ChildProcess, ChildProcessSpawner } from "effect/process";
 
-import { parseSshResolveOutput, remoteStateKey, runSshCommand } from "./command.ts";
+import { baseSshArgs, parseSshResolveOutput, remoteStateKey, runSshCommand } from "./command.ts";
 import { SshCommandError } from "./errors.ts";
+import { isSshAgentSigningFailure, isSshAuthFailure } from "./auth.ts";
 
 const encoder = new TextEncoder();
 
@@ -32,6 +34,26 @@ const makeFailedProcess = (input: { readonly stdout: string; readonly stderr?: s
 };
 
 describe("ssh command", () => {
+  it("adds an explicit identity file and restricts identities", () => {
+    assert.deepEqual(
+      baseSshArgs(
+        { alias: "host", hostname: "host", username: "root", port: 22 },
+        { batchMode: "yes", identityFile: "/tmp/key with spaces" },
+      ),
+      [
+        "-o",
+        "BatchMode=yes",
+        "-o",
+        "ConnectTimeout=10",
+        "-i",
+        "/tmp/key with spaces",
+        "-o",
+        "IdentitiesOnly=yes",
+        "-p",
+        "22",
+      ],
+    );
+  });
   it.effect("parses resolved ssh config output into a target", () =>
     Effect.sync(() => {
       assert.deepEqual(
@@ -183,5 +205,53 @@ describe("ssh command", () => {
         assert.equal(result.failure.stdout, '{"credential":"[redacted]"}\n');
       }
     }).pipe(Effect.provide(layerProcess));
+  });
+
+  it.effect.each([
+    { stderr: "Permission denied (publickey,password).", auth: true, agent: false },
+    {
+      stderr:
+        "sign_and_send_pubkey: signing failed: agent refused operation\nPermission denied (publickey,password).",
+      auth: true,
+      agent: true,
+    },
+    { stderr: "network failure", auth: false, agent: false },
+  ])("does not log sensitive stdin on SSH failure: $stderr", ({ stderr, auth, agent }) => {
+    const secret = "synthetic-password";
+    const logged: unknown[] = [];
+    const spawner = ChildProcessSpawner.make(() =>
+      Effect.succeed(
+        makeFailedProcess({
+          stdout: `echo ${secret}`,
+          stderr: `${stderr} ${secret}`,
+        }),
+      ),
+    );
+    const logger = Logger.make(({ message }) => {
+      logged.push(message);
+    });
+    return Effect.gen(function* () {
+      const failure = yield* runSshCommand(
+        { alias: "devbox", hostname: "devbox", username: "root", port: null },
+        { stdin: JSON.stringify({ password: secret }), sensitiveStdin: true },
+      ).pipe(Effect.flip);
+      assert.equal(isSshAuthFailure(failure), auth);
+      assert.equal(isSshAgentSigningFailure(failure), agent);
+      if (!(failure instanceof SshCommandError)) throw new Error("Expected SshCommandError");
+      assert.equal(failure.stdout, "[redacted]");
+      assert.equal(failure.stderr, "");
+      assert.notInclude(JSON.stringify(failure), secret);
+      assert.isAbove(logged.length, 0);
+      assert.notInclude(JSON.stringify(logged), secret);
+    }).pipe(
+      Effect.provide(
+        Layer.mergeAll(
+          NodeServices.layer,
+          NodeCrypto.layer,
+          Layer.succeed(ChildProcessSpawner.ChildProcessSpawner, spawner),
+          Logger.layer([logger]),
+        ),
+      ),
+    );
   });
 });

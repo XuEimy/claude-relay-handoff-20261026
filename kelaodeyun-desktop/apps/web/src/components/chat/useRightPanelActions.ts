@@ -13,14 +13,12 @@ import {
   squashAtomCommandFailure,
 } from "@t3tools/client-runtime/state/runtime";
 import { useDiffPanelStore } from "../../diffPanelStore";
-import { type ThreadPanelPresentation } from "../../rightPanelLayout";
 import {
   selectActiveRightPanel,
-  selectThreadPanelOpen,
   type RightPanelSurface,
   useRightPanelStore,
 } from "../../rightPanelStore";
-import { requestWorkspaceContentFocus, requestWorkspaceFocus } from "../../lib/workspaceFocus";
+import { requestWorkspaceFocus } from "../../lib/workspaceFocus";
 import { setActivePreviewTab } from "../../previewStateStore";
 import { BrowserSettingsReadError } from "../../browser/openFileInPreview";
 import { addBrowserSurface } from "../preview/addBrowserSurface";
@@ -43,7 +41,6 @@ interface RightPanelActionsInput {
   readonly deviceState: ReturnType<typeof useDeviceState>["state"];
   readonly deviceStateLoaded: boolean;
   readonly pullRequestPanelTarget: ReturnType<typeof threadPullRequestPanelTarget> | null;
-  readonly threadPanelPresentation: ThreadPanelPresentation;
   readonly isServerThread: boolean;
   /** A side chat pane; the main view already answers preview bus actions. */
   readonly embedded: boolean;
@@ -78,7 +75,6 @@ export function useRightPanelActions(input: RightPanelActionsInput) {
     deviceState,
     deviceStateLoaded,
     pullRequestPanelTarget,
-    threadPanelPresentation,
     isServerThread,
     embedded,
     isGitRepo,
@@ -138,10 +134,6 @@ export function useRightPanelActions(input: RightPanelActionsInput) {
     onDiffPanelOpen?.();
   };
   const addDiffSurfaceStable = useStableCallback(addDiffSurface);
-  const openChangesFromThreadPanel = () => {
-    addDiffSurface();
-  };
-  const openChangesFromThreadPanelStable = useStableCallback(openChangesFromThreadPanel);
   const addFilesSurface = () => {
     if (!activeThreadRef || !activeProject) return;
     useRightPanelStore.getState().open(activeThreadRef, "files");
@@ -161,6 +153,11 @@ export function useRightPanelActions(input: RightPanelActionsInput) {
     useRightPanelStore.getState().open(activeThreadRef, "device");
   };
   const addDeviceSurfaceStable = useStableCallback(addDeviceSurface);
+  const addServerDesktopSurface = () => {
+    if (!activeThreadRef) return;
+    useRightPanelStore.getState().open(activeThreadRef, "server-desktop");
+  };
+  const addServerDesktopSurfaceStable = useStableCallback(addServerDesktopSurface);
   const openFileSurface = (relativePath: string) => {
     if (!activeThreadRef || !activeProject) return;
     useRightPanelStore.getState().openFile(activeThreadRef, relativePath);
@@ -228,22 +225,6 @@ export function useRightPanelActions(input: RightPanelActionsInput) {
     focusActivePanelTerminal(activeThreadRef);
   };
   const toggleRightPanelStable = useStableCallback(toggleRightPanel);
-  const toggleThreadPanel = () => {
-    if (!activeThreadRef) return;
-    const store = useRightPanelStore.getState();
-    if (threadPanelPresentation === "inline") {
-      const open = selectThreadPanelOpen(
-        store.threadPanelVisibilityByThreadKey,
-        activeThreadRef,
-        "inline",
-      );
-      if (!open) requestWorkspaceFocus({ area: "details" });
-      else if (document.activeElement?.closest('[data-workspace-area="details"]'))
-        requestWorkspaceContentFocus();
-    }
-    store.toggleThreadPanel(activeThreadRef, threadPanelPresentation);
-  };
-  const toggleThreadPanelStable = useStableCallback(toggleThreadPanel);
   const toggleRightPanelMaximized = () => {
     if (!canMaximizeRightPanel || !activeThreadRef) return;
     if (!rightPanelMaximized) requestWorkspaceFocus({ area: "panel" });
@@ -332,7 +313,6 @@ export function useRightPanelActions(input: RightPanelActionsInput) {
     "rightPanel.toggleMaximized": ({ event }) => {
       if (!event.repeat) toggleRightPanelMaximized();
     },
-    "threadPanel.toggle": () => toggleThreadPanel(),
     "rightPanel.close": ({ event }) => {
       if (!activeRightPanelSurface) return false;
       if (!event.repeat) closeRightPanelSurface(activeRightPanelSurface);
@@ -348,6 +328,7 @@ export function useRightPanelActions(input: RightPanelActionsInput) {
     addFilesSurfaceStable,
     addPullRequestSurfaceStable,
     addPullRequestsSurfaceStable,
+    addServerDesktopSurfaceStable,
     closePreviewPanelStable,
     copyRightPanelFilePathStable,
     createBrowserSurface,
@@ -356,10 +337,8 @@ export function useRightPanelActions(input: RightPanelActionsInput) {
     onOpenToolDiffStable,
     onOpenTurnDiffStable,
     onToggleDiffStable,
-    openChangesFromThreadPanelStable,
     openFileSurfaceStable,
     toggleRightPanelMaximizedStable,
     toggleRightPanelStable,
-    toggleThreadPanelStable,
   };
 }

@@ -43,6 +43,10 @@
       "types": "./src/preview/serverBrowserStream.ts",
       "default": "./src/preview/serverBrowserStream.ts"
     },
+    "./preview/server-desktop": {
+      "types": "./src/preview/serverDesktop.ts",
+      "default": "./src/preview/serverDesktop.ts"
+    },
     "./worktree-setup": {
       "types": "./src/worktreeSetup.ts",
       "default": "./src/worktreeSetup.ts"

@@ -37,6 +37,7 @@ import * as ElectronTheme from "./electron/ElectronTheme.ts";
 import * as ElectronUpdater from "./electron/ElectronUpdater.ts";
 import * as ElectronWindow from "./electron/ElectronWindow.ts";
 import * as DesktopApp from "./app/DesktopApp.ts";
+import * as DesktopAccount from "./account/DesktopAccount.ts";
 import * as DesktopAppActivation from "./app/DesktopAppActivation.ts";
 import * as DesktopWebLinks from "./app/DesktopWebLinks.ts";
 import * as DesktopAppIdentity from "./app/DesktopAppIdentity.ts";
@@ -221,6 +222,7 @@ const layerDesktopApplication = Layer.mergeAll(
   DesktopCliCommand.layer,
   layerDesktopSsh,
 ).pipe(
+  Layer.provideMerge(DesktopAccount.layer),
   Layer.provideMerge(layerDesktopSnapShot),
   Layer.provideMerge(
     DesktopUpdates.layer.pipe(

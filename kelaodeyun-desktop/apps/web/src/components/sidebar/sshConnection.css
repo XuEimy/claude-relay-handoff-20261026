@@ -1,3 +1,42 @@
+@keyframes ssh-ticker-enter {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes ssh-ticker-exit {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+}
+
+[data-ssh-ticker="enter"] {
+  animation: ssh-ticker-enter 320ms ease-out both;
+}
+
+[data-ssh-ticker="exit"] {
+  animation: ssh-ticker-exit 320ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-ssh-ticker="enter"] {
+    animation: none;
+  }
+  [data-ssh-ticker="exit"] {
+    display: none;
+  }
+}
+
 [data-ssh-part="backdrop"] {
   mask-image: linear-gradient(to bottom, black 0%, black 36%, transparent 96%);
   -webkit-mask-image: linear-gradient(to bottom, black 0%, black 36%, transparent 96%);

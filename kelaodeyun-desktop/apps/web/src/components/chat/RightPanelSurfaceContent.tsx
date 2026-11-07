@@ -33,6 +33,11 @@ const DevicePanel = lazy(() =>
   import("../device/DevicePanel").then((module) => ({ default: module.DevicePanel })),
 );
 const FilePreviewPanel = lazy(() => import("../files/FilePreviewPanel"));
+const ServerDesktopPanel = lazy(() =>
+  import("../preview/ServerDesktopPanel").then((module) => ({
+    default: module.ServerDesktopPanel,
+  })),
+);
 
 type RightPanelTerminalProps = Omit<
   PersistentThreadTerminalPanelProps,
@@ -193,6 +198,12 @@ export function RightPanelSurfaceContent(props: {
               useRightPanelStore.getState().show(threadRef);
             }}
           />
+        </Suspense>
+      );
+    case "server-desktop":
+      return (
+        <Suspense fallback={null}>
+          <ServerDesktopPanel environmentId={props.environmentId} visible={visible} />
         </Suspense>
       );
     case "files":

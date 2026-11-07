@@ -2,15 +2,21 @@ import { assert, describe, it } from "@effect/vitest";
 import * as NodeCrypto from "@effect/platform-node/NodeCrypto";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as NetService from "@t3tools/shared/Net";
+import type { DesktopSshEnvironmentProgressStep } from "@t3tools/contracts";
 import * as Deferred from "effect/Deferred";
+import * as Cause from "effect/Cause";
 import * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
+import * as Exit from "effect/Exit";
 import * as Fiber from "effect/Fiber";
+import * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";
+import * as Logger from "effect/Logger";
 import * as PlatformError from "effect/PlatformError";
 import * as Result from "effect/Result";
 import * as Sink from "effect/Sink";
 import * as Stream from "effect/Stream";
+import * as Tracer from "effect/Tracer";
 import { TestClock } from "effect/testing";
 import { HttpClient, HttpClientResponse } from "effect/http";
 import { ChildProcess, ChildProcessSpawner } from "effect/process";
@@ -83,6 +89,175 @@ function commandArgs(command: ChildProcess.Command): ReadonlyArray<string> {
 const ARCHIVE = { archiveVersion: "1.2.3-preview.20260911.4" } as const;
 
 describe("ssh tunnel scripts", () => {
+  it.effect("keeps computer passwords out of failed SSH logs and errors", () => {
+    const secret = "synthetic-computer-password";
+    const logged: unknown[] = [];
+    const sent: string[] = [];
+    const traces: unknown[] = [];
+    const tracer = Tracer.make({
+      span: (options) => {
+        const span = new Tracer.NativeSpan(options);
+        const end = span.end.bind(span);
+        span.end = (time, exit) => {
+          end(time, exit);
+          traces.push({
+            attributes: Object.fromEntries(span.attributes),
+            failure: Exit.isFailure(exit) ? Cause.pretty(exit.cause) : null,
+          });
+        };
+        return span;
+      },
+    });
+    const spawner = ChildProcessSpawner.make((command) =>
+      Effect.gen(function* () {
+        const args = commandArgs(command);
+        if (args.includes("-G")) return makeSuccessfulProcess("");
+        assert.isFalse(args.some((arg) => arg.includes(secret)));
+        const stdin = command._tag === "StandardCommand" ? command.options.stdin : undefined;
+        if (
+          typeof stdin === "object" &&
+          stdin !== null &&
+          "stream" in stdin &&
+          Stream.isStream(stdin.stream)
+        ) {
+          sent.push(
+            yield* Stream.runFold(
+              stdin.stream.pipe(Stream.decodeText()),
+              () => "",
+              (left, right) => left + right,
+            ),
+          );
+        }
+        return {
+          ...makeSuccessfulProcess(`echo ${secret}`),
+          stderr: Stream.make(
+            new TextEncoder().encode(`Permission denied (publickey,password). ${secret}`),
+          ),
+          exitCode: Effect.succeed(ChildProcessSpawner.ExitCode(255)),
+        };
+      }),
+    );
+    const layer = Layer.mergeAll(
+      NodeServices.layer,
+      NodeCrypto.layer,
+      Layer.succeed(ChildProcessSpawner.ChildProcessSpawner, spawner),
+      Layer.succeed(HttpClient.HttpClient, testHttpClient),
+      Layer.succeed(NetService.NetService, testNetService),
+      Layer.succeed(
+        SshAuth.SshPasswordPrompt,
+        SshAuth.SshPasswordPrompt.of({
+          isAvailable: false,
+          request: () => Effect.die("unexpected prompt"),
+        }),
+      ),
+      SshTunnel.SshEnvironmentManager.layer(),
+      Logger.layer([
+        Logger.make(({ message }) => {
+          logged.push(message);
+        }),
+      ]),
+    );
+    return Effect.gen(function* () {
+      const manager = yield* SshTunnel.SshEnvironmentManager;
+      const failure = yield* manager
+        .fileOperation({
+          target: { alias: "server", hostname: "server", username: "root", port: null },
+          cwd: "~",
+          relativePath: "",
+          operation: "computer-install-key",
+          computer: {
+            host: "peer",
+            username: "root",
+            label: "peer",
+            os: "linux",
+            password: secret,
+          },
+        })
+        .pipe(Effect.flip);
+      assert.include(sent[0] ?? "", secret);
+      assert.isTrue(SshAuth.isSshAuthFailure(failure));
+      assert.notInclude(JSON.stringify(failure), secret);
+      assert.isAbove(logged.length, 0);
+      assert.notInclude(JSON.stringify(logged), secret);
+      assert.isAbove(traces.length, 0);
+      assert.notInclude(JSON.stringify(traces), secret);
+    }).pipe(Effect.provide(layer), Effect.scoped, Effect.withTracer(tracer));
+  });
+
+  it.effect.each([false, true])(
+    "uses account credentials and prompts after rejection: %s",
+    (rejectFirst) =>
+      Effect.gen(function* () {
+        const attempts: Array<{ args: ReadonlyArray<string>; secret: unknown }> = [];
+        const prompts: Array<number> = [];
+        const spawner = ChildProcessSpawner.make((command) =>
+          Effect.sync(() => {
+            const args = commandArgs(command);
+            if (args.includes("-G")) return makeSuccessfulProcess("");
+            const secret =
+              command._tag === "StandardCommand"
+                ? command.options.env?.T3_SSH_AUTH_SECRET
+                : undefined;
+            attempts.push({ args, secret });
+            if (rejectFirst && attempts.length === 1) {
+              return {
+                ...makeSuccessfulProcess(""),
+                exitCode: Effect.succeed(ChildProcessSpawner.ExitCode(255)),
+                stderr: Stream.make(
+                  new TextEncoder().encode("Permission denied (publickey,password).\n"),
+                ),
+              };
+            }
+            return makeSuccessfulProcess('{"remotePort":3773}\n');
+          }),
+        );
+        const layer = Layer.mergeAll(
+          NodeServices.layer,
+          NodeCrypto.layer,
+          Layer.succeed(ChildProcessSpawner.ChildProcessSpawner, spawner),
+          Layer.succeed(HttpClient.HttpClient, testHttpClient),
+          Layer.succeed(NetService.NetService, testNetService),
+          Layer.succeed(
+            SshAuth.SshAccountCredentials,
+            SshAuth.SshAccountCredentials.of({
+              resolve: () =>
+                Effect.succeedSome({
+                  password: "account-password",
+                  identityFile: "/tmp/account-key",
+                }),
+            }),
+          ),
+          Layer.succeed(
+            SshAuth.SshPasswordPrompt,
+            SshAuth.SshPasswordPrompt.of({
+              isAvailable: true,
+              request: (request) =>
+                Effect.sync(() => {
+                  prompts.push(request.attempt);
+                  return "prompt-password";
+                }),
+            }),
+          ),
+          SshTunnel.SshEnvironmentManager.layer({ resolveCliRunner: Effect.succeed(ARCHIVE) }),
+        );
+        yield* Effect.gen(function* () {
+          const manager = yield* SshTunnel.SshEnvironmentManager;
+          yield* Effect.result(
+            manager.ensureEnvironment({
+              alias: "devbox",
+              hostname: "devbox",
+              username: null,
+              port: null,
+            }),
+          );
+          assert.equal(attempts[0]?.secret, "account-password");
+          assert.include(attempts[0]?.args ?? [], "/tmp/account-key");
+          assert.include(attempts[0]?.args ?? [], "IdentitiesOnly=yes");
+          assert.deepEqual(prompts, rejectFirst ? [1] : []);
+          if (rejectFirst) assert.equal(attempts[1]?.secret, "prompt-password");
+        }).pipe(Effect.provide(layer), Effect.scoped);
+      }),
+  );
   it("rejects archive versions that are not a single exact version segment", () => {
     for (const archiveVersion of [
       "../other",
@@ -419,7 +594,20 @@ describe("ssh tunnel scripts", () => {
         );
         yield* Effect.gen(function* () {
           const manager = yield* SshTunnel.SshEnvironmentManager;
-          yield* manager.ensureEnvironment(target);
+          const progress: DesktopSshEnvironmentProgressStep[] = [];
+          yield* manager.ensureEnvironment(target, {
+            onProgress: (step) =>
+              Effect.sync(() => {
+                progress.push(step);
+              }),
+          });
+          assert.deepEqual(progress, [
+            { step: "resolving" },
+            { step: "starting-server" },
+            { step: "server-ready", remoteServerKind: null },
+            { step: "opening-tunnel" },
+            { step: "ready" },
+          ]);
           const disconnect = yield* Effect.forkChild(manager.disconnectEnvironment(target));
           yield* Deferred.await(shutdownStarted);
           const firstReconnect = yield* Effect.forkChild(manager.ensureEnvironment(target));
@@ -450,6 +638,103 @@ describe("ssh tunnel scripts", () => {
           Effect.scoped,
         );
       }),
+  );
+
+  it.effect("reports bundled runtime upload progress and a current runtime on reuse", () =>
+    Effect.gen(function* () {
+      const fs = yield* FileSystem.FileSystem;
+      const executable = yield* fs.makeTempFileScoped({ prefix: "t3-runtime-test-" });
+      const bytes = new Uint8Array(200_000);
+      yield* fs.writeFile(executable, bytes);
+      let uploaded = false;
+      const spawner = ChildProcessSpawner.make((command) =>
+        Effect.gen(function* () {
+          const args = commandArgs(command);
+          if (args.includes("-G")) return makeSuccessfulProcess("");
+          if (args.includes("-N")) return makeRunningProcess(() => undefined);
+          if (args.some((arg) => arg.includes("uname -sm"))) {
+            return makeSuccessfulProcess(uploaded ? "ready\n" : "upload\n");
+          }
+          if (args.some((arg) => arg.includes('cat > "$temporary"'))) {
+            const stdin = command._tag === "StandardCommand" ? command.options.stdin : undefined;
+            if (
+              typeof stdin === "object" &&
+              stdin !== null &&
+              "stream" in stdin &&
+              Stream.isStream(stdin.stream)
+            ) {
+              yield* Stream.runDrain(stdin.stream);
+            }
+            uploaded = true;
+            return makeSuccessfulProcess("");
+          }
+          if (args.at(-1) === "-s") return makeSuccessfulProcess('{"credential":"test-token"}\n');
+          return makeSuccessfulProcess('{"remotePort":3773,"serverKind":"managed"}\n');
+        }),
+      );
+      const layer = Layer.mergeAll(
+        NodeServices.layer,
+        NodeCrypto.layer,
+        Layer.succeed(ChildProcessSpawner.ChildProcessSpawner, spawner),
+        Layer.succeed(HttpClient.HttpClient, testHttpClient),
+        Layer.succeed(NetService.NetService, testNetService),
+        SshAuth.SshPasswordPrompt.disabledLayer,
+        SshTunnel.SshEnvironmentManager.layer({
+          resolveCliRunner: Effect.succeed({ ...ARCHIVE, localLinuxX64ExecutablePath: executable }),
+        }),
+      );
+      const target = { alias: "devbox", hostname: "devbox", username: null, port: null };
+      yield* Effect.gen(function* () {
+        const manager = yield* SshTunnel.SshEnvironmentManager;
+        const progress: DesktopSshEnvironmentProgressStep[] = [];
+        const onProgress = (step: DesktopSshEnvironmentProgressStep) =>
+          Effect.sync(() => {
+            progress.push(step);
+          });
+        yield* manager.ensureEnvironment(target, { onProgress, issuePairingToken: true });
+        const uploads = progress.filter((step) => step.step === "uploading-runtime");
+        assert.deepEqual(uploads[0], {
+          step: "uploading-runtime",
+          sentBytes: 0,
+          totalBytes: bytes.length,
+        });
+        assert.equal(uploads.at(-1)?.sentBytes, bytes.length);
+        assert.isTrue(
+          uploads.every(
+            (step, index) => index === 0 || step.sentBytes > (uploads[index - 1]?.sentBytes ?? 0),
+          ),
+        );
+        assert.isTrue(
+          uploads.every(
+            (step, index) =>
+              index === 0 ||
+              Math.floor((step.sentBytes / step.totalBytes) * 100) >
+                Math.floor(((uploads[index - 1]?.sentBytes ?? 0) / step.totalBytes) * 100),
+          ),
+        );
+        assert.deepEqual(
+          progress.filter((step) => step.step !== "uploading-runtime"),
+          [
+            { step: "resolving" },
+            { step: "checking-runtime" },
+            { step: "starting-server" },
+            { step: "server-ready", remoteServerKind: "managed" },
+            { step: "opening-tunnel" },
+            { step: "issuing-pairing" },
+            { step: "ready" },
+          ],
+        );
+        progress.length = 0;
+        yield* manager.ensureEnvironment(target, { onProgress });
+        assert.deepEqual(progress, [
+          { step: "resolving" },
+          { step: "checking-runtime" },
+          { step: "runtime-current" },
+          { step: "reusing-tunnel" },
+          { step: "ready" },
+        ]);
+      }).pipe(Effect.provide(layer), Effect.scoped);
+    }).pipe(Effect.provide(NodeServices.layer), Effect.scoped),
   );
 });
 

@@ -1,0 +1,1922 @@
+[
+ {
+  "tenantId": "INT",
+  "type": "vps",
+  "priceItem": {
+   "name": "Cloud VPS 18",
+   "itemId": "V158",
+   "key": "6b7tsnH2OUoCy92rx8R38x",
+   "price": [
+    {
+     "amount": 49,
+     "currency": "EUR"
+    },
+    {
+     "amount": 47.7,
+     "currency": "GBP"
+    },
+    {
+     "amount": 58.8,
+     "currency": "USD"
+    }
+   ],
+   "outOfStock": {
+    "isOutOfStock": false
+   },
+   "setupFees": [
+    {
+     "length": 1,
+     "prices": [
+      {
+       "amount": 0,
+       "currency": "EUR"
+      },
+      {
+       "amount": 0,
+       "currency": "GBP"
+      },
+      {
+       "amount": 0,
+       "currency": "USD"
+      }
+     ]
+    },
+    {
+     "length": 3,
+     "prices": [
+      {
+       "amount": 0,
+       "currency": "EUR"
+      },
+      {
+       "amount": 0,
+       "currency": "GBP"
+      },
+      {
+       "amount": 0,
+       "currency": "USD"
+      }
+     ]
+    },
+    {
+     "length": 6,
+     "prices": [
+      {
+       "amount": 0,
+       "currency": "EUR"
+      },
+      {
+       "amount": 0,
+       "currency": "GBP"
+      },
+      {
+       "amount": 0,
+       "currency": "USD"
+      }
+     ]
+    },
+    {
+     "length": 12,
+     "prices": [
+      {
+       "amount": 88.2,
+       "currency": "EUR"
+      },
+      {
+       "amount": 85.86,
+       "currency": "GBP"
+      },
+      {
+       "amount": 105.84,
+       "currency": "USD"
+      }
+     ]
+    },
+    {
+     "length": 24,
+     "prices": [
+      {
+       "amount": 235.2,
+       "currency": "EUR"
+      },
+      {
+       "amount": 228.96,
+       "currency": "GBP"
+      },
+      {
+       "amount": 282.24,
+       "currency": "USD"
+      }
+     ]
+    }
+   ],
+   "specs": [
+    {
+     "title": "18 vCPU Cores",
+     "description": null,
+     "id": null,
+     "type": "cpu"
+    },
+    {
+     "title": "96 GB RAM",
+     "description": null,
+     "id": null,
+     "type": "ram"
+    },
+    {
+     "title": "600GB SSD / 300GB NVMe",
+     "description": "More storage available",
+     "id": null,
+     "type": "storage"
+    },
+    {
+     "title": "3 Snapshots",
+     "description": null,
+     "id": null,
+     "type": "snapshot"
+    },
+    {
+     "title": "1 Gbit/s Port",
+     "description": null,
+     "id": null,
+     "type": "port"
+    },
+    {
+     "title": "Unlimited Traffic*",
+     "description": null,
+     "id": null,
+     "type": "traffic"
+    }
+   ]
+  },
+  "addons": [
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "Asia (Singapore)",
+     "price": [
+      {
+       "amount": 27.5,
+       "currency": "EUR"
+      },
+      {
+       "amount": 27.5,
+       "currency": "GBP"
+      },
+      {
+       "amount": 34.1,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "Asia (India)",
+     "price": [
+      {
+       "amount": 25.85,
+       "currency": "EUR"
+      },
+      {
+       "amount": 25.85,
+       "currency": "GBP"
+      },
+      {
+       "amount": 32.05,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "Australia (Sydney)",
+     "price": [
+      {
+       "amount": 23.2,
+       "currency": "EUR"
+      },
+      {
+       "amount": 23.2,
+       "currency": "GBP"
+      },
+      {
+       "amount": 28.75,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "Asia (Japan)",
+     "price": [
+      {
+       "amount": 28.05,
+       "currency": "EUR"
+      },
+      {
+       "amount": 28.05,
+       "currency": "GBP"
+      },
+      {
+       "amount": 34.8,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "United States (West)",
+     "price": [
+      {
+       "amount": 14,
+       "currency": "EUR"
+      },
+      {
+       "amount": 14,
+       "currency": "GBP"
+      },
+      {
+       "amount": 17.35,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "United States (East)",
+     "price": [
+      {
+       "amount": 16.7,
+       "currency": "EUR"
+      },
+      {
+       "amount": 16.7,
+       "currency": "GBP"
+      },
+      {
+       "amount": 20.7,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "United Kingdom",
+     "price": [
+      {
+       "amount": 11.3,
+       "currency": "EUR"
+      },
+      {
+       "amount": 11.3,
+       "currency": "GBP"
+      },
+      {
+       "amount": 14,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "United States (Central)",
+     "price": [
+      {
+       "amount": 11.3,
+       "currency": "EUR"
+      },
+      {
+       "amount": 11.3,
+       "currency": "GBP"
+      },
+      {
+       "amount": 14,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "European Union",
+     "price": []
+    }
+   }
+  ]
+ },
+ {
+  "tenantId": "INT",
+  "type": "vps",
+  "priceItem": {
+   "name": "Cloud VPS 16",
+   "itemId": "V157",
+   "key": "5neCku5MyuvZhncFzLx8Tq",
+   "price": [
+    {
+     "amount": 37,
+     "currency": "EUR"
+    },
+    {
+     "amount": 36,
+     "currency": "GBP"
+    },
+    {
+     "amount": 44.5,
+     "currency": "USD"
+    }
+   ],
+   "outOfStock": {
+    "isOutOfStock": false
+   },
+   "setupFees": [
+    {
+     "length": 1,
+     "prices": [
+      {
+       "amount": 0,
+       "currency": "EUR"
+      },
+      {
+       "amount": 0,
+       "currency": "GBP"
+      },
+      {
+       "amount": 0,
+       "currency": "USD"
+      }
+     ]
+    },
+    {
+     "length": 3,
+     "prices": [
+      {
+       "amount": 0,
+       "currency": "EUR"
+      },
+      {
+       "amount": 0,
+       "currency": "GBP"
+      },
+      {
+       "amount": 0,
+       "currency": "USD"
+      }
+     ]
+    },
+    {
+     "length": 6,
+     "prices": [
+      {
+       "amount": 0,
+       "currency": "EUR"
+      },
+      {
+       "amount": 0,
+       "currency": "GBP"
+      },
+      {
+       "amount": 0,
+       "currency": "USD"
+      }
+     ]
+    },
+    {
+     "length": 12,
+     "prices": [
+      {
+       "amount": 66.6,
+       "currency": "EUR"
+      },
+      {
+       "amount": 64.8,
+       "currency": "GBP"
+      },
+      {
+       "amount": 80.1,
+       "currency": "USD"
+      }
+     ]
+    },
+    {
+     "length": 24,
+     "prices": [
+      {
+       "amount": 177.6,
+       "currency": "EUR"
+      },
+      {
+       "amount": 172.8,
+       "currency": "GBP"
+      },
+      {
+       "amount": 213.6,
+       "currency": "USD"
+      }
+     ]
+    }
+   ],
+   "specs": [
+    {
+     "title": "16 vCPU Cores",
+     "description": null,
+     "id": null,
+     "type": "cpu"
+    },
+    {
+     "title": "64 GB RAM",
+     "description": null,
+     "id": null,
+     "type": "ram"
+    },
+    {
+     "title": "500GB SSD / 250GB NVMe",
+     "description": "More storage available",
+     "id": null,
+     "type": "storage"
+    },
+    {
+     "title": "3 Snapshots",
+     "description": null,
+     "id": null,
+     "type": "snapshot"
+    },
+    {
+     "title": "1 Gbit/s Port",
+     "description": null,
+     "id": null,
+     "type": "port"
+    },
+    {
+     "title": "Unlimited Traffic*",
+     "description": null,
+     "id": null,
+     "type": "traffic"
+    }
+   ]
+  },
+  "addons": [
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "United States (East)",
+     "price": [
+      {
+       "amount": 12.6,
+       "currency": "EUR"
+      },
+      {
+       "amount": 12.6,
+       "currency": "GBP"
+      },
+      {
+       "amount": 15.6,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "United States (West)",
+     "price": [
+      {
+       "amount": 10.6,
+       "currency": "EUR"
+      },
+      {
+       "amount": 10.6,
+       "currency": "GBP"
+      },
+      {
+       "amount": 13.15,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "Asia (India)",
+     "price": [
+      {
+       "amount": 19.55,
+       "currency": "EUR"
+      },
+      {
+       "amount": 19.55,
+       "currency": "GBP"
+      },
+      {
+       "amount": 24.25,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "Australia (Sydney)",
+     "price": [
+      {
+       "amount": 17.5,
+       "currency": "EUR"
+      },
+      {
+       "amount": 17.5,
+       "currency": "GBP"
+      },
+      {
+       "amount": 21.7,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "Asia (Japan)",
+     "price": [
+      {
+       "amount": 21.15,
+       "currency": "EUR"
+      },
+      {
+       "amount": 21.15,
+       "currency": "GBP"
+      },
+      {
+       "amount": 26.25,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "Asia (Singapore)",
+     "price": [
+      {
+       "amount": 20.75,
+       "currency": "EUR"
+      },
+      {
+       "amount": 20.75,
+       "currency": "GBP"
+      },
+      {
+       "amount": 25.75,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "United Kingdom",
+     "price": [
+      {
+       "amount": 8.55,
+       "currency": "EUR"
+      },
+      {
+       "amount": 8.55,
+       "currency": "GBP"
+      },
+      {
+       "amount": 10.6,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "United States (Central)",
+     "price": [
+      {
+       "amount": 8.55,
+       "currency": "EUR"
+      },
+      {
+       "amount": 8.55,
+       "currency": "GBP"
+      },
+      {
+       "amount": 10.6,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "European Union",
+     "price": []
+    }
+   }
+  ]
+ },
+ {
+  "tenantId": "INT",
+  "type": "vps",
+  "priceItem": {
+   "name": "Cloud VPS 12",
+   "itemId": "V156",
+   "key": "7I2rqtRGnM1KvlrPNAEZTR",
+   "price": [
+    {
+     "amount": 25,
+     "currency": "EUR"
+    },
+    {
+     "amount": 24.4,
+     "currency": "GBP"
+    },
+    {
+     "amount": 30,
+     "currency": "USD"
+    }
+   ],
+   "outOfStock": {
+    "isOutOfStock": false
+   },
+   "setupFees": [
+    {
+     "length": 1,
+     "prices": [
+      {
+       "amount": 0,
+       "currency": "EUR"
+      },
+      {
+       "amount": 0,
+       "currency": "GBP"
+      },
+      {
+       "amount": 0,
+       "currency": "USD"
+      }
+     ]
+    },
+    {
+     "length": 3,
+     "prices": [
+      {
+       "amount": 0,
+       "currency": "EUR"
+      },
+      {
+       "amount": 0,
+       "currency": "GBP"
+      },
+      {
+       "amount": 0,
+       "currency": "USD"
+      }
+     ]
+    },
+    {
+     "length": 6,
+     "prices": [
+      {
+       "amount": 0,
+       "currency": "EUR"
+      },
+      {
+       "amount": 0,
+       "currency": "GBP"
+      },
+      {
+       "amount": 0,
+       "currency": "USD"
+      }
+     ]
+    },
+    {
+     "length": 12,
+     "prices": [
+      {
+       "amount": 45,
+       "currency": "EUR"
+      },
+      {
+       "amount": 43.92,
+       "currency": "GBP"
+      },
+      {
+       "amount": 54,
+       "currency": "USD"
+      }
+     ]
+    },
+    {
+     "length": 24,
+     "prices": [
+      {
+       "amount": 120,
+       "currency": "EUR"
+      },
+      {
+       "amount": 117.12,
+       "currency": "GBP"
+      },
+      {
+       "amount": 144,
+       "currency": "USD"
+      }
+     ]
+    }
+   ],
+   "specs": [
+    {
+     "title": "12 vCPU Cores",
+     "description": null,
+     "id": null,
+     "type": "cpu"
+    },
+    {
+     "title": "48 GB RAM",
+     "description": null,
+     "id": null,
+     "type": "ram"
+    },
+    {
+     "title": "400GB SSD / 200GB NVMe",
+     "description": "More storage available",
+     "id": null,
+     "type": "storage"
+    },
+    {
+     "title": "3 Snapshots",
+     "description": null,
+     "id": null,
+     "type": "snapshot"
+    },
+    {
+     "title": "800 Mbit/s Port",
+     "description": null,
+     "id": null,
+     "type": "port"
+    },
+    {
+     "title": "Unlimited Traffic*",
+     "description": null,
+     "id": null,
+     "type": "traffic"
+    }
+   ]
+  },
+  "addons": [
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "United States (East)",
+     "price": [
+      {
+       "amount": 8.55,
+       "currency": "EUR"
+      },
+      {
+       "amount": 8.55,
+       "currency": "GBP"
+      },
+      {
+       "amount": 10.6,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "Asia (Japan)",
+     "price": [
+      {
+       "amount": 14.3,
+       "currency": "EUR"
+      },
+      {
+       "amount": 14.3,
+       "currency": "GBP"
+      },
+      {
+       "amount": 17.75,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "Asia (India)",
+     "price": [
+      {
+       "amount": 13.2,
+       "currency": "EUR"
+      },
+      {
+       "amount": 13.2,
+       "currency": "GBP"
+      },
+      {
+       "amount": 16.35,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "Australia (Sydney)",
+     "price": [
+      {
+       "amount": 11.85,
+       "currency": "EUR"
+      },
+      {
+       "amount": 11.85,
+       "currency": "GBP"
+      },
+      {
+       "amount": 14.7,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "Asia (Singapore)",
+     "price": [
+      {
+       "amount": 14.05,
+       "currency": "EUR"
+      },
+      {
+       "amount": 14.05,
+       "currency": "GBP"
+      },
+      {
+       "amount": 17.4,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "United States (West)",
+     "price": [
+      {
+       "amount": 7.15,
+       "currency": "EUR"
+      },
+      {
+       "amount": 7.15,
+       "currency": "GBP"
+      },
+      {
+       "amount": 8.85,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "United Kingdom",
+     "price": [
+      {
+       "amount": 5.8,
+       "currency": "EUR"
+      },
+      {
+       "amount": 5.8,
+       "currency": "GBP"
+      },
+      {
+       "amount": 7.2,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "United States (Central)",
+     "price": [
+      {
+       "amount": 5.8,
+       "currency": "EUR"
+      },
+      {
+       "amount": 5.8,
+       "currency": "GBP"
+      },
+      {
+       "amount": 7.2,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "European Union",
+     "price": []
+    }
+   }
+  ]
+ },
+ {
+  "tenantId": "INT",
+  "type": "vps",
+  "priceItem": {
+   "name": "Cloud VPS 8",
+   "itemId": "V155",
+   "key": "2I9wdj9tVIc3UxhSr12GlA",
+   "price": [
+    {
+     "amount": 14,
+     "currency": "EUR"
+    },
+    {
+     "amount": 13.7,
+     "currency": "GBP"
+    },
+    {
+     "amount": 16.8,
+     "currency": "USD"
+    }
+   ],
+   "outOfStock": {
+    "isOutOfStock": false
+   },
+   "setupFees": [
+    {
+     "length": 1,
+     "prices": [
+      {
+       "amount": 0,
+       "currency": "EUR"
+      },
+      {
+       "amount": 0,
+       "currency": "GBP"
+      },
+      {
+       "amount": 0,
+       "currency": "USD"
+      }
+     ]
+    },
+    {
+     "length": 3,
+     "prices": [
+      {
+       "amount": 0,
+       "currency": "EUR"
+      },
+      {
+       "amount": 0,
+       "currency": "GBP"
+      },
+      {
+       "amount": 0,
+       "currency": "USD"
+      }
+     ]
+    },
+    {
+     "length": 6,
+     "prices": [
+      {
+       "amount": 0,
+       "currency": "EUR"
+      },
+      {
+       "amount": 0,
+       "currency": "GBP"
+      },
+      {
+       "amount": 0,
+       "currency": "USD"
+      }
+     ]
+    },
+    {
+     "length": 12,
+     "prices": [
+      {
+       "amount": 25.2,
+       "currency": "EUR"
+      },
+      {
+       "amount": 24.66,
+       "currency": "GBP"
+      },
+      {
+       "amount": 30.24,
+       "currency": "USD"
+      }
+     ]
+    },
+    {
+     "length": 24,
+     "prices": [
+      {
+       "amount": 67.2,
+       "currency": "EUR"
+      },
+      {
+       "amount": 65.76,
+       "currency": "GBP"
+      },
+      {
+       "amount": 80.64,
+       "currency": "USD"
+      }
+     ]
+    }
+   ],
+   "specs": [
+    {
+     "title": "8 vCPU Cores",
+     "description": null,
+     "id": null,
+     "type": "cpu"
+    },
+    {
+     "title": "24 GB RAM",
+     "description": null,
+     "id": null,
+     "type": "ram"
+    },
+    {
+     "title": "300GB SSD / 150GB NVMe",
+     "description": "More storage available",
+     "id": null,
+     "type": "storage"
+    },
+    {
+     "title": "3 Snapshots",
+     "description": null,
+     "id": null,
+     "type": "snapshot"
+    },
+    {
+     "title": "600 Mbit/s Port",
+     "description": null,
+     "id": null,
+     "type": "port"
+    },
+    {
+     "title": "Unlimited Traffic*",
+     "description": null,
+     "id": null,
+     "type": "traffic"
+    }
+   ]
+  },
+  "addons": [
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "United States (East)",
+     "price": [
+      {
+       "amount": 4.75,
+       "currency": "EUR"
+      },
+      {
+       "amount": 4.75,
+       "currency": "GBP"
+      },
+      {
+       "amount": 5.9,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "Asia (India)",
+     "price": [
+      {
+       "amount": 7.4,
+       "currency": "EUR"
+      },
+      {
+       "amount": 7.4,
+       "currency": "GBP"
+      },
+      {
+       "amount": 9.2,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "Australia (Sydney)",
+     "price": [
+      {
+       "amount": 6.6,
+       "currency": "EUR"
+      },
+      {
+       "amount": 6.6,
+       "currency": "GBP"
+      },
+      {
+       "amount": 8.2,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "Asia (Japan)",
+     "price": [
+      {
+       "amount": 8,
+       "currency": "EUR"
+      },
+      {
+       "amount": 8,
+       "currency": "GBP"
+      },
+      {
+       "amount": 9.9,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "Asia (Singapore)",
+     "price": [
+      {
+       "amount": 7.85,
+       "currency": "EUR"
+      },
+      {
+       "amount": 7.85,
+       "currency": "GBP"
+      },
+      {
+       "amount": 9.75,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "United States (West)",
+     "price": [
+      {
+       "amount": 4,
+       "currency": "EUR"
+      },
+      {
+       "amount": 4,
+       "currency": "GBP"
+      },
+      {
+       "amount": 4.95,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "United Kingdom",
+     "price": [
+      {
+       "amount": 3.25,
+       "currency": "EUR"
+      },
+      {
+       "amount": 3.25,
+       "currency": "GBP"
+      },
+      {
+       "amount": 4.05,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "United States (Central)",
+     "price": [
+      {
+       "amount": 3.25,
+       "currency": "EUR"
+      },
+      {
+       "amount": 3.25,
+       "currency": "GBP"
+      },
+      {
+       "amount": 4.05,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "European Union",
+     "price": []
+    }
+   }
+  ]
+ },
+ {
+  "tenantId": "INT",
+  "type": "vps",
+  "priceItem": {
+   "name": "Cloud VPS 6",
+   "itemId": "V154",
+   "key": "5ccMShMvQylyVL6Wk3gmRL",
+   "price": [
+    {
+     "amount": 7.5,
+     "currency": "EUR"
+    },
+    {
+     "amount": 7.35,
+     "currency": "GBP"
+    },
+    {
+     "amount": 9,
+     "currency": "USD"
+    }
+   ],
+   "outOfStock": {
+    "isOutOfStock": false
+   },
+   "setupFees": [
+    {
+     "length": 1,
+     "prices": [
+      {
+       "amount": 0,
+       "currency": "EUR"
+      },
+      {
+       "amount": 0,
+       "currency": "GBP"
+      },
+      {
+       "amount": 0,
+       "currency": "USD"
+      }
+     ]
+    },
+    {
+     "length": 3,
+     "prices": [
+      {
+       "amount": 0,
+       "currency": "EUR"
+      },
+      {
+       "amount": 0,
+       "currency": "GBP"
+      },
+      {
+       "amount": 0,
+       "currency": "USD"
+      }
+     ]
+    },
+    {
+     "length": 6,
+     "prices": [
+      {
+       "amount": 0,
+       "currency": "EUR"
+      },
+      {
+       "amount": 0,
+       "currency": "GBP"
+      },
+      {
+       "amount": 0,
+       "currency": "USD"
+      }
+     ]
+    },
+    {
+     "length": 12,
+     "prices": [
+      {
+       "amount": 13.5,
+       "currency": "EUR"
+      },
+      {
+       "amount": 13.23,
+       "currency": "GBP"
+      },
+      {
+       "amount": 16.2,
+       "currency": "USD"
+      }
+     ]
+    },
+    {
+     "length": 24,
+     "prices": [
+      {
+       "amount": 36,
+       "currency": "EUR"
+      },
+      {
+       "amount": 35.28,
+       "currency": "GBP"
+      },
+      {
+       "amount": 43.2,
+       "currency": "USD"
+      }
+     ]
+    }
+   ],
+   "specs": [
+    {
+     "title": "6 vCPU Cores",
+     "description": null,
+     "id": null,
+     "type": "cpu"
+    },
+    {
+     "title": "12 GB RAM",
+     "description": null,
+     "id": null,
+     "type": "ram"
+    },
+    {
+     "title": "200GB SSD / 100GB NVMe",
+     "description": "More storage available",
+     "id": null,
+     "type": "storage"
+    },
+    {
+     "title": "2 Snapshots",
+     "description": null,
+     "id": null,
+     "type": "snapshot"
+    },
+    {
+     "title": "300 Mbit/s Port",
+     "description": null,
+     "id": null,
+     "type": "port"
+    },
+    {
+     "title": "Unlimited Traffic*",
+     "description": null,
+     "id": null,
+     "type": "traffic"
+    }
+   ]
+  },
+  "addons": [
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "United States (Central)",
+     "price": [
+      {
+       "amount": 1.6,
+       "currency": "EUR"
+      },
+      {
+       "amount": 1.6,
+       "currency": "GBP"
+      },
+      {
+       "amount": 2,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "Asia (India)",
+     "price": [
+      {
+       "amount": 3.7,
+       "currency": "EUR"
+      },
+      {
+       "amount": 3.7,
+       "currency": "GBP"
+      },
+      {
+       "amount": 4.6,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "Australia (Sydney)",
+     "price": [
+      {
+       "amount": 3.3,
+       "currency": "EUR"
+      },
+      {
+       "amount": 3.3,
+       "currency": "GBP"
+      },
+      {
+       "amount": 4.1,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "Asia (Japan)",
+     "price": [
+      {
+       "amount": 4,
+       "currency": "EUR"
+      },
+      {
+       "amount": 4,
+       "currency": "GBP"
+      },
+      {
+       "amount": 4.95,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "Asia (Singapore)",
+     "price": [
+      {
+       "amount": 3.95,
+       "currency": "EUR"
+      },
+      {
+       "amount": 3.95,
+       "currency": "GBP"
+      },
+      {
+       "amount": 4.9,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "United States (West)",
+     "price": [
+      {
+       "amount": 2,
+       "currency": "EUR"
+      },
+      {
+       "amount": 2,
+       "currency": "GBP"
+      },
+      {
+       "amount": 2.5,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "United States (East)",
+     "price": [
+      {
+       "amount": 2.4,
+       "currency": "EUR"
+      },
+      {
+       "amount": 2.4,
+       "currency": "GBP"
+      },
+      {
+       "amount": 3,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "United Kingdom",
+     "price": [
+      {
+       "amount": 1.6,
+       "currency": "EUR"
+      },
+      {
+       "amount": 1.6,
+       "currency": "GBP"
+      },
+      {
+       "amount": 2,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "European Union",
+     "price": []
+    }
+   }
+  ]
+ },
+ {
+  "tenantId": "INT",
+  "type": "vps",
+  "priceItem": {
+   "name": "Cloud VPS 4",
+   "itemId": "V153",
+   "key": "nBVNdNrsVVaGY1EVksKU5",
+   "price": [
+    {
+     "amount": 5.5,
+     "currency": "EUR"
+    },
+    {
+     "amount": 1.95,
+     "currency": "GBP"
+    },
+    {
+     "amount": 6.6,
+     "currency": "USD"
+    }
+   ],
+   "outOfStock": {
+    "isOutOfStock": false
+   },
+   "setupFees": [
+    {
+     "length": 1,
+     "prices": [
+      {
+       "amount": 2,
+       "currency": "EUR"
+      },
+      {
+       "amount": 2.4,
+       "currency": "USD"
+      },
+      {
+       "amount": 4.4,
+       "currency": "GBP"
+      }
+     ]
+    },
+    {
+     "length": 3,
+     "prices": [
+      {
+       "amount": 0,
+       "currency": "EUR"
+      },
+      {
+       "amount": 0,
+       "currency": "USD"
+      },
+      {
+       "amount": 0,
+       "currency": "GBP"
+      }
+     ]
+    },
+    {
+     "length": 6,
+     "prices": [
+      {
+       "amount": 0,
+       "currency": "EUR"
+      },
+      {
+       "amount": 0,
+       "currency": "USD"
+      },
+      {
+       "amount": 0,
+       "currency": "GBP"
+      }
+     ]
+    },
+    {
+     "length": 12,
+     "prices": [
+      {
+       "amount": 0,
+       "currency": "EUR"
+      },
+      {
+       "amount": 0,
+       "currency": "USD"
+      },
+      {
+       "amount": 0,
+       "currency": "GBP"
+      }
+     ]
+    },
+    {
+     "length": 24,
+     "prices": [
+      {
+       "amount": 0,
+       "currency": "EUR"
+      },
+      {
+       "amount": 0,
+       "currency": "USD"
+      },
+      {
+       "amount": 0,
+       "currency": "GBP"
+      }
+     ]
+    }
+   ],
+   "specs": [
+    {
+     "title": "4 vCPU Cores",
+     "description": null,
+     "id": null,
+     "type": "cpu"
+    },
+    {
+     "title": "8 GB RAM",
+     "description": null,
+     "id": null,
+     "type": "ram"
+    },
+    {
+     "title": "100 GB SSD",
+     "description": "More storage available",
+     "id": null,
+     "type": "storage"
+    },
+    {
+     "title": "1 Snapshot",
+     "description": null,
+     "id": null,
+     "type": "snapshot"
+    },
+    {
+     "title": "200 Mbit/s Port",
+     "description": null,
+     "id": null,
+     "type": "port"
+    },
+    {
+     "title": "Unlimited Traffic*",
+     "description": null,
+     "id": null,
+     "type": "traffic"
+    }
+   ]
+  },
+  "addons": [
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "Asia (India)",
+     "price": [
+      {
+       "amount": 2.4,
+       "currency": "EUR"
+      },
+      {
+       "amount": 2.4,
+       "currency": "GBP"
+      },
+      {
+       "amount": 3,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "Australia (Sydney)",
+     "price": [
+      {
+       "amount": 2.15,
+       "currency": "EUR"
+      },
+      {
+       "amount": 2.15,
+       "currency": "GBP"
+      },
+      {
+       "amount": 2.65,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "Asia (Japan)",
+     "price": [
+      {
+       "amount": 2.55,
+       "currency": "EUR"
+      },
+      {
+       "amount": 2.55,
+       "currency": "GBP"
+      },
+      {
+       "amount": 3.15,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "Asia (Singapore)",
+     "price": [
+      {
+       "amount": 2.5,
+       "currency": "EUR"
+      },
+      {
+       "amount": 2.5,
+       "currency": "GBP"
+      },
+      {
+       "amount": 3.1,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "United States (West)",
+     "price": [
+      {
+       "amount": 1.3,
+       "currency": "EUR"
+      },
+      {
+       "amount": 1.3,
+       "currency": "GBP"
+      },
+      {
+       "amount": 1.6,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "United Kingdom",
+     "price": [
+      {
+       "amount": 1.05,
+       "currency": "EUR"
+      },
+      {
+       "amount": 1.05,
+       "currency": "GBP"
+      },
+      {
+       "amount": 1.3,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "United States (Central)",
+     "price": [
+      {
+       "amount": 1.05,
+       "currency": "EUR"
+      },
+      {
+       "amount": 1.05,
+       "currency": "GBP"
+      },
+      {
+       "amount": 1.3,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "United States (East)",
+     "price": [
+      {
+       "amount": 1.55,
+       "currency": "EUR"
+      },
+      {
+       "amount": 1.55,
+       "currency": "GBP"
+      },
+      {
+       "amount": 1.9,
+       "currency": "USD"
+      }
+     ]
+    }
+   },
+   {
+    "type": "location",
+    "priceItem": {
+     "name": "European Union",
+     "price": []
+    }
+   }
+  ]
+ }
+]

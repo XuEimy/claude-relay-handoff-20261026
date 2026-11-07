@@ -142,11 +142,19 @@ export type PreviewRuntime = typeof PreviewRuntime.Type;
 
 /** JSON reason for preview stream close code 4503; must fit the 123-byte close-reason limit. */
 export const PreviewStreamHostSetup = Schema.Struct({
-  need: Schema.Literals(["sandbox", "libraries"]),
+  /** `desktop`: packages the server desktop needs (Xvfb, x11vnc, openbox, CJK fonts). */
+  need: Schema.Literals(["sandbox", "libraries", "desktop"]),
   command: Schema.String,
 });
 export type PreviewStreamHostSetup = typeof PreviewStreamHostSetup.Type;
 export const PREVIEW_STREAM_HOST_SETUP_CLOSE_CODE = 4503;
+
+/** The server desktop: a VNC stream of a headful browser on the server, over this WebSocket. */
+export const PREVIEW_DESKTOP_WS_PATH = "/api/preview-desktop/ws";
+/** The desktop is still installing or starting; the reason says what it is doing. Retry soon. */
+export const PREVIEW_DESKTOP_PREPARING_CLOSE_CODE = 4513;
+/** The desktop could not start; the reason is the message to show. */
+export const PREVIEW_DESKTOP_FAILED_CLOSE_CODE = 4500;
 
 export const PreviewSessionSnapshot = Schema.Struct({
   threadId: TrimmedNonEmptyString,

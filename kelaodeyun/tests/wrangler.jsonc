@@ -1,0 +1,13 @@
+{
+  "name": "kelaodeyun-test",
+  "main": "../worker/index.js",
+  "compatibility_date": "2026-08-22",
+  "assets": { "directory": "../dist/client", "binding": "ASSETS", "not_found_handling": "single-page-application", "run_worker_first": true },
+  "durable_objects": { "bindings": [{ "name": "STORE", "class_name": "Store" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Store"] }],
+  "workflows": [
+    { "name": "provision-server", "binding": "PROVISION", "class_name": "ProvisionServer" },
+    { "name": "teardown-server", "binding": "TEARDOWN", "class_name": "TeardownServer" }
+  ],
+  "vars": { "PRICE_MULTIPLIER": "1.5" }
+}

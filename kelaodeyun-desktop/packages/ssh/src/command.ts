@@ -12,7 +12,12 @@ import * as Scope from "effect/Scope";
 import * as Stream from "effect/Stream";
 import { ChildProcess, ChildProcessSpawner } from "effect/process";
 
-import { buildSshChildEnvironment, type SshAuthOptions } from "./auth.ts";
+import {
+  buildSshChildEnvironment,
+  isSshAgentSigningFailure,
+  isSshAuthFailure,
+  type SshAuthOptions,
+} from "./auth.ts";
 import { SshCommandError, SshInvalidTargetError } from "./errors.ts";
 
 const DEFAULT_SSH_COMMAND_TIMEOUT_MS = 60_000;
@@ -43,6 +48,7 @@ export interface RunSshCommandOptions extends SshAuthOptions {
   readonly timeoutMs?: number;
   /** Keep the end of long failed-command stdout, where the final cause usually is. */
   readonly keepErrorOutputTail?: boolean;
+  readonly sensitiveStdin?: boolean;
 }
 
 export function parseSshResolveOutput(alias: string, stdout: string): DesktopSshEnvironmentTarget {
@@ -108,13 +114,16 @@ export const buildSshHostSpecEffect = (
 
 export function baseSshArgs(
   target: DesktopSshEnvironmentTarget,
-  input?: { readonly batchMode?: "yes" | "no" },
+  input?: { readonly batchMode?: "yes" | "no"; readonly identityFile?: string },
 ): string[] {
   return [
     "-o",
     `BatchMode=${input?.batchMode ?? "no"}`,
     "-o",
     "ConnectTimeout=10",
+    ...(input?.identityFile === undefined
+      ? []
+      : ["-i", input.identityFile, "-o", "IdentitiesOnly=yes"]),
     ...(target.port !== null ? ["-p", String(target.port)] : []),
   ];
 }
@@ -197,13 +206,14 @@ const runSshCommandInScope = Effect.fn("ssh/command.runSshCommand.inScope")(func
           exitCode: null,
           stderr: "",
           message: "Failed to prepare SSH authentication helpers.",
-          cause,
+          ...(input.sensitiveStdin ? {} : { cause }),
         }),
     ),
   );
   const args = [
     ...baseSshArgs(target, {
       batchMode: input.batchMode ?? (input.interactiveAuth ? "no" : "yes"),
+      ...(input.identityFile === undefined ? {} : { identityFile: input.identityFile }),
     }),
     // Cold installs need a long command budget; a lost connection must fail sooner.
     "-o",
@@ -242,11 +252,12 @@ const runSshCommandInScope = Effect.fn("ssh/command.runSshCommand.inScope")(func
             command: [sshCommand, ...args],
             exitCode: null,
             stderr: "",
-            message:
-              cause instanceof Error
+            message: input.sensitiveStdin
+              ? `Failed to spawn SSH command for ${hostSpec}.`
+              : cause instanceof Error
                 ? cause.message
                 : `Failed to spawn SSH command for ${hostSpec}.`,
-            cause,
+            ...(input.sensitiveStdin ? {} : { cause }),
           }),
       ),
     );
@@ -265,32 +276,51 @@ const runSshCommandInScope = Effect.fn("ssh/command.runSshCommand.inScope")(func
           command: ["ssh", ...args],
           exitCode: null,
           stderr: "",
-          message:
-            cause instanceof Error ? cause.message : `Failed to run SSH command for ${hostSpec}.`,
-          cause,
+          message: input.sensitiveStdin
+            ? `Failed to run SSH command for ${hostSpec}.`
+            : cause instanceof Error
+              ? cause.message
+              : `Failed to run SSH command for ${hostSpec}.`,
+          ...(input.sensitiveStdin ? {} : { cause }),
         }),
     ),
   );
 
   if (exitCode !== 0) {
-    const diagnosticStdout = redactSshErrorOutput(stdout, input.keepErrorOutputTail);
+    const diagnosticStdout = input.sensitiveStdin
+      ? "[redacted]"
+      : redactSshErrorOutput(stdout, input.keepErrorOutputTail);
+    const diagnosticStderr = input.sensitiveStdin ? "" : stderr;
+    const rawMessage = normalizeSshErrorMessage({
+      stdout,
+      stderr,
+      fallbackMessage: `SSH command failed for ${hostSpec} (exit ${exitCode}).`,
+    });
+    const rawError = new Error(rawMessage);
+    const message = input.sensitiveStdin
+      ? isSshAuthFailure(rawError)
+        ? isSshAgentSigningFailure(rawError)
+          ? "sign_and_send_pubkey: signing failed: agent refused operation; Authentication failed"
+          : "Authentication failed"
+        : `SSH command failed for ${hostSpec} (exit ${exitCode}).`
+      : normalizeSshErrorMessage({
+          stdout: diagnosticStdout,
+          stderr: diagnosticStderr,
+          fallbackMessage: `SSH command failed for ${hostSpec} (exit ${exitCode}).`,
+        });
     yield* Effect.logWarning("ssh.command.failed", {
       ...sshTargetLogFields(target),
       command: ["ssh", ...args],
       exitCode,
       stdout: diagnosticStdout,
-      stderr,
+      stderr: diagnosticStderr,
     });
     return yield* new SshCommandError({
       command: ["ssh", ...args],
       exitCode,
       stdout: diagnosticStdout,
-      stderr,
-      message: normalizeSshErrorMessage({
-        stdout: diagnosticStdout,
-        stderr,
-        fallbackMessage: `SSH command failed for ${hostSpec} (exit ${exitCode}).`,
-      }),
+      stderr: diagnosticStderr,
+      message,
     });
   }
 

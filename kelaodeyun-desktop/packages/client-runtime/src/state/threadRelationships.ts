@@ -151,7 +151,7 @@ export function immediateThreadRelationships(
   return rows;
 }
 
-export function isParentThreadRelationship(
+function isParentThreadRelationship(
   edge: ThreadRelationshipEdge,
   currentThreadId: ThreadId,
 ): boolean {

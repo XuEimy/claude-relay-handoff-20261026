@@ -1,0 +1,56 @@
+{
+  "V153": {
+    "sys": { "id": "nBVNdNrsVVaGY1EVksKU5" },
+    "price": { "USD": 6.6 },
+    "periods": [
+      { "length": 1, "setup": { "USD": 2.4 }, "discount": { "USD": 0 } },
+      { "length": 12, "setup": { "USD": 0 }, "discount": { "USD": 11.88 } },
+      { "length": 24, "setup": { "USD": 0 }, "discount": { "USD": 31.68 } }
+    ]
+  },
+  "V154": {
+    "sys": { "id": "5ccMShMvQylyVL6Wk3gmRL" },
+    "price": { "USD": 9 },
+    "periods": [
+      { "length": 1, "discount": { "USD": 0 } },
+      { "length": 12, "discount": { "USD": 16.2 } },
+      { "length": 24, "discount": { "USD": 43.2 } }
+    ]
+  },
+  "V155": {
+    "sys": { "id": "2I9wdj9tVIc3UxhSr12GlA" },
+    "price": { "USD": 16.8 },
+    "periods": [
+      { "length": 1, "discount": { "USD": 0 } },
+      { "length": 12, "discount": { "USD": 30.24 } },
+      { "length": 24, "discount": { "USD": 80.64 } }
+    ]
+  },
+  "V156": {
+    "sys": { "id": "7I2rqtRGnM1KvlrPNAEZTR" },
+    "price": { "USD": 30 },
+    "periods": [
+      { "length": 1, "discount": { "USD": 0 } },
+      { "length": 12, "discount": { "USD": 54 } },
+      { "length": 24, "discount": { "USD": 144 } }
+    ]
+  },
+  "V157": {
+    "sys": { "id": "5neCku5MyuvZhncFzLx8Tq" },
+    "price": { "USD": 44.5 },
+    "periods": [
+      { "length": 1, "discount": { "USD": 0 } },
+      { "length": 12, "discount": { "USD": 80.1 } },
+      { "length": 24, "discount": { "USD": 213.6 } }
+    ]
+  },
+  "V158": {
+    "sys": { "id": "6b7tsnH2OUoCy92rx8R38x" },
+    "price": { "USD": 58.8 },
+    "periods": [
+      { "length": 1, "discount": { "USD": 0 } },
+      { "length": 12, "discount": { "USD": 105.84 } },
+      { "length": 24, "discount": { "USD": 282.24 } }
+    ]
+  }
+}

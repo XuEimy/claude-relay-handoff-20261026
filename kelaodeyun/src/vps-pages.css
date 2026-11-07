@@ -53,6 +53,12 @@
 .vps-cycle button { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; }
 .vps-cycle button span { color: var(--portal-accent); font-size: 11px; }
 .vps-cycle button[aria-pressed="true"] span { color: #f1c8b5; }
+.vps-wizard-progress { margin: 0 0 28px; color: var(--portal-muted); font-size: 13px; }
+.vps-wizard-progress [aria-current="step"] { color: var(--portal-ink); font-weight: 600; }
+.vps-wizard-next { margin-top: 24px; }
+.vps-wizard-choice { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 30px; padding: 18px 20px; border: 1px solid var(--portal-line); border-radius: 8px; }
+.vps-wizard-choice > div { display: grid; gap: 5px; }
+.vps-wizard-choice span { color: var(--portal-muted); font-size: 12px; }
 .vps-plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 14px; }
 .vps-plan {
   position: relative;
@@ -69,7 +75,7 @@
 .vps-plan:hover { border-color: #aaa092; }
 .vps-plan.selected { border-color: var(--portal-ink); }
 .vps-plan:focus-within, .vps-region:focus-within { outline: 2px solid var(--portal-accent); outline-offset: 3px; }
-.vps-plan.unavailable { background: var(--portal-surface); opacity: .6; cursor: not-allowed; }
+.vps-plan.unavailable, .vps-region.unavailable { background: var(--portal-surface); opacity: .6; cursor: not-allowed; }
 .vps-plan h3 { font: 400 23px/1.3 "Source Han Serif CN", Georgia, serif; }
 .vps-plan-check { position: absolute; top: 19px; right: 19px; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--portal-accent); color: #fff; }
 .vps-plan-price { display: flex; align-items: baseline; gap: 4px; margin-top: 16px; }
@@ -86,24 +92,20 @@
 .vps-region { display: flex; flex-direction: row; align-items: center; gap: 9px; min-height: 46px; padding: 9px 13px; border: 1.5px solid var(--portal-line); border-radius: 7px; background: #fffefa; cursor: pointer; font-size: 14px; }
 .vps-region.selected { border-color: var(--portal-ink); background: var(--portal-surface); }
 .vps-region small { margin-left: 6px; color: var(--portal-muted); font-size: 11px; }
+.vps-regions-priced { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+.vps-region-priced { align-items: flex-start; min-width: 0; padding: 15px; }
+.vps-region-content { display: grid; gap: 6px; min-width: 0; }
+.vps-region-content > strong { font-size: 17px; }
+.vps-region-content > small { margin: 0; line-height: 1.5; }
 .portal input:focus, .portal textarea:focus, .portal select:focus { outline: 2px solid var(--portal-ink); outline-offset: 1px; }
-.vps-key-label { display: block; margin-bottom: 9px; font-size: 14px; font-weight: 600; }
-.vps-key-input { width: 100%; padding: 14px; border: 1px solid #cfc7b9; border-radius: 7px; background: #fffefa; color: var(--portal-ink); font: 13px/1.6 ui-monospace, SFMono-Regular, monospace; resize: vertical; overflow-wrap: anywhere; }
-.vps-key-input[aria-invalid="true"] { border-color: #a94339; }
-.vps-key-feedback { display: flex; align-items: center; gap: 6px; min-height: 22px; margin-top: 8px; font-size: 13px; overflow-wrap: anywhere; }
-.vps-key-feedback.error { color: #a94339; }
-.vps-key-feedback.valid { color: #46735b; }
-.vps-key-help { margin-top: 13px; border-top: 1px solid var(--portal-line); }
-.vps-key-help summary, .vps-ended summary { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; cursor: pointer; list-style: none; font-size: 14px; font-weight: 600; }
-.vps-key-help summary::-webkit-details-marker, .vps-ended summary::-webkit-details-marker { display: none; }
-.vps-key-help[open] summary svg { transform: rotate(180deg); }
-.vps-key-help-body { padding-bottom: 12px; }
-.vps-help-tabs, .vps-filter { display: flex; flex-wrap: wrap; gap: 10px; }
-.vps-help-tabs button, .vps-filter button { padding: 7px 12px; border-radius: 5px; color: var(--portal-muted); font-size: 13px; }
-.vps-help-tabs button[aria-selected="true"], .vps-filter button[aria-pressed="true"] { background: var(--portal-surface); color: var(--portal-ink); font-weight: 600; }
-.vps-key-help-body p { margin: 16px 0 8px; font-size: 13px; }
-.vps-code-row, .vps-command { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 6px; background: var(--portal-surface); }
-.vps-code-row code, .vps-command code { min-width: 0; overflow-wrap: anywhere; font: 13px/1.5 ui-monospace, SFMono-Regular, monospace; }
+.vps-ended summary { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; cursor: pointer; list-style: none; font-size: 14px; font-weight: 600; }
+.vps-ended summary::-webkit-details-marker { display: none; }
+.vps-filter { display: flex; flex-wrap: wrap; gap: 10px; }
+.vps-filter button { padding: 7px 12px; border-radius: 5px; color: var(--portal-muted); font-size: 13px; }
+.vps-filter button[aria-pressed="true"] { background: var(--portal-surface); color: var(--portal-ink); font-weight: 600; }
+.vps-command { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 6px; background: var(--portal-surface); }
+.vps-command code { min-width: 0; overflow-wrap: anywhere; font: 13px/1.5 ui-monospace, SFMono-Regular, monospace; }
+.vps-password { min-width: 0; width: 180px; border: 0; background: transparent; font: 13px/1.5 ui-monospace, SFMono-Regular, monospace; }
 .vps-copy { flex-shrink: 0; color: var(--portal-muted); font-size: 12px; }
 .vps-copy span { display: inline-flex; align-items: center; gap: 5px; }
 .vps-copy:hover { color: var(--portal-accent); }
@@ -118,10 +120,19 @@
 .vps-summary-total span { font-size: 14px; }
 .vps-summary-total strong { font-size: 25px; }
 .vps-order p { margin-top: 12px; font-size: 13px; line-height: 1.7; }
+.vps-mobile-summary .vps-setup-fee { margin: 0; color: var(--portal-muted); font-size: 11px; }
 .vps-order .vps-summary-warning { padding-top: 15px; border-top: 1px solid var(--portal-line); }
 .vps-order .portal-button { width: 100%; margin-top: 20px; }
 .vps-order small { display: block; margin-top: 11px; color: var(--portal-muted); text-align: center; font-size: 12px; }
 .vps-mobile-summary { display: none; }
+.portal .vps-order-top { display: block; position: static; margin-bottom: 32px; }
+.vps-order-top .vps-summary-total { margin-top: 0; }
+.vps-order-top .vps-summary-total em { font-size: 16px; font-style: normal; font-weight: 400; }
+.vps-checkout-layout { max-width: 900px; margin-inline: auto; }
+.vps-checkout-actions { margin-top: 28px; border-top: 1px solid var(--portal-line); padding-top: 20px; }
+.vps-checkout-actions p { font-size: 13px; color: var(--portal-muted); line-height: 1.7; }
+.vps-checkout-actions .portal-button { width: 100%; margin-top: 16px; }
+.vps-checkout-actions small { display: block; margin-top: 10px; text-align: center; color: var(--portal-muted); }
 .vps-load-error, .vps-empty-plans { padding: 36px; border: 1px solid var(--portal-line); border-radius: 9px; background: var(--portal-surface); }
 .vps-load-error h2 { font-size: 24px; }
 .vps-load-error p { margin: 8px 0 22px; }
@@ -163,7 +174,7 @@
 .vps-progress li.current { color: var(--portal-accent); font-weight: 600; }.vps-progress li.current span { border-color: var(--portal-accent); }
 .vps-progress-wrap p { margin-top: 13px; font-size: 13px; }
 .vps-connection { display: grid; gap: 14px; margin-top: 24px; }
-.vps-connection > div:first-child > span { color: var(--portal-muted); font-size: 12px; }
+.vps-connection > div > span { color: var(--portal-muted); font-size: 12px; }
 .vps-address { display: flex; align-items: center; gap: 14px; }.vps-address strong { font: 600 24px/1.4 ui-monospace, SFMono-Regular, monospace; overflow-wrap: anywhere; }
 .vps-connection > a { font-size: 14px; }
 .vps-connection .vps-simulated-note { color: var(--portal-muted); font-size: 14px; }
@@ -193,10 +204,12 @@
 @media (max-width: 800px) {
   .vps-billing-layout { grid-template-columns: 1fr; gap: 0; }.vps-order { display: none; }
   .vps-billing-page { padding-bottom: 110px; }
-  .portal-main:has(.vps-mobile-summary) + .portal-footer { padding-bottom: calc(140px + env(safe-area-inset-bottom)); }
-  .vps-mobile-summary { position: fixed; z-index: 20; bottom: 0; left: 0; right: 0; display: grid; grid-template-columns: 1fr auto; gap: 2px 16px; align-items: center; padding: 12px 24px max(12px, env(safe-area-inset-bottom)); border-top: 1px solid var(--portal-line); background: #fffefa; }
-  .vps-mobile-summary .vps-summary-total { display: grid; gap: 0; margin: 0; }.vps-mobile-summary .vps-summary-total span { font-size: 11px; color: var(--portal-muted); }.vps-mobile-summary .vps-summary-total strong { font-size: 20px; }
-  .vps-mobile-summary .portal-button { grid-column: 2; grid-row: 1 / 3; min-height: 44px; padding: 9px 14px; font-size: 13px; }.vps-mobile-summary small { color: var(--portal-muted); font-size: 11px; }
+  .portal-main:has(.vps-mobile-summary) + .portal-footer { padding-bottom: calc(260px + env(safe-area-inset-bottom)); }
+  .vps-mobile-summary { position: fixed; z-index: 20; bottom: 0; left: 0; right: 0; display: flex; flex-direction: column; gap: 3px; max-height: 50vh; overflow-y: auto; padding: 10px 24px max(10px, env(safe-area-inset-bottom)); border-top: 1px solid var(--portal-line); background: #fffefa; }
+  .portal .vps-mobile-summary dl { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 0; font-size: 11px; }.portal .vps-mobile-summary dl > div { display: flex; gap: 5px; padding: 0; border: 0; }.vps-mobile-summary dt { color: var(--portal-muted); }.vps-mobile-summary dd { margin: 0; }
+  .vps-mobile-summary .vps-summary-total { margin: 0; }.vps-mobile-summary .vps-summary-total span { font-size: 11px; color: var(--portal-muted); }.vps-mobile-summary .vps-summary-total strong { font-size: 20px; }
+  .vps-mobile-summary p, .vps-mobile-summary small { margin: 0; color: var(--portal-muted); font-size: 11px; line-height: 1.4; }
+  .vps-mobile-summary .portal-button { min-height: 40px; padding: 8px 14px; font-size: 13px; }
   .vps-profile { align-items: flex-start; flex-direction: column; }.vps-kpis { grid-template-columns: repeat(3, 1fr); }.vps-kpis > div { border-bottom: 1px solid var(--portal-line); }
   .vps-attention-row { flex-direction: column; }.vps-admin-actions { justify-content: flex-start; }
   .vps-table-hint { display: block; }

@@ -3,6 +3,7 @@
   "name": "kelaodeyun",
   "main": "worker/index.js",
   "compatibility_date": "2026-08-22",
+  "triggers": { "crons": ["*/5 * * * *"] },
   "routes": [{ "pattern": "kelaodeyun.com", "custom_domain": true }],
   "assets": { "directory": "./dist/client", "binding": "ASSETS", "not_found_handling": "single-page-application", "run_worker_first": true },
   "durable_objects": { "bindings": [{ "name": "STORE", "class_name": "Store" }] },
@@ -14,10 +15,9 @@
   "vars": {
     "PUBLIC_ORIGIN": "https://kelaodeyun.com",
     "ADMIN_EMAILS": "821819569@qq.com",
-    "HOSTINGER_MODE": "simulate",
+    "CONTABO_MODE": "simulate",
     "PRICE_MULTIPLIER": "1.5",
-    "HOSTINGER_TEMPLATE_ID": "1077",
-    "HOSTINGER_POST_INSTALL_SCRIPT_ID": "",
+    "CONTABO_IMAGE_ID": "d64d5c6c-9dda-4e38-8174-0ee282474d8a",
     "SUPPORT_EMAIL": "",
     "PUBLIC_OPERATOR": ""
   }

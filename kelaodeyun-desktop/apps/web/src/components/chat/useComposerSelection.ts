@@ -236,7 +236,7 @@ export function useComposerSelection(input: ComposerSelectionInput) {
   const onEnvModeChangeStable = useStableCallback(onEnvModeChange);
 
   // Reads only the id: the shell changes on every streamed event, and a new handler
-  // re-renders the branch toolbar and thread details panel with it.
+  // re-renders the branch toolbar with it.
   const activeThreadId = activeThread?.id;
   const onStartFromOriginChange = (nextStartFromOrigin: boolean) => {
     if (canOverrideServerThreadEnvMode && activeThreadId !== undefined) {

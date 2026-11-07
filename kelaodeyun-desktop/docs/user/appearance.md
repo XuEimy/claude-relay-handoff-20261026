@@ -49,8 +49,8 @@ switching views hides terminals without ending their processes. Use a terminal's
 end it.
 
 The terminal layout preference is saved on this device. In Chat, the terminal toggle can still
-open the bottom drawer. Opening thread details or conversation search temporarily restores the
-chat layout. This does not change what happens to processes when the app or its server exits.
+open the bottom drawer. Opening conversation search temporarily restores the chat layout. This does
+not change what happens to processes when the app or its server exits.
 
 ## Motion
 

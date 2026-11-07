@@ -1,6 +1,23 @@
+## App 账户服务器（2026-11-06）
+
+- 网站账户持有 SSH 主机；密钥和密码使用 `CREDENTIALS_KEY` 加密，购买服务器自动列入。App 使用浏览器 Google 登录与 PKCE 一次性授权码，网站账户页可撤销全部 App 会话。
+- 桌面端通过系统浏览器登录，App token 使用系统安全存储；私钥仅在主进程读取、验证和写入受限权限文件，不能发送给渲染进程。
+
+## 服务商切换为 Contabo（2026-11-06，最新优先）
+
+- Stripe 续费：以最新已付款发票中的订阅服务区间更新 `paid_through`，不是仅凭订阅 `active` 或 `current_period_end` 延长服务。失败且已付期限已过时取消并清理；期限未知时交给后台核对。每五分钟定时核对与补偿重试，测试与正式 Webhook 模式隔离。
+- 关闭续费使用本站所有者接口，先持久化意图，再同步 Stripe 和 Contabo 到期取消。公开实例 API 没有撤销取消，Stripe 端重新开启会被重新关闭，恢复需人工核对。Portal 只管理付款方式和账单。配置工具及权限/上线流程见 README 的配置一节。
+- `CONTABO_MODE=simulate` 时拒绝 Stripe 正式 Checkout；测试付款须在界面明确标识。Stripe API 固定 `2026-09-30.endive`。
+- Stripe `2026-09-30.endive` 的 Checkout 必须使用 `allowed_payment_method_types`，旧的 `payment_method_types` 会被真实接口拒绝。已用 WNT 测试环境、隔离本地数据库验证年付首期 13770 美分、次年自动续费 16200 美分、签名回调、Portal 及到期取消；没有真实扣款或 Contabo 下单。正式收费前仍须配置持久正式密钥并验证真实服务器流程。
+- 服务器供应商为 Contabo；`worker/contabo.js` 列出套餐规格，提供 1、12、24 个月及九个地区。
+- 价格修正（覆盖此前加收长期 setupFees 的方案）：`/v1/products` 提供基础月价和地区费；用同一 `priceItem.key` 读取官网 `/en-us/catalog/product` 的 `periods[].discount` 和 `periods[].setup`，分别作为首期整段折扣和一次性开通费。API 的 `setupFees` 混有折扣，不作开通费依据。
+- 两个来源的基础美元价格须一致，周期数据缺失或无效时停止报价。首期减基础套餐折扣，地区费不打折，续费使用未优惠价格；整体沿用定价倍数，缓存一小时。首期折扣通过 Stripe `duration=once` 优惠券实现，页面分别标明首期与续费价。
+- 购买页两步：先选套餐（显示起价），下一页顶部显示总价、费用明细及续费价；地区卡片仅显示所选周期的地区附加费，免费地区明确标注，选择后更新顶部总价，底部付款。系统生成 root 密码并加密保存，账户页查看。
+- 使用密码授权获取 API 令牌；默认模拟，Stripe 测试密钥强制模拟。订阅结束时重装清理并取消 Contabo 实例，供应商仍计费至合同结束。
+
 ## 服务器订阅迁移（2026-11-05，最新优先）
 
-- 网站使用 Cloudflare Workers、SQLite Durable Object 和 Workflows；Google 登录，Stripe 美元月付/年付订阅，Hostinger 自动开通服务器。订阅结束立即清理服务器数据，中文界面和现有暖色视觉保留。
+- 网站使用 Cloudflare Workers、SQLite Durable Object 和 Workflows；Google 登录，Stripe 美元月付/年付订阅，Contabo 自动开通服务器。订阅结束立即清理服务器数据，中文界面和现有暖色视觉保留。
 - 网站不再提供余额充值、模型中转、密码登录或 OpenAI Sites 交付。保留功能许愿箱和产品信息页面。
 
 ## 配色恢复（2026-11-05，最新优先）

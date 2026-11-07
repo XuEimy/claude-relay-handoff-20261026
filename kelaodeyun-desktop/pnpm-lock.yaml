@@ -1068,6 +1068,9 @@ importers:
       '@noble/hashes':
         specifier: 'catalog:'
         version: 1.8.0
+      '@novnc/novnc':
+        specifier: 1.7.0
+        version: 1.7.0
       '@pierre/diffs':
         specifier: 1.6.1
         version: 1.6.1(patch_hash=322ac5f5db8b5715189c010802047f8235c3a45d8ed5ca0ba60fac266e2eba34)(@shikijs/themes@4.2.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -5188,6 +5191,9 @@ packages:
   '@nornagon/put@0.0.8':
     resolution: {integrity: sha512-ugvXJjwF5ldtUpa7D95kruNJ41yFQDEKyF5CW4TgKJnh+W/zmlBzXXeKTyqIgwMFrkePN2JqOBqcF0M0oOunow==}
     engines: {node: '>=0.3.0'}
+
+  '@novnc/novnc@1.7.0':
+    resolution: {integrity: sha512-ucEJOx4T2avIRCleodk7YobZj5O2Ga2AeLfQ69A/yjG9HHba2+PDgwSkN3FttrmG+70ZGx21sElNFouK13RzyA==}
 
   '@noxcturnal/noxcturnal-darwin-arm64@0.1.1':
     resolution: {integrity: sha512-Y0JXi8J4abYq88swQLqXOw0kSw0v6CfKp4tboyqPOWNVgQvUy14SMTKVyPLUpaKd0ZJGP8cvNTSQI9bZP7+5CQ==}
@@ -15302,6 +15308,8 @@ snapshots:
   '@nodable/entities@2.1.1': {}
 
   '@nornagon/put@0.0.8': {}
+
+  '@novnc/novnc@1.7.0': {}
 
   '@noxcturnal/noxcturnal-darwin-arm64@0.1.1':
     optional: true

@@ -41,12 +41,7 @@ import {
   focusTerminal,
 } from "../../lib/terminalFocus";
 import { useTerminalUiStateStore } from "../../terminalUiStateStore";
-import {
-  LAST_INVOKED_SCRIPT_BY_PROJECT_KEY,
-  LastInvokedScriptByProjectSchema,
-  makeThreadErrorSetter,
-} from "../ChatView.logic";
-import { useLocalStorage } from "~/hooks/useLocalStorage";
+import { makeThreadErrorSetter } from "../ChatView.logic";
 import { previewEnvironment } from "../../state/preview";
 import { readEnvironmentScope } from "../../state/session";
 import { useAtomCommand } from "../../state/use-atom-command";
@@ -106,11 +101,6 @@ export function useChatTerminalActions(input: ChatTerminalActionsInput) {
 
   const hasTerminalWriteAccess = () =>
     readEnvironmentScope(environmentId, AuthTerminalOperateScope);
-  const [lastInvokedScriptByProjectId, setLastInvokedScriptByProjectId] = useLocalStorage(
-    LAST_INVOKED_SCRIPT_BY_PROJECT_KEY,
-    {},
-    LastInvokedScriptByProjectSchema,
-  );
   const storeSetTerminalOpen = useTerminalUiStateStore((s) => s.setTerminalOpen);
   const storeEnsureTerminal = useTerminalUiStateStore((state) => state.ensureTerminal);
   const storeSplitTerminal = useTerminalUiStateStore((s) => s.splitTerminal);
@@ -205,17 +195,10 @@ export function useChatTerminalActions(input: ChatTerminalActionsInput) {
       env?: Record<string, string>;
       worktreePath?: string | null;
       preferNewTerminal?: boolean;
-      rememberAsLastInvoked?: boolean;
       shellHistory?: "preserve" | "suppress";
     },
   ) => {
     if (!hasTerminalWriteAccess() || !activeThreadId || !activeProject || !activeThread) return;
-    if (options?.rememberAsLastInvoked !== false) {
-      setLastInvokedScriptByProjectId((current) => {
-        if (current[activeProject.id] === script.id) return current;
-        return { ...current, [activeProject.id]: script.id };
-      });
-    }
     const targetCwd = options?.cwd ?? gitCwd ?? activeProject.workspaceRoot;
     const reusableTerminalId =
       options?.preferNewTerminal ||
@@ -318,7 +301,7 @@ export function useChatTerminalActions(input: ChatTerminalActionsInput) {
         icon: "play",
         runOnWorktreeCreate: false,
       },
-      { rememberAsLastInvoked: false, shellHistory: "preserve" },
+      { shellHistory: "preserve" },
     );
   };
   const runShellCommandStable = useStableCallback(runShellCommand);
@@ -446,7 +429,6 @@ export function useChatTerminalActions(input: ChatTerminalActionsInput) {
     addTerminalSurfaceStable,
     closePanelTerminalStable,
     createNewTerminalStable,
-    lastInvokedScriptByProjectId,
     requestClosePanelTerminalStable,
     requestCloseTerminalStable,
     runProjectScriptStable,

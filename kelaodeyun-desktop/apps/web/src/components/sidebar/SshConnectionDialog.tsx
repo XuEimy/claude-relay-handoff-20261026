@@ -1,12 +1,8 @@
-import { scopeProjectRef } from "@t3tools/client-runtime/environment";
-import { inferProjectTitleFromPath } from "@t3tools/client-runtime/state/projects";
-import { useNewThreadHandler } from "../../hooks/useHandleNewThread";
-import { newProjectId } from "../../lib/utils";
-import { readProjects, waitForProject } from "../../state/entities";
-import { projectEnvironment } from "../../state/projects";
-import { useUiStateStore } from "../../uiStateStore";
+import { useEnterEnvironmentWorkspace } from "./useEnterEnvironmentWorkspace";
 import { useEffect, useRef, useState } from "react";
 import { SshConnectingAnimation } from "./SshConnectingAnimation";
+import { SshConnectionTicker } from "./SshConnectionTicker";
+import { sshProgressLine, useSshConnectionProgress } from "./useSshConnectionProgress";
 import { Spinner } from "../ui/spinner";
 import { ServerIcon } from "lucide-react";
 import * as Option from "effect/Option";
@@ -15,6 +11,10 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEnvironments, type EnvironmentPresentation } from "../../state/environments";
 import { useAtomCommand } from "../../state/use-atom-command";
 import { environmentCatalog } from "../../connection/catalog";
+import { connectSshEnvironment } from "../../connection/onboarding";
+import { useAccountHosts } from "../../hooks/useDesktopAccount";
+import { unmatchedAccountHosts } from "./accountHosts";
+import { accountHostSshTarget, type DesktopSshEnvironmentTarget } from "@t3tools/contracts";
 import { Button } from "../ui/button";
 import {
   Dialog,
@@ -36,6 +36,14 @@ export function SshConnectionDialog({
   const { environments } = useEnvironments();
   const navigate = useNavigate();
   const [animation, setAnimation] = useState<"idle" | "connecting" | "exiting">("idle");
+  const [connectingTarget, setConnectingTarget] = useState<DesktopSshEnvironmentTarget | null>(
+    null,
+  );
+  const progress = useSshConnectionProgress(connectingTarget);
+  const { hosts: accountHosts, error: accountError } = useAccountHosts(open);
+  const [accountConnecting, setAccountConnecting] = useState<string | null>(null);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const connectAccountHost = useAtomCommand(connectSshEnvironment, { reportFailure: false });
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- cancels the pending dialog fade timer when the dialog owner unmounts
   useEffect(
@@ -47,6 +55,7 @@ export function SshConnectionDialog({
   const changeOpen = (next: boolean) => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
     setAnimation("idle");
+    setConnectingTarget(null);
     onOpenChange(next);
   };
   const finish = () => {
@@ -57,17 +66,27 @@ export function SshConnectionDialog({
   const servers = environments.filter(
     (environment) => environment.entry.target._tag === "SshConnectionTarget",
   );
+  const targets = servers.flatMap((server) => {
+    const profile = Option.getOrNull(server.entry.profile);
+    return profile?._tag === "SshConnectionProfile" ? [profile.target] : [];
+  });
+  const availableAccountHosts = unmatchedAccountHosts(accountHosts, targets);
   return (
     <Dialog open={open} onOpenChange={changeOpen}>
       <DialogPopup className="sm:max-w-md" showCloseButton={animation === "idle"}>
         {animation !== "idle" ? (
           <div
-            className="absolute inset-0 z-10 flex items-center justify-center rounded-[inherit] bg-background transition-opacity duration-500 motion-reduce:transition-none"
+            className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-6 rounded-[inherit] bg-background transition-opacity duration-500 motion-reduce:transition-none"
             style={{ opacity: animation === "exiting" ? 0 : 1 }}
-            role="status"
-            aria-label="正在连接云电脑"
           >
             <SshConnectingAnimation />
+            <SshConnectionTicker
+              line={
+                progress
+                  ? sshProgressLine(progress)
+                  : { key: "connecting", text: "正在连接云电脑…" }
+              }
+            />
           </div>
         ) : null}
         <DialogHeader
@@ -87,12 +106,68 @@ export function SshConnectionDialog({
                 key={server.environmentId}
                 server={server}
                 onSelected={finish}
-                onConnecting={() => setAnimation("connecting")}
-                onConnectionFailed={() => setAnimation("idle")}
+                onConnecting={() => {
+                  const profile = Option.getOrNull(server.entry.profile);
+                  setConnectingTarget(
+                    profile?._tag === "SshConnectionProfile" ? profile.target : null,
+                  );
+                  setAnimation("connecting");
+                }}
+                onConnectionFailed={() => {
+                  setConnectingTarget(null);
+                  setAnimation("idle");
+                }}
                 dialogOpen={open}
               />
             ))}
-            {servers.length === 0 ? (
+            {availableAccountHosts.length ? (
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium">账户中的服务器</h3>
+                {availableAccountHosts.map((host) => (
+                  <div
+                    key={host.id}
+                    className="flex items-center justify-between gap-2 rounded-md border p-3"
+                  >
+                    <div className="min-w-0">
+                      <div className="truncate text-sm">
+                        {host.label} {host.source === "purchased" ? "· 已购买" : ""}
+                      </div>
+                      <div className="truncate text-xs text-muted-foreground">
+                        {host.username}@{host.hostname}:{host.port}
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={accountConnecting !== null}
+                      onClick={() => {
+                        setAccountConnecting(host.id);
+                        setConnectionError(null);
+                        void connectAccountHost({
+                          target: accountHostSshTarget(host),
+                          label: host.label,
+                        })
+                          .then((result) => {
+                            if (result._tag === "Failure") {
+                              const cause = squashAtomCommandFailure(result);
+                              setConnectionError(
+                                cause instanceof Error ? cause.message : "连接失败",
+                              );
+                            }
+                          })
+                          .finally(() => setAccountConnecting(null));
+                      }}
+                    >
+                      {accountConnecting === host.id ? "连接中…" : "连接"}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            {accountError || connectionError ? (
+              <p className="text-sm text-destructive">{accountError || connectionError}</p>
+            ) : null}
+            {servers.length === 0 && availableAccountHosts.length === 0 ? (
               <p className="py-6 text-center text-sm text-muted-foreground">还没有配置服务器</p>
             ) : null}
           </div>
@@ -131,36 +206,14 @@ export function SshServerCard({
   dialogOpen?: boolean;
 }) {
   const resumeAfterConnect = useRef(false);
-  const createProject = useAtomCommand(projectEnvironment.create, { reportFailure: false });
-  const openThread = useNewThreadHandler();
+  const openWorkspace = useEnterEnvironmentWorkspace();
   const enterWorkspace = async () => {
     if (server.connection.phase !== "connected" || !server.serverConfig) return;
     setPending(true);
     setError(null);
     onConnecting?.();
     try {
-      const existing = readProjects().find(
-        (project) => project.environmentId === server.environmentId && project.archivedAt == null,
-      );
-      const projectId = existing?.id ?? newProjectId();
-      if (!existing) {
-        const workspaceRoot = server.serverConfig.cwd;
-        const result = await createProject({
-          environmentId: server.environmentId,
-          input: {
-            projectId,
-            title: inferProjectTitleFromPath(workspaceRoot),
-            workspaceRoot,
-            createWorkspaceRootIfMissing: false,
-            defaultModelSelection: null,
-          },
-        });
-        if (result._tag === "Failure") throw squashAtomCommandFailure(result);
-        await waitForProject(scopeProjectRef(server.environmentId, projectId));
-      }
-      useUiStateStore.getState().setSidebarProjectScopeKeys([]);
-      const opened = await openThread(scopeProjectRef(server.environmentId, projectId));
-      if (!opened) throw new Error("工作区尚未就绪，请重试。");
+      await openWorkspace(server);
       onSelected?.();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "无法打开服务器工作区");

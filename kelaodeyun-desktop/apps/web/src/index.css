@@ -2419,6 +2419,52 @@ code {
   }
 }
 
+/* Sidebar read hint: a hairline with a soft travelling glint. Hidden for the
+   first 240ms so cached or fast reads never flash; transform-only animation. */
+.workspace-loading-glint {
+  position: relative;
+  height: 1px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  opacity: 0;
+  animation: workspace-loading-glint-in 320ms ease-out 240ms forwards;
+}
+
+.workspace-loading-glint::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, currentColor 35%, transparent),
+    transparent
+  );
+  transform: translateX(-100%);
+  animation: workspace-loading-glint-sweep 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes workspace-loading-glint-in {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes workspace-loading-glint-sweep {
+  to {
+    transform: translateX(250%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-loading-glint::after {
+    animation: none;
+    opacity: 0;
+  }
+}
+
 /* Let the sortable rows open label clearance before painting the dividers.
    This runs once per pickup; rows retain dnd-kit's normal 200ms transitions. */
 .sidebar-drag-boundary-label {
